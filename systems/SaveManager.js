@@ -58,6 +58,11 @@ export default class SaveManager {
             saveData.lifeStage = structuredClone(
                 this.rootData.lifeStage
             );
+            
+            // Stages
+            saveData.stageProgress = structuredClone(
+                this.rootData.stageProgress
+            );
 
             const json = JSON.stringify(saveData);
 
@@ -133,6 +138,15 @@ export default class SaveManager {
             // Restore life / evolution stage
             if (savedData.lifeStage) {
                 Object.assign(this.rootData.lifeStage, savedData.lifeStage);
+            }
+            
+            if (savedData.stageProgress) {
+
+                this.rootData.stageProgress =
+                {
+                    ...this.rootData.stageProgress,
+                    ...savedData.stageProgress
+                };
             }
 
             console.log('[SaveManager] Loaded saved state');

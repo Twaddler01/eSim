@@ -90,12 +90,15 @@ export const saveFields = {
     // playerData: ['id', 'val']
 };
 
+export const stageProgress = {};
+
 // Combined data (rootData) for saving, etc
 export const gameData = {
     objData,
     playerData,
     messageData,
     elapsedTime: 0,
-    saveFields,
-    lifeStage
+    saveFields, // REVAMP: Needs removal
+    lifeStage,
+    stageProgress
 };

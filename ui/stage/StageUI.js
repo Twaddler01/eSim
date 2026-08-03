@@ -25,13 +25,16 @@ export default class StageUI {
         console.log('StageUI created');
 
         this.createHeader();
+        this.headerBox1();
+        this.headerBox2();
+        this.headerBox3();
     
         this.viewport =
             new StageViewport(this.scene, {
                 x: 10,
-                y: 60,
+                y: 100, // 60 (+40)
                 width: this.width - 20,
-                height: this.height - 140
+                height: this.height - 180 // 140
             });
     
         this.navigation =
@@ -60,10 +63,18 @@ export default class StageUI {
     }
 
     createHeader() {
-
         // Temporary
-        this.scene.add.text(
+        /*this.scene.add.rectangle(
             10,
+            10,
+            this.width - 20,
+            90, // 50
+            0xffffff
+        )
+        .setOrigin(0);*/
+
+        this.scene.add.text(
+            40,
             10,
             'CELL STAGE',
             {
@@ -73,15 +84,49 @@ export default class StageUI {
         );
     }
 
+    // Messages here
+    headerBox1() {
+        this.headerBox1 = this.scene.add.rectangle(
+            10,
+            50,
+            this.width / 3 - 7,
+            40,
+            0x444444
+        )
+        .setOrigin(0);
+    }
+
+    headerBox2() {
+        this.headerBox2 = this.scene.add.rectangle(
+            10 + this.headerBox1.width + 1,
+            10,
+            this.width / 3 - 7,
+            80,
+            0x444444
+        )
+        .setOrigin(0);
+    }
+    
+    headerBox3() {
+        this.scene.add.rectangle(
+            10 + this.headerBox1.width + 1 + this.headerBox2.width + 1,
+            10,
+            this.width / 3 - 7,
+            80,
+            0x444444
+        )
+        .setOrigin(0);
+    }
+    
 
     createViewport() {
 
         // Temporary
         this.scene.add.rectangle(
             10,
-            60,
+            100, // 60
             this.width - 20,
-            this.height - 140,
+            this.height - 180, // 140
             0x111111
         )
         .setOrigin(0);

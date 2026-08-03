@@ -46,7 +46,7 @@ export default class StageViewport {
                 this.y,
                 this.width,
                 this.height,
-                0x111111
+                0xffffff // 0x111111
             )
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
@@ -173,7 +173,7 @@ export default class StageViewport {
         this.maxScrollY =
             Math.max(
                 0,
-                this.contentHeight -
+                this.contentHeight + 15 - // + 15 padding tweak added
                 this.height
             );
 
@@ -328,7 +328,6 @@ export default class StageViewport {
     
         this.updateScrollLimits();
     }
-    
     
     showCards(cardData = []) {
     
