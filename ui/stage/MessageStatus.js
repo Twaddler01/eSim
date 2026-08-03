@@ -2,13 +2,19 @@ import { messageData } from '../../data/gameData.js';
 
 export default class MessageStatus {
 
-    constructor(scene, width, gameTimer, y) {
+    constructor(scene, gameTimer, options = {}) {
+        // old -- width, gameTimer, y
 
         this.scene = scene;
-        this.width = width;
-        this.gameTimer = gameTimer;
         
-        this.y = y ?? 10;
+        this.x = options.x ?? 10;
+        this.y = options.y ?? 10;
+        this.width = options.width ?? 300;
+        this.height = options.height ?? 100
+        this.depth = options.depth ?? 0;
+        this.fontSize = options.fontSize ?? '12px';
+        this.fontColor = options.fontColor ?? '#fff';
+        this.gameTimer = gameTimer;
 
         this.messages = [];
 
@@ -25,14 +31,10 @@ export default class MessageStatus {
     // --------------------------------------------------
 
     draw() {
-        const width =
-            this.width;
-
-        const height = 180;
-
-        const x = 10;
+        const width = this.width;
+        const height = this.height;
+        const x = this.x;
         const y = this.y;
-
 
         // --------------------------------------------------
         // Background
@@ -48,32 +50,15 @@ export default class MessageStatus {
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
 
-
-        // --------------------------------------------------
-        // Title
-        // --------------------------------------------------
-
-        this.scene.add.text(
-            width / 2,
-            y,
-            'Messages',
-            {
-                fontSize: '28px',
-                color: '#fff'
-            }
-        )
-            .setOrigin(0.5, 0);
-
-
         // --------------------------------------------------
         // Message viewport dimensions
         // --------------------------------------------------
 
-        const winX = x + 10;
-        const winY = y + 50;
+        const winX = this.x + 1;
+        const winY = this.y + 1;
 
-        const winWidth = width - 20;
-        const winHeight = height - 60;
+        const winWidth = this.width - 1;
+        const winHeight = this.height - 1;
 
         this.msgArea = {
             x: winX,
@@ -82,27 +67,13 @@ export default class MessageStatus {
             height: winHeight
         };
 
-
-        // --------------------------------------------------
-        // Message area background / border
-        // --------------------------------------------------
-
-        this.scene.add.rectangle(
-            winX,
-            winY,
-            winWidth,
-            winHeight
-        )
-            .setOrigin(0)
-            .setStrokeStyle(1, 0x000000);
-
-
         // --------------------------------------------------
         // Message container
         // --------------------------------------------------
 
         this.messageContainer =
             this.scene.add.container(0, 0);
+        this.messageContainer.setDepth(this.depth);
 
 
         // --------------------------------------------------
@@ -251,9 +222,8 @@ export default class MessageStatus {
         // Create message text
         // --------------------------------------------------
     
-        const displayMessage =
-            `${displayTimestamp}: "${message}"`;
-    
+        const displayMessage = `${displayTimestamp}: "${message}"`;
+        
         const padding = 24;
     
         const text = this.scene.add.text(
@@ -261,8 +231,8 @@ export default class MessageStatus {
             0,
             displayMessage,
             {
-                fontSize: '18px',
-                color: '#fff',
+                fontSize: this.fontSize,
+                color: this.fontColor,
     
                 wordWrap: {
                     width: this.msgArea.width - padding * 2

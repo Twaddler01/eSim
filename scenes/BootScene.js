@@ -8,7 +8,6 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
-
         const saveManager = new SaveManager(
             gameData,
             'saveState',

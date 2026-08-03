@@ -1,7 +1,10 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
 import { stageData } from '../../data/stageData.js';
-
+import { gameData } from '../../data/gameData.js';
+import MessageStatus from './MessageStatus.js';
+import StageProgressManager from '../../managers/StageProgressManager.js';
+    
 export default class StageUI {
 
     constructor(scene, options = {}) {
@@ -15,26 +18,67 @@ export default class StageUI {
         this.height =
             options.height ??
             scene.scale.height;
+            
+        this.headerHeight = 280;
+        this.headerTitleHeight = 40;
 
         this.create();
+
     }
 
-
     create() {
-
-        console.log('StageUI created');
-
         this.createHeader();
         this.headerBox1();
         this.headerBox2();
         this.headerBox3();
-    
+        
+        // For messages
+        this.messageStatus = new MessageStatus(
+            this.scene, this.scene.gameTimer, {
+            x: this.headerBox1.x,
+            y: this.headerBox1.y,
+            width: this.headerBox1.width,
+            height: this.headerBox1.height,
+            fontSize: '18px',
+            fontColor: '#33FFE4'
+        });
+        
+        this.messageStatus.addMessageDelayed('Wecome to eSim: Cell Stage!', 2000);
+
+        const margin = 10;
+        const navigationHeight = 60;
+        const navigationY = this.height - navigationHeight - margin;
+        
+        const viewportY = 300;
+        const viewportBottom = navigationY - 10;
+        
+        const viewportHeight = viewportBottom - viewportY;
+        
+        this.viewport =
+            new StageViewport(this.scene, {
+                x: margin,
+                y: viewportY,
+                width: this.width - margin * 2,
+                height: viewportHeight,
+            });
+        
+        this.navigation =
+            new StageNavigation(this.scene, {
+                x: margin,
+                y: navigationY,
+                width: this.width - margin * 2,
+                height: navigationHeight,
+            });
+
+
+/*
         this.viewport =
             new StageViewport(this.scene, {
                 x: 10,
-                y: 100, // 60 (+40)
+                y: 300, // 60 (+240)
                 width: this.width - 20,
-                height: this.height - 180 // 140
+                height: this.height - 380, // 140
+                depth: this.scene.depths.viewport
             });
     
         this.navigation =
@@ -42,8 +86,11 @@ export default class StageUI {
                 x: 10,
                 y: this.height - 70,
                 width: this.width - 20,
-                height: 60
+                height: 60,
+                depth: this.scene.depths.navigation
             });
+*/
+        this.stageProgress = new StageProgressManager(gameData);
 
         this.scene.events.on(
             'stage-tab-changed',
@@ -53,26 +100,36 @@ export default class StageUI {
         );
         
         this.stage = stageData[0];
-        this.changeTab('gather');
+        //this.changeTab('gather');
+        /*const cards =
+            this.stage.tabs.gather.map(item => ({
+        
+                ...item,
+        
+                amount:
+                    this.stageProgress.get(item.id)
+        
+            }));*/
+        //this.viewport.showCards(cards);
+        this.currentTab = 'gather';
+        this.refreshCurrentTab();
     }
 
     changeTab(id) {
-        const cards = this.stage.tabs[id];
-        if (!cards) return;
-        this.viewport.showCards(cards);
+        this.currentTab = id;
+        this.refreshCurrentTab();
     }
 
     createHeader() {
-        // Temporary
-        /*this.scene.add.rectangle(
+        this.scene.add.rectangle(
             10,
             10,
             this.width - 20,
             90, // 50
-            0xffffff
+            0x000055
         )
-        .setOrigin(0);*/
-
+        .setOrigin(0);
+        
         this.scene.add.text(
             40,
             10,
@@ -90,7 +147,7 @@ export default class StageUI {
             10,
             50,
             this.width / 3 - 7,
-            40,
+            this.headerHeight - this.headerTitleHeight,
             0x444444
         )
         .setOrigin(0);
@@ -101,7 +158,7 @@ export default class StageUI {
             10 + this.headerBox1.width + 1,
             10,
             this.width / 3 - 7,
-            80,
+            this.headerHeight,
             0x444444
         )
         .setOrigin(0);
@@ -112,7 +169,7 @@ export default class StageUI {
             10 + this.headerBox1.width + 1 + this.headerBox2.width + 1,
             10,
             this.width / 3 - 7,
-            80,
+            this.headerHeight,
             0x444444
         )
         .setOrigin(0);
@@ -145,4 +202,56 @@ export default class StageUI {
         )
         .setOrigin(0);
     }
+    
+    gather(item) {
+    
+        const newAmount =
+            this.stageProgress.add(item.id, 1);
+    
+        console.log(
+            `${item.title}: ${newAmount}`
+        );
+    
+        this.refreshCurrentTab();
+    }
+    
+    refreshCurrentTab() {
+    
+        const cards =
+            this.stage.tabs[this.currentTab];
+    
+        if (!cards) return;
+    
+        const displayCards =
+            cards.map(item => ({
+    
+                ...item,
+    
+                amount:
+                    this.stageProgress.get(item.id),
+    
+                onAction: () => {
+    
+                    this.gather(item);
+    
+                }
+    
+            }));
+    
+        this.viewport.showCards(
+            displayCards
+        );
+    }
+    
+    destroy() {
+        this.viewport?.destroy();
+    }
+    
+/*
+WIP:
+this.navigation?.destroy();
+this.messageStatus?.destroy();
+this.stageProgress?.destroy();
+*/
+    
 }

@@ -16,6 +16,8 @@ export default class StageViewport {
         this.height =
             options.height ?? 400;
 
+        this.depth = this.scene.depths.viewport;
+
         // Cards
         this.cards = [];
 
@@ -46,7 +48,7 @@ export default class StageViewport {
                 this.y,
                 this.width,
                 this.height,
-                0xffffff // 0x111111
+                0x111111
             )
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
@@ -93,17 +95,7 @@ export default class StageViewport {
         // Scroll interaction area
         // --------------------------------------------------
 
-        this.scrollZone =
-            this.scene.add.zone(
-                this.x,
-                this.y,
-                this.width,
-                this.height
-            )
-            .setOrigin(0)
-            .setInteractive();
-
-
+        this.container.setDepth(this.depth);
         this.setupScrolling();
     }
 
@@ -226,93 +218,96 @@ export default class StageViewport {
     // --------------------------------------------------
 
     setupScrolling() {
-
-        // --------------------------------------------------
-        // Mouse wheel
-        // --------------------------------------------------
-
-        this.scrollZone.on(
-            'wheel',
-            (pointer, over, dx, dy) => {
-
-                this.scroll(dy);
-            }
-        );
-
-
-        // --------------------------------------------------
-        // Touch
-        // --------------------------------------------------
-
-        this.isDragging = false;
-
-        this.dragStartY = 0;
-        this.scrollStartY = 0;
-
-
-        this.scrollZone.on(
+    
+        const input = this.scene.input;
+    
+        this._pointerDownHandler = (pointer, gameObjects) => {
+    
+            const inside =
+                pointer.x >= this.x &&
+                pointer.x <= this.x + this.width &&
+                pointer.y >= this.y &&
+                pointer.y <= this.y + this.height;
+    
+            if (!inside) return;
+    
+            // Let buttons/cards handle their own interaction
+            if (gameObjects.length > 0) return;
+    
+            this.isDragging = true;
+    
+            this.dragStartY = pointer.y;
+            this.scrollStartY = this.scrollY;
+        };
+    
+    
+        this._pointerMoveHandler = (pointer) => {
+    
+            if (!this.isDragging) return;
+    
+            const deltaY =
+                pointer.y - this.dragStartY;
+    
+            this.scrollY =
+                this.scrollStartY - deltaY;
+    
+            this.scrollY =
+                Phaser.Math.Clamp(
+                    this.scrollY,
+                    0,
+                    this.maxScrollY
+                );
+    
+            this.updateScrollPosition();
+        };
+    
+    
+        this._pointerUpHandler = () => {
+    
+            this.isDragging = false;
+        };
+    
+    
+        this._wheelHandler = (
+            pointer,
+            gameObjects,
+            deltaX,
+            deltaY
+        ) => {
+    
+            const inside =
+                pointer.x >= this.x &&
+                pointer.x <= this.x + this.width &&
+                pointer.y >= this.y &&
+                pointer.y <= this.y + this.height;
+    
+            if (!inside) return;
+    
+            this.scroll(deltaY);
+        };
+    
+    
+        input.on(
             'pointerdown',
-            pointer => {
-
-                this.isDragging = true;
-
-                this.dragStartY =
-                    pointer.y;
-
-                this.scrollStartY =
-                    this.scrollY;
-            }
+            this._pointerDownHandler
         );
-
-
-        this.scrollZone.on(
+    
+        input.on(
             'pointermove',
-            pointer => {
-
-                if (!this.isDragging) return;
-
-
-                const deltaY =
-                    pointer.y -
-                    this.dragStartY;
-
-
-                this.scrollY =
-                    this.scrollStartY -
-                    deltaY;
-
-
-                this.scrollY =
-                    Phaser.Math.Clamp(
-                        this.scrollY,
-                        0,
-                        this.maxScrollY
-                    );
-
-
-                this.updateScrollPosition();
-            }
+            this._pointerMoveHandler
         );
-
-
-        this.scrollZone.on(
+    
+        input.on(
             'pointerup',
-            () => {
-
-                this.isDragging = false;
-            }
+            this._pointerUpHandler
         );
-
-
-        this.scrollZone.on(
-            'pointerout',
-            () => {
-
-                this.isDragging = false;
-            }
+    
+        input.on(
+            'wheel',
+            this._wheelHandler
         );
     }
-    
+
     clearCards() {
     
         this.cards.forEach(card => {
@@ -342,5 +337,44 @@ export default class StageViewport {
         this.scrollY = 0;
     
         this.updateScrollPosition();
+    }
+    
+    destroy() {
+    
+        const input = this.scene.input;
+    
+        input.off(
+            'pointerdown',
+            this._pointerDownHandler
+        );
+    
+        input.off(
+            'pointermove',
+            this._pointerMoveHandler
+        );
+    
+        input.off(
+            'pointerup',
+            this._pointerUpHandler
+        );
+    
+        input.off(
+            'wheel',
+            this._wheelHandler
+        );
+    
+    
+        this.cards.forEach(card => {
+            card.destroy?.();
+        });
+    
+        this.cards = [];
+    
+    
+        this.container.destroy();
+    
+        this.background.destroy();
+    
+        this.mask.destroy?.();
     }
 }

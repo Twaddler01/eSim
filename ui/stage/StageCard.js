@@ -10,14 +10,16 @@ export default class StageCard {
     
         this.width = options.width ?? 300;
         this.height = options.height ?? 140;
-    
+        this.depth = this.scene.depths.cards;
+        
         this.title = options.title ?? 'Item';
         this.amount = options.amount ?? 0;
         this.max = options.max ?? 100;
-    
+        
         this.actionLabel =
             options.actionLabel ?? 'ACTION';
-    
+        this.onAction = options.onAction ?? null;
+
         this.create();
     }
 
@@ -138,7 +140,7 @@ export default class StageCard {
             .setOrigin(0)
             .setStrokeStyle(1, 0xffffff)
             .setInteractive();
-
+        this.actionButton.setDepth(this.depth);
 
         this.actionText =
             this.scene.add.text(
@@ -157,18 +159,18 @@ export default class StageCard {
         // Button event
         // --------------------------------------------------
 
+        this._actionHandler = () => {
+            if (this.onAction) {
+                this.onAction();
+            }
+        };
         this.actionButton.on(
             'pointerdown',
-            () => {
-
-                console.log(
-                    `Action: ${this.actionLabel}`
-                );
-
-            }
+            this._actionHandler
         );
 
         this.container.add([this.background, this.titleText, this.amountText, this.progressBackground, this.progressFill, this.actionButton, this.actionText]);
+        this.container.setDepth(this.depth);
         this.updateProgress();
     }
 
@@ -199,6 +201,13 @@ export default class StageCard {
     }
     
     destroy() {
+        // Remove event listener
+        this.actionButton?.off(
+            'pointerdown',
+            this._actionHandler
+        );
+    
+        // Remove from container
         this.container.remove([
             this.background,
             this.titleText,
@@ -209,11 +218,14 @@ export default class StageCard {
             this.actionText
         ]);
     
+        // Destroy objects
         this.background.destroy();
         this.titleText.destroy();
         this.amountText.destroy();
+    
         this.progressBackground.destroy();
         this.progressFill.destroy();
+    
         this.actionButton.destroy();
         this.actionText.destroy();
     }

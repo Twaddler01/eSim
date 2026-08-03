@@ -13,7 +13,9 @@ export default class StageNavigation {
 
         this.height =
             options.height ?? 60;
-
+        
+        this.depth = this.scene.depths.navigation;
+        
         this.create();
     }
 
@@ -31,7 +33,7 @@ export default class StageNavigation {
             )
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
-
+        this.background.setDepth(this.depth);
 
         // Buttons
         this.createButton(
@@ -76,10 +78,10 @@ export default class StageNavigation {
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000)
             .setInteractive();
-    
+        button.setDepth(this.depth);
     
         // Button label
-        this.scene.add.text(
+        const buttonLabel = this.scene.add.text(
             x + buttonWidth / 2,
             y + this.height / 2,
             label,
@@ -89,7 +91,7 @@ export default class StageNavigation {
             }
         )
         .setOrigin(0.5);
-    
+        buttonLabel.setDepth(this.depth);
     
         // Entire rectangle is clickable
         button.on(
