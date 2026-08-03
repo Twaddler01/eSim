@@ -18,15 +18,15 @@ export default class StageUI {
         this.height =
             options.height ??
             scene.scale.height;
-            
+
         this.headerHeight = 280;
         this.headerTitleHeight = 40;
 
-        this.create();
+        this.createUI();
 
     }
 
-    create() {
+    createUI() {
         this.createHeader();
         this.headerBox1();
         this.headerBox2();
@@ -70,26 +70,6 @@ export default class StageUI {
                 height: navigationHeight,
             });
 
-
-/*
-        this.viewport =
-            new StageViewport(this.scene, {
-                x: 10,
-                y: 300, // 60 (+240)
-                width: this.width - 20,
-                height: this.height - 380, // 140
-                depth: this.scene.depths.viewport
-            });
-    
-        this.navigation =
-            new StageNavigation(this.scene, {
-                x: 10,
-                y: this.height - 70,
-                width: this.width - 20,
-                height: 60,
-                depth: this.scene.depths.navigation
-            });
-*/
         this.stageProgress = new StageProgressManager(gameData);
 
         this.scene.events.on(
@@ -204,14 +184,49 @@ export default class StageUI {
     }
     
     gather(item) {
+        const newAmount = this.stageProgress.add(item.id, 1);
+        console.log(`${item.title}: ${newAmount}`);
+        this.refreshCurrentTab();
+    }
     
-        const newAmount =
-            this.stageProgress.add(item.id, 1);
+    create(item) {
+        console.log('Attempting to create:');
+        console.log(item.id);
     
-        console.log(
-            `${item.title}: ${newAmount}`
-        );
+        // Check requirements
+        const canCreate =
+            Object.entries(item.requirements)
+                .every(([id, required]) => {
+                    const amount =
+                        this.stageProgress.get(id);
+                    return amount >= required;
+                });
     
+        if (!canCreate) {
+            console.log('Not enough materials.');
+            return;
+        }
+    
+        // Consume materials
+        Object.entries(item.requirements)
+            .forEach(([id, amount]) => {
+                this.stageProgress.add(
+                    id,
+                    -amount
+                );
+            });
+    
+        // Produce result
+        Object.entries(item.produces)
+            .forEach(([id, amount]) => {
+                this.stageProgress.add(
+                    id,
+                    amount
+                );
+            });
+    
+        console.log(`Created ${item.title}`);
+        // Refresh cards
         this.refreshCurrentTab();
     }
     
@@ -224,19 +239,57 @@ export default class StageUI {
     
         const displayCards =
             cards.map(item => ({
-    
+        
                 ...item,
-    
+        
                 amount:
                     this.stageProgress.get(item.id),
-    
+        
+                getAmount: id => {
+        
+                    return this.stageProgress.get(id);
+        
+                },
+        
+                canAction: () => {
+        
+                    if (this.currentTab === 'gather') {
+                        return true;
+                    }
+        
+                    if (this.currentTab === 'create') {
+        
+                        return Object.entries(
+                            item.requirements ?? {}
+                        )
+                        .every(([id, required]) => {
+        
+                            return this.stageProgress.get(id)
+                                >= required;
+        
+                        });
+                    }
+        
+                    return true;
+                },
+        
                 onAction: () => {
-    
-                    this.gather(item);
-    
+        
+                    if (this.currentTab === 'gather') {
+        
+                        this.gather(item);
+        
+                    }
+        
+                    if (this.currentTab === 'create') {
+        
+                        this.create(item);
+        
+                    }
+        
                 }
-    
-            }));
+        
+        }));
     
         this.viewport.showCards(
             displayCards
@@ -244,14 +297,12 @@ export default class StageUI {
     }
     
     destroy() {
-        this.viewport?.destroy();
-    }
-    
 /*
 WIP:
-this.navigation?.destroy();
 this.messageStatus?.destroy();
 this.stageProgress?.destroy();
 */
-    
+        this.viewport?.destroy();
+        this.navigation?.destroy();
+    }
 }

@@ -13,12 +13,12 @@ export const stageData = [
                 { id: 'carbon3', title: 'CARBON', amount: 0, max: 100, actionLabel: 'GATHER' },
                 { id: 'hydrogen3', title: 'HYDROGEN', amount: 0, max: 100, actionLabel: 'GATHER' }
             ],
-            discover: [
-                { id: 'unknown', title: 'UNKNOWN SUBSTANCE', amount: 0, max: 10, actionLabel: 'EXPLORE' },
-                { id: 'cosmic_dust', title: 'COSMIC DUST', amount: 0, max: 25, actionLabel: 'EXPLORE' }
+            create: [
+                { id: 'water_molecule', title: 'Water Molecule', requirements: { water: 5 }, produces: { water_molecule: 1 }, actionLabel: 'CREATE' },
+                { id: 'water_molecule2', title: 'Water Molecule dx2', requirements: { water: 15 }, produces: { water_molecule: 2 }, actionLabel: 'CREATE' }
             ],
-            more: [
-                { id: 'coming_soon', title: 'COMING SOON', amount: 0, max: 1, actionLabel: '---' }
+            discover: [
+                { id: 'coming_soon', title: 'COMING SOON', amount: 0, max: 1, actionLabel: 'DISCOVER' }
             ]
         }
     }

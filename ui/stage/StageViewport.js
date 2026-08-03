@@ -112,10 +112,6 @@ export default class StageViewport {
             this.width -
             padding * 2;
 
-        const cardHeight =
-            options.height ?? 150;
-
-
         const x = padding;
 
         const y =
@@ -133,7 +129,6 @@ export default class StageViewport {
                     y,
 
                     width: cardWidth,
-                    height: cardHeight,
 
                     container: this.container
                 }
@@ -146,7 +141,7 @@ export default class StageViewport {
         // Advance content position
         this.contentHeight =
             y +
-            cardHeight;
+            card.height;
 
 
         this.updateScrollLimits();

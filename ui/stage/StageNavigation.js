@@ -13,9 +13,16 @@ export default class StageNavigation {
 
         this.height =
             options.height ?? 60;
-        
+
         this.depth = this.scene.depths.navigation;
-        
+
+        // Event handlers
+        this.tabHandlers = [];
+
+        // Phaser objects
+        this.buttons = [];
+        this.labels = [];
+
         this.create();
     }
 
@@ -33,7 +40,9 @@ export default class StageNavigation {
             )
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
+
         this.background.setDepth(this.depth);
+
 
         // Buttons
         this.createButton(
@@ -43,30 +52,36 @@ export default class StageNavigation {
         );
 
         this.createButton(
-            'DISCOVER',
+            'CREATE',
             1,
-            'discover'
+            'create'
         );
 
         this.createButton(
-            'MORE',
+            'DISCOVER',
             2,
-            'more'
+            'discover'
         );
     }
 
+
     createButton(label, index, id) {
+
         const buttonWidth =
             this.width / 3;
-    
+
         const x =
             this.x +
             buttonWidth * index;
-    
+
         const y =
             this.y;
-    
+
+
+        // --------------------------------------------------
         // Button background
+        // --------------------------------------------------
+
         const button =
             this.scene.add.rectangle(
                 x,
@@ -78,38 +93,126 @@ export default class StageNavigation {
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000)
             .setInteractive();
+
         button.setDepth(this.depth);
-    
+
+
+        // --------------------------------------------------
         // Button label
-        const buttonLabel = this.scene.add.text(
-            x + buttonWidth / 2,
-            y + this.height / 2,
-            label,
-            {
-                fontSize: '18px',
-                color: '#ffffff'
-            }
-        )
-        .setOrigin(0.5);
+        // --------------------------------------------------
+
+        const buttonLabel =
+            this.scene.add.text(
+                x + buttonWidth / 2,
+                y + this.height / 2,
+                label,
+                {
+                    fontSize: '18px',
+                    color: '#ffffff'
+                }
+            )
+            .setOrigin(0.5);
+
         buttonLabel.setDepth(this.depth);
-    
-        // Entire rectangle is clickable
+
+
+        // --------------------------------------------------
+        // Button event
+        // --------------------------------------------------
+
+        const handler = () => {
+
+            this.scene.events.emit(
+                'stage-tab-changed',
+                id
+            );
+
+        };
+
+
         button.on(
             'pointerdown',
-            () => {
-    
-                console.log(
-                    `Stage navigation: ${id}`
+            handler
+        );
+
+
+        // --------------------------------------------------
+        // Store references
+        // --------------------------------------------------
+
+        this.tabHandlers.push({
+            button,
+            handler
+        });
+
+        this.buttons.push(button);
+        this.labels.push(buttonLabel);
+
+
+        return button;
+    }
+
+
+    // --------------------------------------------------
+    // Destroy
+    // --------------------------------------------------
+
+    destroy() {
+
+        // --------------------------------------------------
+        // Remove event listeners
+        // --------------------------------------------------
+
+        this.tabHandlers.forEach(
+            ({ button, handler }) => {
+
+                button.off(
+                    'pointerdown',
+                    handler
                 );
-    
-                this.scene.events.emit(
-                    'stage-tab-changed',
-                    id
-                );
+
             }
         );
-    
-    
-        return button;
+
+        this.tabHandlers = [];
+
+
+        // --------------------------------------------------
+        // Destroy buttons
+        // --------------------------------------------------
+
+        this.buttons.forEach(
+            button => {
+
+                button.destroy();
+
+            }
+        );
+
+        this.buttons = [];
+
+
+        // --------------------------------------------------
+        // Destroy labels
+        // --------------------------------------------------
+
+        this.labels.forEach(
+            label => {
+
+                label.destroy();
+
+            }
+        );
+
+        this.labels = [];
+
+
+        // --------------------------------------------------
+        // Destroy background
+        // --------------------------------------------------
+
+        this.background?.destroy();
+
+        this.background = null;
     }
 }
