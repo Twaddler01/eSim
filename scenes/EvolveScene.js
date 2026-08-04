@@ -10,6 +10,7 @@ export default class EvolveScene extends Phaser.Scene {
         this.depths = {
             background: 0,
             viewport: 10,
+            inventory: 10,
             cards: 20,
             messages: 50,
             navigation: 100

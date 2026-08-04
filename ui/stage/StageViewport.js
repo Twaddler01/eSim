@@ -134,9 +134,7 @@ export default class StageViewport {
                 }
             );
 
-
         this.cards.push(card);
-
 
         // Advance content position
         this.contentHeight =
@@ -324,9 +322,7 @@ export default class StageViewport {
         this.clearCards();
     
         cardData.forEach(data => {
-    
             this.addCard(data);
-    
         });
     
         this.scrollY = 0;

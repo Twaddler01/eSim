@@ -1,10 +1,11 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-import { stageData } from '../../data/stageData.js';
+import { stageData, stageItems } from '../../data/stageData.js';
 import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
 import StageProgressManager from '../../managers/StageProgressManager.js';
-    
+import StageInventory from './StageInventory.js';
+
 export default class StageUI {
 
     constructor(scene, options = {}) {
@@ -27,9 +28,21 @@ export default class StageUI {
     }
 
     createUI() {
+        this.stageProgress = new StageProgressManager(gameData);
+
+        this.stage = stageData[0];
+
         this.createHeader();
         this.headerBox1();
         this.headerBox2();
+        
+        this.inventory = new StageInventory(this.scene, this.stageProgress, stageItems, {
+            x: this.headerBox2.x,
+            y: this.headerBox2.y,
+            width: this.headerBox2.width,
+            height: this.headerBox2.height
+        });
+
         this.headerBox3();
         
         // For messages
@@ -70,8 +83,6 @@ export default class StageUI {
                 height: navigationHeight,
             });
 
-        this.stageProgress = new StageProgressManager(gameData);
-
         this.scene.events.on(
             'stage-tab-changed',
             id => {
@@ -79,18 +90,6 @@ export default class StageUI {
             }
         );
         
-        this.stage = stageData[0];
-        //this.changeTab('gather');
-        /*const cards =
-            this.stage.tabs.gather.map(item => ({
-        
-                ...item,
-        
-                amount:
-                    this.stageProgress.get(item.id)
-        
-            }));*/
-        //this.viewport.showCards(cards);
         this.currentTab = 'gather';
         this.refreshCurrentTab();
     }
@@ -184,8 +183,16 @@ export default class StageUI {
     }
     
     gather(item) {
+        const current = this.stageProgress.get(item.id);
+    
+        if (current >= item.max) {
+            return;
+        }
+    
         const newAmount = this.stageProgress.add(item.id, 1);
-        console.log(`${item.title}: ${newAmount}`);
+    
+        //console.log(`${item.title}: ${newAmount}`);
+    
         this.refreshCurrentTab();
     }
     
@@ -229,21 +236,58 @@ export default class StageUI {
         // Refresh cards
         this.refreshCurrentTab();
     }
-    
+
+getAvailability(item) {
+
+    // Completely unavailable
+    if (!item.unlocked) {
+        return 'locked';
+    }
+
+    const amount =
+        this.stageProgress.get(item.id);
+
+    // Already at maximum
+    if (amount >= item.max) {
+        return 'maxed';
+    }
+
+    // Check requirements
+    const requirementsMet =
+        Object.entries(item.requirements ?? {})
+            .every(([id, required]) => {
+
+                const current =
+                    this.stageProgress.get(id);
+
+                return current >= required;
+            });
+
+    // Unlocked, but missing materials
+    if (!requirementsMet) {
+        return 'insufficient';
+    }
+
+    return 'available';
+}
+
     refreshCurrentTab() {
     
-        const cards =
-            this.stage.tabs[this.currentTab];
+        const cards = stageItems.filter(item => item.tab === this.currentTab);
     
         if (!cards) return;
     
-        const displayCards =
-            cards.map(item => ({
+        const displayCards = cards
+            .map(item => ({
         
                 ...item,
+                
+                type: this.currentTab,
         
                 amount:
                     this.stageProgress.get(item.id),
+                    
+                availability: this.getAvailability(item),
         
                 getAmount: id => {
         
@@ -251,27 +295,8 @@ export default class StageUI {
         
                 },
         
-                canAction: () => {
-        
-                    if (this.currentTab === 'gather') {
-                        return true;
-                    }
-        
-                    if (this.currentTab === 'create') {
-        
-                        return Object.entries(
-                            item.requirements ?? {}
-                        )
-                        .every(([id, required]) => {
-        
-                            return this.stageProgress.get(id)
-                                >= required;
-        
-                        });
-                    }
-        
-                    return true;
-                },
+                canAction: () =>
+                    this.getAvailability(item) === 'available',
         
                 onAction: () => {
         

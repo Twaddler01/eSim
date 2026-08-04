@@ -16,6 +16,8 @@ export default class StageCard {
         this.amount = options.amount ?? 0;
         this.max = options.max ?? 100;
 
+        this.availability = options.availability ?? 'available';
+
         this.requirements =
             options.requirements ?? {};
 
@@ -33,7 +35,7 @@ export default class StageCard {
         this.getAmount =
             options.getAmount ??
             (() => 0);
-
+            
         this.create();
     }
 
@@ -54,6 +56,28 @@ export default class StageCard {
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
 
+this.lockOverlay =
+    this.scene.add.rectangle(
+        this.x,
+        this.y,
+        this.width,
+        this.height,
+        0x000000,
+        0.55
+    )
+    .setOrigin(0);
+
+this.availabilityText =
+    this.scene.add.text(
+        this.x + this.width / 2,
+        this.y + this.height / 2,
+        '',
+        {
+            fontSize: '18px',
+            color: '#ffffff'
+        }
+    )
+    .setOrigin(0.5);
 
         // --------------------------------------------------
         // Title
@@ -81,32 +105,32 @@ export default class StageCard {
                 this.y + 48,
                 `${this.amount} / ${this.max}`,
                 {
-                    fontSize: '18px',
+                    fontSize: '16px',
                     color: '#ffffff'
                 }
             );
 
-        if (this.type === 'gather') {
-            this.createGatherLayout();
-        }
-        
-        if (this.type === 'craft') {
-            this.createCraftLayout();
+        this.reqLabel = null;
+        let contentBottom = this.y + 75;
+        this.requirementTexts = [];
+
+        if (this.type === 'create') {
+            this.createCraftLayout(this.x + 15, this.y + 48);
+            contentBottom = this.createRequirements();
         }
 
         // --------------------------------------------------
         // Requirements
         // --------------------------------------------------
 
-        this.requirementTexts = [];
-        this.createRequirements();
+        //this.createRequirements();
 
         // --------------------------------------------------
         // Progress background
         // --------------------------------------------------
 
         const barX = this.x + 15;
-        const barY = this.y + 105;
+        const barY = contentBottom + 5;
 
         const barWidth = this.width - 30;
         const barHeight = 12;
@@ -203,7 +227,8 @@ export default class StageCard {
             this.background,
             this.titleText,
             this.amountText,
-        
+            // Craft-specific label
+            ...(this.reqLabel ? [this.reqLabel] : []),
             ...this.requirementTexts.map(
                 requirement => requirement.text
             ),
@@ -212,52 +237,50 @@ export default class StageCard {
             this.progressFill,
         
             this.actionButton,
-            this.actionText
+            this.actionText,
+            this.lockOverlay,
+            this.availabilityText
         ]);
-        this.container.setDepth(this.depth);
 
         this.updateProgress();
         
         this.updateRequirements(this.getAmount);
         this.updateAvailability();
     }
-// WIP
-    createGatherLayout() {
-        // progress bar
-        // GATHER button
-    }
-    
-    createCraftLayout() {
-        // requirements
-        // CRAFT button
+
+    createCraftLayout(startX, startY) {
+        // Requirements label
+        this.reqLabel = this.scene.add.text(
+            startX,
+            startY + 25,
+            'Requirements:',
+            {
+                fontSize: '16px',
+                color: '#ffffff'
+            }
+        )
+        .setOrigin(0);
+
     }
 
     getCardHeight(options) {
-    
         switch (this.type) {
-    
-            case 'craft': {
-    
+            case 'create': {
                 const requirementCount =
                     Object.keys(
                         options.requirements ?? {}
                     ).length;
-    
-                // Base card + one row per requirement
-                return 180 + requirementCount * 30;
+                return 190 + requirementCount * 22;
             }
-    
             case 'discover':
                 return 200;
-    
             case 'research':
                 return 200;
-    
             case 'gather':
             default:
                 return 180;
         }
-    }  
+    }
 
     // --------------------------------------------------
     // Requirements
@@ -265,8 +288,8 @@ export default class StageCard {
 
     createRequirements() {
 
-        let y = this.y + 75;
-
+        let y = this.y + 95;
+        
         Object.entries(this.requirements)
             .forEach(([id, required]) => {
 
@@ -289,6 +312,8 @@ export default class StageCard {
 
                 y += 22;
         });
+        
+        return y;
     }
 
 
@@ -324,31 +349,65 @@ export default class StageCard {
     // --------------------------------------------------
 
     updateAvailability() {
-
-        const available =
-            this.canAction();
-
-
-        if (available) {
-
+        const state =
+            this.availability ??
+            (this.canAction()
+                ? 'available'
+                : 'locked');
+    
+        // Reset overlay
+        this.lockOverlay.setVisible(false);
+        this.availabilityText.setVisible(false);
+    
+        // AVAILABLE
+        if (state === 'available') {
             this.actionButton
                 .setFillStyle(0x333333)
                 .setStrokeStyle(1, 0xffffff);
-
             this.actionText
                 .setText(this.actionLabel)
                 .setColor('#ffffff');
-
-        } else {
-
+            return;
+        }
+        // MAXED
+        if (state === 'maxed') {
             this.actionButton
                 .setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
-
+            this.actionText
+                .setText('MAXED')
+                .setColor('#777777');
+            return;
+        }
+    
+        // INSUFFICIENT
+        if (state === 'insufficient') {
+            this.lockOverlay.setVisible(false);
+            this.availabilityText
+                .setText('NEED MATERIALS')
+                .setVisible(true)
+                .setColor('#ff6666');
+            this.actionButton
+                .setFillStyle(0x222222)
+                .setStrokeStyle(1, 0x555555);
             this.actionText
                 .setText('LOCKED')
                 .setColor('#777777');
+            return;
         }
+    
+        // LOCKED
+        this.lockOverlay.setVisible(true);
+        this.lockOverlay.setAlpha(0.55);
+        this.availabilityText
+            .setText('LOCKED')
+            .setVisible(true);
+        this.actionButton
+            .setFillStyle(0x222222)
+            .setStrokeStyle(1, 0x555555);
+        this.actionText
+            .setText('LOCKED')
+            .setColor('#777777');
     }
 
     updateProgress() {
@@ -364,15 +423,11 @@ export default class StageCard {
             this.progressBackground.width * percent;
     }
 
-
     setAmount(amount) {
-
         this.amount = amount;
-
         this.amountText.setText(
             `${this.amount} / ${this.max}`
         );
-
         this.updateProgress();
     }
     
@@ -381,31 +436,54 @@ export default class StageCard {
     // --------------------------------------------------
 
     destroy() {
-
-        this.container.remove([
-            this.background,
-            this.titleText,
-            this.amountText,
-            ...this.requirementTexts.map(r => r.text),
-            this.progressBackground,
-            this.progressFill,
-            this.actionButton,
-            this.actionText
-        ]);
-
-        this.background.destroy();
-        this.titleText.destroy();
-        this.amountText.destroy();
-
+        // Remove button listener first
+        if (this.actionButton && this._actionHandler) {
+            this.actionButton.off(
+                'pointerdown',
+                this._actionHandler
+            );
+        }
+    
+        // Destroy requirements
         this.requirementTexts.forEach(
             requirement => {
                 requirement.text.destroy();
             }
         );
+    
+        this.requirementTexts = [];
+    
+        // Destroy optional requirements label
+        if (this.reqLabel) {
+            this.reqLabel.destroy();
+            this.reqLabel = null;
+        }
+    
+        // Destroy main card elements
+        this.background?.destroy();
+        this.titleText?.destroy();
+        this.amountText?.destroy();
+    
+        // Destroy progress elements
+        this.progressBackground?.destroy();
+        this.progressFill?.destroy();
 
-        this.progressBackground.destroy();
-        this.progressFill.destroy();
-        this.actionButton.destroy();
-        this.actionText.destroy();
+        this.lockOverlay?.destroy();
+        this.availabilityText?.destroy();
+
+        // Destroy action elements
+        this.actionButton?.destroy();
+        this.actionText?.destroy();
+        
+        // Clear references
+        this.background = null;
+        this.titleText = null;
+        this.amountText = null;
+    
+        this.progressBackground = null;
+        this.progressFill = null;
+    
+        this.actionButton = null;
+        this.actionText = null;
     }
 }
