@@ -56,28 +56,28 @@ export default class StageCard {
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
 
-this.lockOverlay =
-    this.scene.add.rectangle(
-        this.x,
-        this.y,
-        this.width,
-        this.height,
-        0x000000,
-        0.55
-    )
-    .setOrigin(0);
-
-this.availabilityText =
-    this.scene.add.text(
-        this.x + this.width / 2,
-        this.y + this.height / 2,
-        '',
-        {
-            fontSize: '18px',
-            color: '#ffffff'
-        }
-    )
-    .setOrigin(0.5);
+    this.lockOverlay =
+        this.scene.add.rectangle(
+            this.x,
+            this.y,
+            this.width,
+            this.height,
+            0x000000,
+            0.55
+        )
+        .setOrigin(0);
+    
+    this.availabilityText =
+        this.scene.add.text(
+            this.x + this.width / 2,
+            this.y + this.height / 2,
+            '',
+            {
+                fontSize: '18px',
+                color: '#ffffff'
+            }
+        )
+        .setOrigin(0.5);
 
         // --------------------------------------------------
         // Title
@@ -120,12 +120,6 @@ this.availabilityText =
         }
 
         // --------------------------------------------------
-        // Requirements
-        // --------------------------------------------------
-
-        //this.createRequirements();
-
-        // --------------------------------------------------
         // Progress background
         // --------------------------------------------------
 
@@ -134,7 +128,6 @@ this.availabilityText =
 
         const barWidth = this.width - 30;
         const barHeight = 12;
-
 
         this.progressBackground =
             this.scene.add.rectangle(

@@ -5,96 +5,35 @@ export const stageData = [
 
 export const stageItems = [
 
-    // --------------------------------
     // Elements
-    // --------------------------------
+    { id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { id: 'carbon', title: 'CARBON', tab: 'gather', category: 'element', unlocked: true, max: 10, actionLabel: 'GATHER' },
+    { id: 'hydrogen', title: 'HYDROGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { id: 'silicone', title: 'SILICONE', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { id: 'aluminum', title: 'ALUMINUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
 
-    {
-        id: 'water',
-        title: 'WATER',
-        tab: 'gather',
-        category: 'element',
-        unlocked: true,
-        max: 100,
-        actionLabel: 'GATHER'
-    },
-
-    {
-        id: 'carbon',
-        title: 'CARBON',
-        tab: 'gather',
-        category: 'element',
-        unlocked: true,
-        max: 10,
-        actionLabel: 'GATHER'
-    },
-
-    {
-        id: 'hydrogen',
-        title: 'HYDROGEN',
-        tab: 'gather',
-        category: 'element',
-        unlocked: true,
-        max: 100,
-        actionLabel: 'GATHER'
-    },
-
-
-    // --------------------------------
     // Molecules
-    // --------------------------------
-
-    {
-        id: 'water_molecule',
-        title: 'Water Molecule',
-        tab: 'create',
-        category: 'molecule',
-        unlocked: true,
-
+    { id: 'water_molecule', title: 'Water Molecule', tab: 'create', category: 'molecule', unlocked: true,
         requirements: {
             water: 5
         },
-
         produces: {
             water_molecule: 1
-        },
+        }, actionLabel: 'CREATE' },
 
-        actionLabel: 'CREATE'
-    },
-
-    {
-        id: 'water_molecule2',
-        title: 'Water Molecule dx2',
-        tab: 'create',
-        category: 'molecule',
-        unlocked: true,
-
+    { id: 'water_molecule2', title: 'Water Molecule dx2', tab: 'create', category: 'molecule', unlocked: true,
         requirements: {
             water: 15,
             carbon: 1
         },
-
         produces: {
             water_molecule2: 4
-        },
-
-        actionLabel: 'CREATE'
-    },
+        }, actionLabel: 'CREATE' },
 
 
-    // --------------------------------
     // Discoveries
-    // --------------------------------
-
-    {
-        id: 'coming_soon',
-        title: 'COMING SOON',
-        tab: 'discover',
-        category: 'discovery',
-        unlocked: false,
-
-        max: 1,
-        actionLabel: 'DISCOVER'
-    }
-
+    { id: 'coming_soon', title: 'COMING SOON', tab: 'discover', category: 'discovery', unlocked: false, max: 1, actionLabel: 'DISCOVER' }
 ];

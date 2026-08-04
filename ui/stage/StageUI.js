@@ -103,7 +103,7 @@ export default class StageUI {
         this.scene.add.rectangle(
             10,
             10,
-            this.width - 20,
+            this.width / 3 - 7,
             90, // 50
             0x000055
         )
@@ -129,7 +129,8 @@ export default class StageUI {
             this.headerHeight - this.headerTitleHeight,
             0x444444
         )
-        .setOrigin(0);
+        .setOrigin(0)
+        .setVisible(false);
     }
 
     headerBox2() {
@@ -140,7 +141,8 @@ export default class StageUI {
             this.headerHeight,
             0x444444
         )
-        .setOrigin(0);
+        .setOrigin(0)
+        .setVisible(false);
     }
     
     headerBox3() {
@@ -191,15 +193,10 @@ export default class StageUI {
     
         const newAmount = this.stageProgress.add(item.id, 1);
     
-        //console.log(`${item.title}: ${newAmount}`);
-    
         this.refreshCurrentTab();
     }
     
     create(item) {
-        console.log('Attempting to create:');
-        console.log(item.id);
-    
         // Check requirements
         const canCreate =
             Object.entries(item.requirements)
@@ -210,7 +207,6 @@ export default class StageUI {
                 });
     
         if (!canCreate) {
-            console.log('Not enough materials.');
             return;
         }
     
@@ -232,44 +228,43 @@ export default class StageUI {
                 );
             });
     
-        console.log(`Created ${item.title}`);
         // Refresh cards
         this.refreshCurrentTab();
     }
 
-getAvailability(item) {
-
-    // Completely unavailable
-    if (!item.unlocked) {
-        return 'locked';
+    getAvailability(item) {
+    
+        // Completely unavailable
+        if (!item.unlocked) {
+            return 'locked';
+        }
+    
+        const amount =
+            this.stageProgress.get(item.id);
+    
+        // Already at maximum
+        if (amount >= item.max) {
+            return 'maxed';
+        }
+    
+        // Check requirements
+        const requirementsMet =
+            Object.entries(item.requirements ?? {})
+                .every(([id, required]) => {
+    
+                    const current =
+                        this.stageProgress.get(id);
+    
+                    return current >= required;
+                });
+    
+        // Unlocked, but missing materials
+        if (!requirementsMet) {
+            return 'insufficient';
+        }
+    
+        return 'available';
     }
-
-    const amount =
-        this.stageProgress.get(item.id);
-
-    // Already at maximum
-    if (amount >= item.max) {
-        return 'maxed';
-    }
-
-    // Check requirements
-    const requirementsMet =
-        Object.entries(item.requirements ?? {})
-            .every(([id, required]) => {
-
-                const current =
-                    this.stageProgress.get(id);
-
-                return current >= required;
-            });
-
-    // Unlocked, but missing materials
-    if (!requirementsMet) {
-        return 'insufficient';
-    }
-
-    return 'available';
-}
 
     refreshCurrentTab() {
     
