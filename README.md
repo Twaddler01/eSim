@@ -7,9 +7,11 @@ TEST URL: Soon!
 
 # Work In Progress
 - Completely reworking structure to be more mobile friendly and to integrate different stages of life, including the cellular stage.
+- Current work is primarily focused on code architecture.
 
 # Future Updates
 - More structural content.
 - Auto-gather.
-### Cell Stage
-- Possible link to 'break down' molecules into individual parts.
+### Cell Stage updates
+- A beginning "big bang" sequence when starting a new game.
+- Possible link to 'break down' molecules into individual elements, along with combining existing individual elements.
