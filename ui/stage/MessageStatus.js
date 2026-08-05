@@ -87,9 +87,9 @@ export default class MessageStatus {
 
         maskShape.fillRect(
             winX,
-            winY,
+            winY + 1,
             winWidth,
-            winHeight
+            winHeight - 3
         );
 
         this.messageMask =

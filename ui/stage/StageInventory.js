@@ -41,12 +41,21 @@ export default class StageInventory {
     }
 
     create() {
-        this.background =
-            this.scene.add.rectangle(
+        this.titleBg = this.scene.add.rectangle(
                 this.x,
                 this.y,
                 this.width,
-                this.height,
+                39,
+                0x000055
+            )
+            .setOrigin(0);
+        
+        this.background =
+            this.scene.add.rectangle(
+                this.x,
+                this.y + 41,
+                this.width,
+                this.height - 41,
                 0x000055
             )
             .setOrigin(0);
@@ -101,9 +110,9 @@ export default class StageInventory {
 
         maskShape.fillRect(
             this.contentX,
-            this.contentY,
+            this.contentY + 3,
             this.contentWidth,
-            this.contentHeight
+            this.contentHeight - 4
         );
 
         this.mask =

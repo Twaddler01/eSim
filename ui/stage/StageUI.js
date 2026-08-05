@@ -83,10 +83,10 @@ export default class StageUI {
                 this.scene,
                 this.scene.gameTimer,
                 {
-                    x: this.headerBox1.x,
+                    x: this.headerBox1.x - 1,
                     y: this.headerBox1.y,
-                    width: this.headerBox1.width,
-                    height: this.headerBox1.height,
+                    width: this.headerBox1.width + 1,
+                    height: this.headerBox1.height + 1,
                     fontSize: '18px',
                     fontColor: '#33FFE4'
                 }
@@ -163,8 +163,8 @@ export default class StageUI {
         this.scene.add.rectangle(
             10,
             10,
-            this.width / 3 - 7,
-            90,
+            this.width / 3 - 10,
+            40,
             0x000055
         )
         .setOrigin(0);
@@ -186,7 +186,7 @@ export default class StageUI {
             this.scene.add.rectangle(
                 10,
                 50,
-                this.width / 3 - 7,
+                this.width / 3 - 9,
                 this.headerHeight -
                     this.headerTitleHeight,
                 0x444444
@@ -198,11 +198,9 @@ export default class StageUI {
     headerBox2() {
         this.headerBox2 =
             this.scene.add.rectangle(
-                10 +
-                    this.headerBox1.width +
-                    1,
+                10 + this.headerBox1.width + 1,
                 10,
-                this.width / 3 - 7,
+                this.width / 3 - 8,
                 this.headerHeight,
                 0x444444
             )
