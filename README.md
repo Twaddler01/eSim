@@ -5,10 +5,10 @@
 
 TEST URL: Soon!
 
-### WIP
+# Work In Progress
 - Completely reworking structure to be more mobile friendly and to integrate different stages of life, including the cellular stage.
 
-## Future Updates
+# Future Updates
 - More structural content.
 - Auto-gather.
 ### Cell Stage
