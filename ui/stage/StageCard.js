@@ -1,3 +1,5 @@
+import { stageItems } from '../../data/stageData.js';
+
 export default class StageCard {
 
     constructor(scene, options = {}) {
@@ -335,10 +337,13 @@ export default class StageCard {
                 const ready =
                     amount >=
                     requirement.required;
+                
+                const reqItem = stageItems.find(i => i.id === requirement.id);
+                const reqItemTitle = reqItem ? reqItem.title : requirement.id;
 
                 requirement.text.setText(
-                    `${requirement.id}: ` +
-                    `${amount} / ` +
+                    `${reqItemTitle}: ` +
+                    `${Math.floor(amount)} / ` +
                     `${requirement.required} ` +
                     `${ready ? '✓' : '✕'}`
                 );
@@ -454,10 +459,10 @@ export default class StageCard {
             Math.max(0, amount ?? 0);
 
         if (this.max != null) {
-            this.amountText.setText(`${this.amount} / ${this.max}`);
+            this.amountText.setText(`${Math.floor(this.amount)} / ${this.max}`);
 
         } else {
-            this.amountText.setText(`${this.amount}`);
+            this.amountText.setText(`${Math.floor(this.amount)}`);
         }
 
         this.updateProgress();
@@ -466,9 +471,11 @@ export default class StageCard {
     // SET MAX
     setMax(max) {
         this.max = max;
+        
+        const maxText = this.max !== null ? ` / ${this.max}` : '';
     
         this.amountText.setText(
-            `${this.amount} / ${this.max}`
+            `${Math.floor(this.amount)}${maxText}`
         );
     
         this.updateProgress();

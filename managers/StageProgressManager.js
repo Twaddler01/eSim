@@ -46,9 +46,12 @@ export default class StageProgressManager {
         this.sync();
 
         this.events.emit(
-            'changed',
-            id,
-            newAmount
+            'updated',
+            {
+                type: 'amount',
+                id,
+                amount: newAmount
+            }
         );
 
         return newAmount;
@@ -56,23 +59,17 @@ export default class StageProgressManager {
 
     // Add amount
     add(id, amount) {
-        const current =
-            this.get(id);
-
         return this.set(
             id,
-            current + amount
+            this.get(id) + amount
         );
     }
 
     // Remove amount
     remove(id, amount = 1) {
-        const current =
-            this.get(id);
-
         return this.set(
             id,
-            current - amount
+            this.get(id) - amount
         );
     }
 
@@ -100,12 +97,9 @@ export default class StageProgressManager {
     }
 
     addGatherLevel(id, amount = 1) {
-        const current =
-            this.getGatherLevel(id);
-
         return this.setGatherLevel(
             id,
-            current + amount
+            this.getGatherLevel(id) + amount
         );
     }
 

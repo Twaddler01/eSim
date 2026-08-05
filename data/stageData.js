@@ -10,8 +10,8 @@ export const stageItems = [
         gather: {
             upgrade: {
                 enabled: true,
-                maxIncrease: 20,
-                rateIncrease: 1
+                maxIncrease: 50,
+                rateIncrease: 0.2
             }
         },
     },

@@ -22,3 +22,16 @@ export function getItemMax(item, stageProgress) {
         level * upgrade.maxIncrease
     );
 }
+
+export function listenToEvent(
+    emitter,
+    event,
+    handler
+) {
+
+    emitter.on(event, handler);
+
+    return () => {
+        emitter.off(event, handler);
+    };
+}

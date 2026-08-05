@@ -1,4 +1,4 @@
-import { getItemMax } from '../../utils/stageHelpers.js';
+import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
 
 export default class StageInventory {
 
@@ -27,27 +27,14 @@ export default class StageInventory {
 
         this.create();
 
-        // Listen for inventory changes
-        this._changedHandler =
-            (id, amount) => {
-                this.refresh();
-            };
-
-        this.stageProgress.on(
-            'changed',
-            this._changedHandler
-        );
-        
-        // Listen for upgrade changes
-        this._gatherUpgradeHandler =
-            () => {
-                this.refresh();
-            };
-        
-        this.stageProgress.on(
-            'gather-upgrade',
-            this._gatherUpgradeHandler
-        );
+        this.removeProgressListener =
+            listenToEvent(
+                this.stageProgress,
+                'updated',
+                () => {
+                    this.refresh();
+                }
+            );
 
         // Initial display
         this.refresh();
@@ -294,7 +281,7 @@ export default class StageInventory {
                                 this.contentX + 20,
                                 y,
                                 
-                                `${item.title ?? item.id}: ${amount}${itemMax}`,
+                                `${item.title ?? item.id}: ${Math.floor(amount)}${itemMax}`,
                                 {
                                     fontSize: '16px',
                                     color:
@@ -368,21 +355,7 @@ export default class StageInventory {
 
     // Destroy
     destroy() {
-
-        if (this.stageProgress && this._changedHandler) {
-            this.stageProgress.off(
-                'changed',
-                this._changedHandler
-            );
-
-        }
-
-        if (this.stageProgress && this._gatherUpgradeHandler) {
-            this.stageProgress.off(
-                'gather-upgrade',
-                this._gatherUpgradeHandler
-            );
-        }
+        this.removeProgressListener?.();
 
         if (this.scene && this._tabChangedHandler) {
             this.scene.events.off(

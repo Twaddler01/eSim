@@ -5,7 +5,7 @@ import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
 import StageProgressManager from '../../managers/StageProgressManager.js';
 import StageInventory from './StageInventory.js';
-import { getItemMax } from '../../utils/stageHelpers.js';
+import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
 
 export default class StageUI {
 
@@ -27,57 +27,41 @@ export default class StageUI {
         this.createUI();
     }
 
-
-    // --------------------------------------------------
     // Create UI
-    // --------------------------------------------------
-
     createUI() {
-
         this.stageProgress =
             new StageProgressManager(gameData);
 
         // Current stage
         this.stage = stageData[0];
 
-        // --------------------------------------------------
         // Listen for changes
-        // --------------------------------------------------
-
-        this._progressChangedHandler =
-            (id) => {
-                this.updateAffectedCards([id]);
-            };
-
-        this.stageProgress.on(
-            'changed',
-            this._progressChangedHandler
-        );
-
-        this._gatherUpgradeHandler =
-            (id) => {
-                this.updateGatherUpgradeCard(id);
-            };
+        this.removeProgressListener =
+            listenToEvent(
+                this.stageProgress,
+                'updated',
+                update => {
+                    this.updateAffectedCards(update.id);
+                }
+            );
         
-        this.stageProgress.on(
-            'gather-upgrade',
-            this._gatherUpgradeHandler
-        );
+        // For UI tab chsnges
+        this.removeTabListener =
+            listenToEvent(
+                this.scene.events,
+                'stage-tab-changed',
+                id => {
+                    this.changeTab(id);
+                }
+            );
 
-        // --------------------------------------------------
         // Header
-        // --------------------------------------------------
-
         this.createHeader();
 
         this.headerBox1();
         this.headerBox2();
 
-
-        // --------------------------------------------------
         // Inventory
-        // --------------------------------------------------
-
         this.inventory =
             new StageInventory(
                 this.scene,
@@ -91,14 +75,9 @@ export default class StageUI {
                 }
             );
 
-
         this.headerBox3();
 
-
-        // --------------------------------------------------
         // Messages
-        // --------------------------------------------------
-
         this.messageStatus =
             new MessageStatus(
                 this.scene,
@@ -118,28 +97,18 @@ export default class StageUI {
             2000
         );
 
-
-        // --------------------------------------------------
         // Viewport
-        // --------------------------------------------------
-
         const margin = 10;
-
         const navigationHeight = 60;
-
         const navigationY =
             this.height -
             navigationHeight -
             margin;
-
         const viewportY = 300;
-
         const viewportBottom =
             navigationY - 10;
-
         const viewportHeight =
             viewportBottom - viewportY;
-
 
         this.viewport =
             new StageViewport(
@@ -155,11 +124,7 @@ export default class StageUI {
                 }
             );
 
-
-        // --------------------------------------------------
         // Navigation
-        // --------------------------------------------------
-
         this.navigation =
             new StageNavigation(
                 this.scene,
@@ -174,36 +139,12 @@ export default class StageUI {
                 }
             );
 
-
-        // --------------------------------------------------
-        // Tab changes
-        // --------------------------------------------------
-
-        this._tabChangedHandler =
-            id => {
-                this.changeTab(id);
-            };
-
-        this.scene.events.on(
-            'stage-tab-changed',
-            this._tabChangedHandler
-        );
-
-
-        // --------------------------------------------------
         // Initial tab
-        // --------------------------------------------------
-
         this.currentTab = 'gather';
-
         this.refreshCurrentTab();
     }
 
-
-    // --------------------------------------------------
     // Change tab
-    // --------------------------------------------------
-
     changeTab(id) {
 
         if (this.currentTab === id) {
@@ -216,11 +157,7 @@ export default class StageUI {
         this.refreshCurrentTab();
     }
 
-
-    // --------------------------------------------------
     // Header
-    // --------------------------------------------------
-
     createHeader() {
 
         this.scene.add.rectangle(
@@ -244,9 +181,7 @@ export default class StageUI {
         );
     }
 
-
     headerBox1() {
-
         this.headerBox1 =
             this.scene.add.rectangle(
                 10,
@@ -260,9 +195,7 @@ export default class StageUI {
             .setVisible(false);
     }
 
-
     headerBox2() {
-
         this.headerBox2 =
             this.scene.add.rectangle(
                 10 +
@@ -277,9 +210,7 @@ export default class StageUI {
             .setVisible(false);
     }
 
-
     headerBox3() {
-
         this.headerBox3 =
             this.scene.add.rectangle(
                 10 +
@@ -295,98 +226,91 @@ export default class StageUI {
             .setOrigin(0);
     }
 
-    // --------------------------------------------------
     // Gather
-    // --------------------------------------------------
-
-gather(item) {
-    const current =
-        this.stageProgress.get(item.id);
-
-    const max =
-        getItemMax(item, this.stageProgress);
-
-    if (current >= max) {
-        return;
-    }
-
-    const gatherAmount =
-        this.getGatherAmount(item);
-
-    const newAmount =
-        Math.min(
-            current + gatherAmount,
-            max
+    gather(item) {
+        const current =
+            this.stageProgress.get(item.id);
+    
+        const max =
+            getItemMax(item, this.stageProgress);
+    
+        if (current >= max) {
+            return;
+        }
+    
+        const gatherAmount =
+            this.getGatherAmount(item);
+    
+        const newAmount =
+            Math.min(
+                current + gatherAmount,
+                max
+            );
+    
+        this.stageProgress.set(
+            item.id,
+            newAmount
         );
-
-    this.stageProgress.set(
-        item.id,
-        newAmount
-    );
-
-    this.checkGatherUpgrade(item);
-}
-
-getGatherLevel(item) {
-    return this.stageProgress.getGatherLevel(item.id);
-}
-
-getGatherAmount(item) {
-    const baseAmount = 1;
-
-    const upgrade =
-        item.gather?.upgrade;
-
-    if (!upgrade?.enabled) {
-        return baseAmount;
+    
+        this.checkGatherUpgrade(item);
     }
 
-    const level =
-        this.getGatherLevel(item);
-
-    return (
-        baseAmount +
-        level * upgrade.rateIncrease
-    );
-}
-
-checkGatherUpgrade(item) {
-    const upgrade =
-        item.gather?.upgrade;
-
-    if (!upgrade?.enabled) {
-        return;
+    getGatherLevel(item) {
+        return this.stageProgress.getGatherLevel(item.id);
+    }
+    
+    getGatherAmount(item) {
+        const baseAmount = 1;
+    
+        const upgrade =
+            item.gather?.upgrade;
+    
+        if (!upgrade?.enabled) {
+            return baseAmount;
+        }
+    
+        const level =
+            this.getGatherLevel(item);
+    
+        return (
+            baseAmount +
+            level * upgrade.rateIncrease
+        );
+    }
+    
+    checkGatherUpgrade(item) {
+        const upgrade =
+            item.gather?.upgrade;
+    
+        if (!upgrade?.enabled) {
+            return;
+        }
+    
+        const current =
+            this.stageProgress.get(item.id);
+    
+        const max =
+            getItemMax(item, this.stageProgress);
+    
+        if (current < max) {
+            return;
+        }
+    
+        // Reset amount
+        this.stageProgress.set(
+            item.id,
+            0
+        );
+    
+        // Increase upgrade level
+        this.stageProgress.addGatherLevel(
+            item.id,
+            1
+        );
     }
 
-    const current =
-        this.stageProgress.get(item.id);
-
-    const max =
-        getItemMax(item, this.stageProgress);
-
-    if (current < max) {
-        return;
-    }
-
-    // Reset amount
-    this.stageProgress.set(
-        item.id,
-        0
-    );
-
-    // Increase upgrade level
-    this.stageProgress.addGatherLevel(
-        item.id,
-        1
-    );
-}
-
-    // --------------------------------------------------
     // Create
-    // --------------------------------------------------
-
     create(item) {
-
         const requirements =
             item.requirements ?? {};
 
@@ -428,107 +352,93 @@ checkGatherUpgrade(item) {
             });
     }
 
-
-    // --------------------------------------------------
     // Availability
-    // --------------------------------------------------
-
-getAvailability(item) {
-
-    if (!item.unlocked) {
-        return 'locked';
+    getAvailability(item) {
+    
+        if (!item.unlocked) {
+            return 'locked';
+        }
+    
+        const amount =
+            this.stageProgress.get(item.id);
+    
+        const max =
+            getItemMax(item, this.stageProgress);
+    
+        if (
+            max != null &&
+            amount >= max
+        ) {
+            return 'maxed';
+        }
+    
+        const requirementsMet =
+            Object.entries(item.requirements ?? {})
+                .every(([id, required]) => {
+    
+                    const current =
+                        this.stageProgress.get(id);
+    
+                    return current >= required;
+                });
+    
+        if (!requirementsMet) {
+            return 'insufficient';
+        }
+    
+        return 'available';
     }
 
-    const amount =
-        this.stageProgress.get(item.id);
-
-    const max =
-        getItemMax(item, this.stageProgress);
-
-    if (
-        max != null &&
-        amount >= max
-    ) {
-        return 'maxed';
-    }
-
-    const requirementsMet =
-        Object.entries(item.requirements ?? {})
-            .every(([id, required]) => {
-
-                const current =
-                    this.stageProgress.get(id);
-
-                return current >= required;
-            });
-
-    if (!requirementsMet) {
-        return 'insufficient';
-    }
-
-    return 'available';
-}
-
-    // --------------------------------------------------
     // Build cards for current tab
-    // --------------------------------------------------
-
     refreshCurrentTab() {
-
         const cards =
             stageItems.filter(
                 item =>
                     item.tab === this.currentTab
             );
 
-
-const displayCards = cards.map(item => ({
-
-    ...item,
-
-    type: this.currentTab,
-
-    amount:
-        this.stageProgress.get(item.id),
-
-    max:
-        getItemMax(item, this.stageProgress),
-
-    availability:
-        this.getAvailability(item),
-
-    getAmount: id => {
-        return this.stageProgress.get(id);
-    },
-
-    canAction: () =>
-        this.getAvailability(item) === 'available',
-
-    onAction: () => {
-
-        if (this.currentTab === 'gather') {
-            this.gather(item);
-        }
-
-        if (this.currentTab === 'create') {
-            this.create(item);
-        }
-    }
-
-}));
+        const displayCards = cards.map(item => ({
+        
+            ...item,
+        
+            type: this.currentTab,
+        
+            amount:
+                this.stageProgress.get(item.id),
+        
+            max:
+                getItemMax(item, this.stageProgress),
+        
+            availability:
+                this.getAvailability(item),
+        
+            getAmount: id => {
+                return this.stageProgress.get(id);
+            },
+        
+            canAction: () =>
+                this.getAvailability(item) === 'available',
+        
+            onAction: () => {
+        
+                if (this.currentTab === 'gather') {
+                    this.gather(item);
+                }
+        
+                if (this.currentTab === 'create') {
+                    this.create(item);
+                }
+            }
+        
+        }));
 
         this.viewport.showCards(
             displayCards
         );
     }
 
-
-    // --------------------------------------------------
     // Update only affected cards
-    // --------------------------------------------------
-
-    updateAffectedCards(changedIds) {
-    
+    updateAffectedCards(id) {
         const cards =
             stageItems.filter(
                 item =>
@@ -536,22 +446,26 @@ const displayCards = cards.map(item => ({
             );
     
         cards.forEach(item => {
-    
             const affectsAmount =
-                changedIds.includes(item.id);
+                item.id === id;
     
             const affectsRequirement =
                 Object.keys(
                     item.requirements ?? {}
-                )
-                .some(id =>
-                    changedIds.includes(id)
-                );
+                ).includes(id);
     
             if (
                 affectsAmount ||
                 affectsRequirement
             ) {
+    
+                const max =
+                    item.tab === 'gather'
+                        ? getItemMax(
+                            item,
+                            this.stageProgress
+                        )
+                        : item.max;
     
                 this.viewport.updateCard(
                     item.id,
@@ -561,83 +475,59 @@ const displayCards = cards.map(item => ({
                                 item.id
                             ),
     
-                        max:
-                            getItemMax(
-                                item,
-                                this.stageProgress
-                            ),
+                        max,
     
                         availability:
-                            this.getAvailability(item)
+                            this.getAvailability(
+                                item
+                            )
                     }
                 );
             }
         });
     }
 
-updateGatherUpgradeCard(id) {
-
-    const item =
-        stageItems.find(
-            item =>
-                item.id === id
+    updateGatherUpgradeCard(id) {
+        const item =
+            stageItems.find(
+                item =>
+                    item.id === id
+            );
+    
+        if (!item) return;
+    
+        // Only relevant if this item is
+        // currently displayed.
+        if (
+            item.tab !== this.currentTab
+        ) {
+            return;
+        }
+    
+        this.viewport.updateCard(
+            item.id,
+            {
+                amount:
+                    this.stageProgress.get(
+                        item.id
+                    ),
+    
+                max:
+                    getItemMax(
+                        item,
+                        this.stageProgress
+                    ),
+    
+                availability:
+                    this.getAvailability(item)
+            }
         );
-
-    if (!item) return;
-
-    // Only relevant if this item is
-    // currently displayed.
-    if (
-        item.tab !== this.currentTab
-    ) {
-        return;
     }
 
-    this.viewport.updateCard(
-        item.id,
-        {
-            amount:
-                this.stageProgress.get(
-                    item.id
-                ),
-
-            max:
-                getItemMax(
-                    item,
-                    this.stageProgress
-                ),
-
-            availability:
-                this.getAvailability(item)
-        }
-    );
-}
-
-    // --------------------------------------------------
     // Destroy
-    // --------------------------------------------------
-
     destroy() {
-        if (this.stageProgress && this._progressChangedHandler) {
-            this.stageProgress.off(
-                'changed',
-                this._progressChangedHandler
-            );
-        }
-
-        if (this.stageProgress && this._gatherUpgradeHandler) {
-            this.stageProgress.off(
-                'gather-upgrade',
-                this._gatherUpgradeHandler
-            );
-        }
-
-        if (this.scene && this._tabChangedHandler) {
-            this.scene.events.off(
-                'stage-tab-changed',
-                this._tabChangedHandler
-            );
-        }
+        this.removeProgressListener?.();
+        this.removeTabListener?.();;
 
         this.inventory?.destroy();
         this.viewport?.destroy();
