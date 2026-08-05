@@ -1,50 +1,42 @@
 export default class StageCard {
 
     constructor(scene, options = {}) {
-    
         this.scene = scene;
+        
         this.container = options.container ?? scene.add.container();
-    
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
+        this.width = options.width ?? 300;
         this.type = options.type ?? 'gather';
         this.height = options.height ?? this.getCardHeight(options);
-        this.width = options.width ?? 300;
-        this.depth = this.scene.depths.cards;
-        
+        this.depth = this.scene.depths?.cards ?? 0;
+
+        // Item data
+        this.id = options.id ?? null;
         this.title = options.title ?? 'Item';
         this.amount = options.amount ?? 0;
-        this.max = options.max ?? 100;
 
+        // null = no maximum
+        this.max = options.max ?? null;
         this.availability = options.availability ?? 'available';
+        this.requirements = options.requirements ?? {};
+        this.produces = options.produces ?? {};
+        this.actionLabel = options.actionLabel ?? 'ACTION';
 
-        this.requirements =
-            options.requirements ?? {};
-
-        this.produces =
-            options.produces ?? {};
-
-        this.actionLabel =
-            options.actionLabel ?? 'ACTION';
+        // Callbacks
         this.onAction = options.onAction ?? null;
+        this.canAction = options.canAction ?? (() => true);
+        this.getAmount = options.getAmount ?? (() => 0);
 
-        // Function supplied by StageUI
-        this.canAction =
-            options.canAction ?? (() => true);
+        this.requirementTexts = [];
+        this.reqLabel = null;
 
-        this.getAmount =
-            options.getAmount ??
-            (() => 0);
-            
         this.create();
     }
 
+    // CREATE
     create() {
-
-        // --------------------------------------------------
-        // Card background
-        // --------------------------------------------------
-
+        // Background
         this.background =
             this.scene.add.rectangle(
                 this.x,
@@ -54,35 +46,37 @@ export default class StageCard {
                 0x000055
             )
             .setOrigin(0)
-            .setStrokeStyle(1, 0x000000);
+            .setStrokeStyle(
+                1,
+                0x000000
+            );
 
-    this.lockOverlay =
-        this.scene.add.rectangle(
-            this.x,
-            this.y,
-            this.width,
-            this.height,
-            0x000000,
-            0.55
-        )
-        .setOrigin(0);
-    
-    this.availabilityText =
-        this.scene.add.text(
-            this.x + this.width / 2,
-            this.y + this.height / 2,
-            '',
-            {
-                fontSize: '18px',
-                color: '#ffffff'
-            }
-        )
-        .setOrigin(0.5);
+        // Locked overlay
+        this.lockOverlay =
+            this.scene.add.rectangle(
+                this.x,
+                this.y,
+                this.width,
+                this.height,
+                0x000000,
+                0.55
+            )
+            .setOrigin(0);
+            
+        // Availability message
+        this.availabilityText =
+            this.scene.add.text(
+                this.x + this.width / 2,
+                this.y + this.height / 2,
+                '',
+                {
+                    fontSize: '18px',
+                    color: '#ffffff'
+                }
+            )
+            .setOrigin(0.5);
 
-        // --------------------------------------------------
         // Title
-        // --------------------------------------------------
-
         this.titleText =
             this.scene.add.text(
                 this.x + 15,
@@ -94,38 +88,35 @@ export default class StageCard {
                 }
             );
 
-
-        // --------------------------------------------------
         // Amount
-        // --------------------------------------------------
-
         this.amountText =
             this.scene.add.text(
                 this.x + 15,
                 this.y + 48,
-                `${this.amount} / ${this.max}`,
+                '',
                 {
                     fontSize: '16px',
                     color: '#ffffff'
                 }
             );
 
-        this.reqLabel = null;
-        let contentBottom = this.y + 75;
-        this.requirementTexts = [];
+        // Craft requirements
+        let contentBottom =
+            this.y + 75;
 
         if (this.type === 'create') {
-            this.createCraftLayout(this.x + 15, this.y + 48);
-            contentBottom = this.createRequirements();
+            this.createCraftLayout(
+                this.x + 15,
+                this.y + 48
+            );
+
+            contentBottom =
+                this.createRequirements();
         }
 
-        // --------------------------------------------------
-        // Progress background
-        // --------------------------------------------------
-
+        // Progress bar
         const barX = this.x + 15;
         const barY = contentBottom + 5;
-
         const barWidth = this.width - 30;
         const barHeight = 12;
 
@@ -139,11 +130,6 @@ export default class StageCard {
             )
             .setOrigin(0);
 
-
-        // --------------------------------------------------
-        // Progress fill
-        // --------------------------------------------------
-
         this.progressFill =
             this.scene.add.rectangle(
                 barX,
@@ -154,11 +140,7 @@ export default class StageCard {
             )
             .setOrigin(0);
 
-
-        // --------------------------------------------------
         // Action button
-        // --------------------------------------------------
-
         const buttonWidth = 120;
         const buttonHeight = 30;
 
@@ -182,9 +164,15 @@ export default class StageCard {
                 0x333333
             )
             .setOrigin(0)
-            .setStrokeStyle(1, 0xffffff)
+            .setStrokeStyle(
+                1,
+                0xffffff
+            )
             .setInteractive();
-        this.actionButton.setDepth(this.depth);
+
+        this.actionButton.setDepth(
+            this.depth
+        );
 
         this.actionText =
             this.scene.add.text(
@@ -198,73 +186,61 @@ export default class StageCard {
             )
             .setOrigin(0.5);
 
-
-        // --------------------------------------------------
         // Button event
-        // --------------------------------------------------
-
         this._actionHandler = () => {
             if (!this.canAction()) {
                 return;
             }
-            if (this.onAction) {
-                this.onAction();
-            }
+
+            this.onAction?.();
         };
+
         this.actionButton.on(
             'pointerdown',
             this._actionHandler
         );
 
+        // Container
         this.container.add([
             this.background,
             this.titleText,
             this.amountText,
-            // Craft-specific label
-            ...(this.reqLabel ? [this.reqLabel] : []),
+            ...(this.reqLabel
+                ? [this.reqLabel]
+                : []),
             ...this.requirementTexts.map(
-                requirement => requirement.text
+                requirement =>
+                    requirement.text
             ),
-        
             this.progressBackground,
             this.progressFill,
-        
             this.actionButton,
             this.actionText,
             this.lockOverlay,
             this.availabilityText
         ]);
 
-        this.updateProgress();
-        
-        this.updateRequirements(this.getAmount);
-        this.updateAvailability();
+        // Initial display
+        this.update({
+            amount: this.amount,
+            availability: this.availability
+        });
     }
 
-    createCraftLayout(startX, startY) {
-        // Requirements label
-        this.reqLabel = this.scene.add.text(
-            startX,
-            startY + 25,
-            'Requirements:',
-            {
-                fontSize: '16px',
-                color: '#ffffff'
-            }
-        )
-        .setOrigin(0);
-
-    }
-
+    // CARD HEIGHT
     getCardHeight(options) {
-        switch (this.type) {
+        switch (options.type) {
             case 'create': {
                 const requirementCount =
                     Object.keys(
                         options.requirements ?? {}
                     ).length;
-                return 190 + requirementCount * 22;
+                return (
+                    190 +
+                    requirementCount * 22
+                );
             }
+
             case 'discover':
                 return 200;
             case 'research':
@@ -275,208 +251,284 @@ export default class StageCard {
         }
     }
 
-    // --------------------------------------------------
-    // Requirements
-    // --------------------------------------------------
+    // CRAFT LAYOUT
+    createCraftLayout(
+        startX,
+        startY
+    ) {
 
+        this.reqLabel =
+            this.scene.add.text(
+                startX,
+                startY + 25,
+                'Requirements:',
+                {
+                    fontSize: '16px',
+                    color: '#ffffff'
+                }
+            )
+            .setOrigin(0);
+    }
+
+    // CREATE REQUIREMENTS
     createRequirements() {
-
         let y = this.y + 95;
-        
-        Object.entries(this.requirements)
-            .forEach(([id, required]) => {
 
-                const text =
-                    this.scene.add.text(
-                        this.x + 15,
-                        y,
-                        '',
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    );
+        Object.entries(
+            this.requirements
+        )
+        .forEach(([id, required]) => {
 
-                this.requirementTexts.push({
-                    id,
-                    required,
-                    text
-                });
+            const text =
+                this.scene.add.text(
+                    this.x + 15,
+                    y,
+                    '',
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                );
 
-                y += 22;
+
+            this.requirementTexts.push({
+                id,
+                required,
+                text
+            });
+
+            y += 22;
         });
-        
+
         return y;
     }
 
-
-    // --------------------------------------------------
-    // Update requirements
-    // --------------------------------------------------
-
-    updateRequirements(getAmount) {
-
-        this.requirementTexts.forEach(requirement => {
-
-            const amount =
-                getAmount(requirement.id);
-
-            const ready =
-                amount >= requirement.required;
-
-            requirement.text.setText(
-                `${requirement.id}: ${amount} / ${requirement.required} ${ready ? '✓' : '✕'}`
+    // UPDATE EVERYTHING
+    update(data = {}) {
+        if (data.amount !== undefined) {
+            this.setAmount(
+                data.amount
             );
+        }
 
-            requirement.text.setColor(
-                ready
-                    ? '#66ff66'
-                    : '#ff6666'
-            );
+        if (data.availability !== undefined) {
+            this.availability =
+                data.availability;
+        }
 
-        });
+        // Update requirement display
+        this.updateRequirements(this.getAmount);
+
+        // Update button / overlay
+        this.updateAvailability();
     }
 
-    // --------------------------------------------------
-    // Update button availability
-    // --------------------------------------------------
+    // REQUIREMENTS
+    updateRequirements(getAmount) {
+        this.requirementTexts
+            .forEach(requirement => {
+                const amount =
+                    getAmount(
+                        requirement.id
+                    );
 
+                const ready =
+                    amount >=
+                    requirement.required;
+
+                requirement.text.setText(
+                    `${requirement.id}: ` +
+                    `${amount} / ` +
+                    `${requirement.required} ` +
+                    `${ready ? '✓' : '✕'}`
+                );
+
+                requirement.text.setColor(
+                    ready
+                        ? '#66ff66'
+                        : '#ff6666'
+                );
+            });
+    }
+
+    // AVAILABILITY
     updateAvailability() {
         const state =
             this.availability ??
-            (this.canAction()
-                ? 'available'
-                : 'locked');
-    
-        // Reset overlay
+            (
+                this.canAction()
+                    ? 'available'
+                    : 'locked'
+            );
+
+        // Reset
         this.lockOverlay.setVisible(false);
         this.availabilityText.setVisible(false);
-    
+
         // AVAILABLE
         if (state === 'available') {
             this.actionButton
                 .setFillStyle(0x333333)
                 .setStrokeStyle(1, 0xffffff);
+
             this.actionText
                 .setText(this.actionLabel)
                 .setColor('#ffffff');
+
             return;
         }
+
         // MAXED
         if (state === 'maxed') {
             this.actionButton
                 .setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
+
             this.actionText
                 .setText('MAXED')
                 .setColor('#777777');
+
             return;
         }
-    
+
         // INSUFFICIENT
         if (state === 'insufficient') {
-            this.lockOverlay.setVisible(false);
             this.availabilityText
                 .setText('NEED MATERIALS')
                 .setVisible(true)
                 .setColor('#ff6666');
+
             this.actionButton
                 .setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
+
             this.actionText
                 .setText('LOCKED')
                 .setColor('#777777');
+
             return;
         }
-    
+
         // LOCKED
-        this.lockOverlay.setVisible(true);
-        this.lockOverlay.setAlpha(0.55);
+        this.lockOverlay
+            .setVisible(true)
+            .setAlpha(0.55);
+
         this.availabilityText
             .setText('LOCKED')
             .setVisible(true);
+
         this.actionButton
             .setFillStyle(0x222222)
             .setStrokeStyle(1, 0x555555);
+
         this.actionText
             .setText('LOCKED')
             .setColor('#777777');
     }
 
+    // PROGRESS
     updateProgress() {
 
+        // No maximum = no progress bar
+        if (this.max == null || this.max <= 0) {
+            this.progressBackground.setVisible(false);
+            this.progressFill.setVisible(false);
+            return;
+        }
+
+        this.progressBackground.setVisible(true);
+        this.progressFill.setVisible(true);
+
         const percent =
-            Phaser.Math.Clamp(
-                this.amount / this.max,
-                0,
-                1
-            );
+            Phaser.Math.Clamp(this.amount / this.max, 0, 1);
 
         this.progressFill.width =
-            this.progressBackground.width * percent;
+            this.progressBackground.width *
+            percent;
     }
 
+    // SET AMOUNT
     setAmount(amount) {
-        this.amount = amount;
+        this.amount =
+            Math.max(0, amount ?? 0);
+
+        if (this.max != null) {
+            this.amountText.setText(`${this.amount} / ${this.max}`);
+
+        } else {
+            this.amountText.setText(`${this.amount}`);
+        }
+
+        this.updateProgress();
+    }
+
+    // SET MAX
+    setMax(max) {
+        this.max = max;
+    
         this.amountText.setText(
             `${this.amount} / ${this.max}`
         );
+    
         this.updateProgress();
     }
-    
-    // --------------------------------------------------
-    // Destroy
-    // --------------------------------------------------
 
+    // DESTROY
     destroy() {
-        // Remove button listener first
+        // Button listener
         if (this.actionButton && this._actionHandler) {
+
             this.actionButton.off(
                 'pointerdown',
                 this._actionHandler
             );
         }
-    
-        // Destroy requirements
-        this.requirementTexts.forEach(
-            requirement => {
-                requirement.text.destroy();
-            }
-        );
-    
+
+        // Requirements
+        this.requirementTexts
+            .forEach(
+                requirement =>
+                    requirement.text.destroy()
+            );
+
         this.requirementTexts = [];
-    
-        // Destroy optional requirements label
-        if (this.reqLabel) {
-            this.reqLabel.destroy();
-            this.reqLabel = null;
-        }
-    
-        // Destroy main card elements
+
+        // Optional requirements label
+        this.reqLabel?.destroy();
+        this.reqLabel = null;
+
+        // Main elements
         this.background?.destroy();
         this.titleText?.destroy();
         this.amountText?.destroy();
-    
-        // Destroy progress elements
+
+        // Progress
         this.progressBackground?.destroy();
         this.progressFill?.destroy();
 
+        // Availability
         this.lockOverlay?.destroy();
         this.availabilityText?.destroy();
 
-        // Destroy action elements
+        // Action
         this.actionButton?.destroy();
         this.actionText?.destroy();
-        
+
         // Clear references
         this.background = null;
         this.titleText = null;
         this.amountText = null;
-    
+
         this.progressBackground = null;
         this.progressFill = null;
-    
+
+        this.lockOverlay = null;
+        this.availabilityText = null;
+
         this.actionButton = null;
         this.actionText = null;
+
+        this.container = null;
     }
 }

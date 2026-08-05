@@ -16,32 +16,22 @@ export default class StageViewport {
         this.height =
             options.height ?? 400;
 
-        this.depth = this.scene.depths.viewport;
+        this.depth =
+            this.scene.depths.viewport;
 
-        // Cards
-        this.cards = [];
+        // id -> StageCard
+        this.cards = new Map();
 
-        // Total height occupied by cards
         this.contentHeight = 0;
 
-        // Scroll position
         this.scrollY = 0;
         this.maxScrollY = 0;
 
         this.create();
     }
 
-
-    // --------------------------------------------------
-    // Create viewport
-    // --------------------------------------------------
-
+    // Create
     create() {
-
-        // --------------------------------------------------
-        // Viewport background
-        // --------------------------------------------------
-
         this.background =
             this.scene.add.rectangle(
                 this.x,
@@ -53,21 +43,11 @@ export default class StageViewport {
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
 
-
-        // --------------------------------------------------
-        // Container for cards
-        // --------------------------------------------------
-
         this.container =
             this.scene.add.container(
                 this.x,
                 this.y
             );
-
-
-        // --------------------------------------------------
-        // Mask
-        // --------------------------------------------------
 
         const maskShape =
             this.scene.make.graphics({
@@ -90,34 +70,17 @@ export default class StageViewport {
             this.mask
         );
 
-
-        // --------------------------------------------------
-        // Scroll interaction area
-        // --------------------------------------------------
-
         this.container.setDepth(this.depth);
         this.setupScrolling();
     }
 
-
-    // --------------------------------------------------
     // Add card
-    // --------------------------------------------------
-
     addCard(options = {}) {
 
         const padding = 15;
-
-        const cardWidth =
-            this.width -
-            padding * 2;
-
+        const cardWidth = this.width - padding * 2;
         const x = padding;
-
-        const y =
-            this.contentHeight +
-            padding;
-
+        const y = this.contentHeight + padding;
 
         const card =
             new StageCard(
@@ -134,36 +97,73 @@ export default class StageViewport {
                 }
             );
 
-        this.cards.push(card);
+        // Keep cards in the Map by their ID.
+        this.cards.set(options.id, card);
 
-        // Advance content position
         this.contentHeight =
             y +
             card.height;
 
-
         this.updateScrollLimits();
-
 
         return card;
     }
 
+    // Update one card
+updateCard(id, data) {
 
-    // --------------------------------------------------
+    const card =
+        this.cards.get(id);
+
+    if (!card) return;
+
+    if (data.amount !== undefined) {
+
+        card.setAmount(
+            data.amount
+        );
+    }
+
+    if (data.max !== undefined) {
+
+        card.setMax(
+            data.max
+        );
+    }
+
+    if (data.availability !== undefined) {
+
+        card.availability =
+            data.availability;
+
+        card.updateAvailability();
+    }
+
+    card.updateRequirements(
+        card.getAmount
+    );
+}
+
+    // Update multiple existing cards
+updateCards(updates) {
+
+    updates.forEach(data => {
+        this.updateCard(
+            data.id,
+            data
+        );
+    });
+}
+
     // Update scroll limits
-    // --------------------------------------------------
-
     updateScrollLimits() {
-
         this.maxScrollY =
             Math.max(
                 0,
-                this.contentHeight + 15 - // + 15 padding tweak added
+                this.contentHeight + 15 -
                 this.height
             );
 
-
-        // Make sure current position is valid
         this.scrollY =
             Phaser.Math.Clamp(
                 this.scrollY,
@@ -175,13 +175,8 @@ export default class StageViewport {
         this.updateScrollPosition();
     }
 
-
-    // --------------------------------------------------
     // Scroll
-    // --------------------------------------------------
-
     scroll(amount) {
-
         this.scrollY =
             Phaser.Math.Clamp(
                 this.scrollY + amount,
@@ -189,183 +184,169 @@ export default class StageViewport {
                 this.maxScrollY
             );
 
-
         this.updateScrollPosition();
     }
 
-
-    // --------------------------------------------------
-    // Update container position
-    // --------------------------------------------------
-
     updateScrollPosition() {
-
         this.container.y =
             this.y -
             this.scrollY;
     }
 
-
-    // --------------------------------------------------
     // Scrolling input
-    // --------------------------------------------------
-
     setupScrolling() {
-    
+
         const input = this.scene.input;
-    
-        this._pointerDownHandler = (pointer, gameObjects) => {
-    
-            const inside =
-                pointer.x >= this.x &&
-                pointer.x <= this.x + this.width &&
-                pointer.y >= this.y &&
-                pointer.y <= this.y + this.height;
-    
-            if (!inside) return;
-    
-            // Let buttons/cards handle their own interaction
-            if (gameObjects.length > 0) return;
-    
-            this.isDragging = true;
-    
-            this.dragStartY = pointer.y;
-            this.scrollStartY = this.scrollY;
-        };
-    
-    
-        this._pointerMoveHandler = (pointer) => {
-    
-            if (!this.isDragging) return;
-    
-            const deltaY =
-                pointer.y - this.dragStartY;
-    
-            this.scrollY =
-                this.scrollStartY - deltaY;
-    
-            this.scrollY =
-                Phaser.Math.Clamp(
-                    this.scrollY,
-                    0,
-                    this.maxScrollY
-                );
-    
-            this.updateScrollPosition();
-        };
-    
-    
-        this._pointerUpHandler = () => {
-    
-            this.isDragging = false;
-        };
-    
-    
-        this._wheelHandler = (
-            pointer,
-            gameObjects,
-            deltaX,
-            deltaY
-        ) => {
-    
-            const inside =
-                pointer.x >= this.x &&
-                pointer.x <= this.x + this.width &&
-                pointer.y >= this.y &&
-                pointer.y <= this.y + this.height;
-    
-            if (!inside) return;
-    
-            this.scroll(deltaY);
-        };
-    
-    
+
+        this._pointerDownHandler =
+            (pointer, gameObjects) => {
+
+                const inside =
+                    pointer.x >= this.x &&
+                    pointer.x <= this.x + this.width &&
+                    pointer.y >= this.y &&
+                    pointer.y <= this.y + this.height;
+
+                if (!inside) return;
+
+                if (gameObjects.length > 0) return;
+
+                this.isDragging = true;
+
+                this.dragStartY =
+                    pointer.y;
+
+                this.scrollStartY =
+                    this.scrollY;
+            };
+
+        this._pointerMoveHandler =
+            pointer => {
+
+                if (!this.isDragging) return;
+
+                const deltaY =
+                    pointer.y -
+                    this.dragStartY;
+
+                this.scrollY =
+                    this.scrollStartY -
+                    deltaY;
+
+                this.scrollY =
+                    Phaser.Math.Clamp(
+                        this.scrollY,
+                        0,
+                        this.maxScrollY
+                    );
+
+                this.updateScrollPosition();
+            };
+
+        this._pointerUpHandler =
+            () => {
+                this.isDragging = false;
+            };
+
+        this._wheelHandler =
+            (
+                pointer,
+                gameObjects,
+                deltaX,
+                deltaY
+            ) => {
+
+                const inside =
+                    pointer.x >= this.x &&
+                    pointer.x <= this.x + this.width &&
+                    pointer.y >= this.y &&
+                    pointer.y <= this.y + this.height;
+
+                if (!inside) return;
+
+                this.scroll(deltaY);
+            };
+
         input.on(
             'pointerdown',
             this._pointerDownHandler
         );
-    
+
         input.on(
             'pointermove',
             this._pointerMoveHandler
         );
-    
+
         input.on(
             'pointerup',
             this._pointerUpHandler
         );
-    
+
         input.on(
             'wheel',
             this._wheelHandler
         );
     }
 
+    // Clear cards
     clearCards() {
-    
         this.cards.forEach(card => {
-    
             card.destroy?.();
-    
         });
-    
-        this.cards = [];
-    
+
+        // Keep this a Map.
+        this.cards.clear();
+
         this.contentHeight = 0;
         this.scrollY = 0;
-    
+
         this.updateScrollLimits();
     }
-    
+
+    // Build cards for a new tab
     showCards(cardData = []) {
-    
         this.clearCards();
-    
+
         cardData.forEach(data => {
             this.addCard(data);
         });
-    
+
         this.scrollY = 0;
-    
+
         this.updateScrollPosition();
     }
-    
+
+    // Destroy
     destroy() {
-    
         const input = this.scene.input;
-    
+
         input.off(
             'pointerdown',
             this._pointerDownHandler
         );
-    
+
         input.off(
             'pointermove',
             this._pointerMoveHandler
         );
-    
+
         input.off(
             'pointerup',
             this._pointerUpHandler
         );
-    
+
         input.off(
             'wheel',
             this._wheelHandler
         );
-    
-    
+
         this.cards.forEach(card => {
             card.destroy?.();
         });
-    
-        this.cards = [];
-    
-    
+
+        this.cards.clear();
         this.container.destroy();
-    
         this.background.destroy();
-    
         this.mask.destroy?.();
     }
 }

@@ -1,31 +1,47 @@
 export default class StageProgressManager {
 
     constructor(gameData) {
-        this.gameData = gameData;
-        
-        // Player's current stage
-        this.stage = gameData.lifeStage.stage;
-        
-        // Current quantities
-        this.values = gameData.stageProgress ?? {};
 
-        this.events = new Phaser.Events.EventEmitter();
+        this.gameData = gameData;
+
+        // Player's current stage
+        this.stage =
+            gameData.lifeStage.stage;
+
+        // Current quantities
+        this.values =
+            gameData.stageProgress?.amounts ?? {};
+
+        // Gather upgrade levels
+        this.gatherLevels =
+            gameData.stageProgress?.gatherLevels ?? {};
+
+        // Observable changes
+        this.events =
+            new Phaser.Events.EventEmitter();
     }
+
+
+    // --------------------------------------------------
+    // Get all values
+    // --------------------------------------------------
 
     getAll() {
         return { ...this.values };
     }
 
-    // Get
+    // Get amount
     get(id) {
         return this.values[id] ?? 0;
     }
 
-    // Set
+    // Set amount
     set(id, amount) {
-        const newAmount = Math.max(0, amount);
+        const newAmount =
+            Math.max(0, amount);
 
-        this.values[id] = newAmount;
+        this.values[id] =
+            newAmount;
 
         this.sync();
 
@@ -38,33 +54,76 @@ export default class StageProgressManager {
         return newAmount;
     }
 
-    // Add
+    // Add amount
     add(id, amount) {
-        const current = this.get(id);
+        const current =
+            this.get(id);
 
-        return this.set(id, current + amount);
+        return this.set(
+            id,
+            current + amount
+        );
     }
 
-    // Remove
+    // Remove amount
     remove(id, amount = 1) {
-        const current = this.get(id);
+        const current =
+            this.get(id);
 
-        return this.set(id, current - amount);
+        return this.set(
+            id,
+            current - amount
+        );
+    }
+
+    // Gather upgrade levels
+    getGatherLevel(id) {
+        return this.gatherLevels[id] ?? 0;
+    }
+
+    setGatherLevel(id, level) {
+        const newLevel =
+            Math.max(0, level);
+
+        this.gatherLevels[id] =
+            newLevel;
+
+        this.sync();
+
+        this.events.emit(
+            'gather-upgrade',
+            id,
+            newLevel
+        );
+
+        return newLevel;
+    }
+
+    addGatherLevel(id, amount = 1) {
+        const current =
+            this.getGatherLevel(id);
+
+        return this.setGatherLevel(
+            id,
+            current + amount
+        );
+    }
+
+    // Sync to gameData
+    sync() {
+        this.gameData.stageProgress = {
+            amounts: this.values,
+            gatherLevels: this.gatherLevels
+        };
     }
 
     // Events
     on(event, handler) {
         this.events.on(event, handler);
     }
-    
+
     off(event, handler) {
         this.events.off(event, handler);
-    }
-
-    // Sync
-    sync() {
-        this.gameData.stageProgress =
-            this.values;
     }
 
     // Destroy

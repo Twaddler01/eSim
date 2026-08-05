@@ -90,12 +90,16 @@ export const saveFields = {
     // playerData: ['id', 'val']
 };
 
-export const stageProgress = {};
+// Prinary structure for storing/saving data
+export const stageProgress = {
+    amounts: {},
+    gatherLevels: {}
+};
 
 // Combined data (rootData) for saving, etc
 export const gameData = {
-    objData,
-    playerData,
+    objData, // REVAMP: Needs removal
+    playerData, // ??
     messageData,
     elapsedTime: 0,
     saveFields, // REVAMP: Needs removal

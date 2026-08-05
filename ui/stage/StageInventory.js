@@ -1,3 +1,5 @@
+import { getItemMax } from '../../utils/stageHelpers.js';
+
 export default class StageInventory {
 
     constructor(scene, stageProgress, stageItems, options = {}) {
@@ -34,6 +36,17 @@ export default class StageInventory {
         this.stageProgress.on(
             'changed',
             this._changedHandler
+        );
+        
+        // Listen for upgrade changes
+        this._gatherUpgradeHandler =
+            () => {
+                this.refresh();
+            };
+        
+        this.stageProgress.on(
+            'gather-upgrade',
+            this._gatherUpgradeHandler
         );
 
         // Initial display
@@ -273,7 +286,8 @@ export default class StageInventory {
                 // Items
                 items.forEach(
                     ({ item, amount }) => {
-                        const itemMax = item.max ? ' / ' + item.max : '';
+                        const max = getItemMax(item, this.stageProgress);
+                        const itemMax = max > 0 ? ' / ' + max : '';
 
                         const text =
                             this.scene.add.text(
@@ -342,12 +356,7 @@ export default class StageInventory {
 
         this.stageItems.forEach(item => {
             // Avoid duplicates
-            if (
-                items.some(
-                    existing =>
-                        existing.id === item.id
-                )
-            ) {
+            if (items.some(existing => existing.id === item.id)) {
                 return;
             }
 
@@ -360,16 +369,26 @@ export default class StageInventory {
     // Destroy
     destroy() {
 
-        if (
-            this.stageProgress &&
-            this._changedHandler
-        ) {
-
+        if (this.stageProgress && this._changedHandler) {
             this.stageProgress.off(
                 'changed',
                 this._changedHandler
             );
 
+        }
+
+        if (this.stageProgress && this._gatherUpgradeHandler) {
+            this.stageProgress.off(
+                'gather-upgrade',
+                this._gatherUpgradeHandler
+            );
+        }
+
+        if (this.scene && this._tabChangedHandler) {
+            this.scene.events.off(
+                'stage-tab-changed',
+                this._tabChangedHandler
+            );
         }
 
         this.scrollZone?.destroy();
