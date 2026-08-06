@@ -16,6 +16,9 @@ export default class StageProgressManager {
         this.gatherLevels =
             gameData.stageProgress?.gatherLevels ?? {};
 
+        this.discoveries =
+            gameData.stageProgress?.discoveries ?? {};
+
         // Observable changes
         this.events =
             new Phaser.Events.EventEmitter();
@@ -103,11 +106,36 @@ export default class StageProgressManager {
         );
     }
 
+    // Discoveries
+    isDiscovered(id) {
+        return this.discoveries[id] === true;
+    }
+
+    discover(id) {
+        if (this.isDiscovered(id)) {
+            return false;
+        }
+        this.discoveries[id] = true;
+    
+        this.sync();
+    
+        this.events.emit(
+            'updated',
+            {
+                type: 'discovery',
+                id
+            }
+        );
+    
+        return true;
+    }
+
     // Sync to gameData
     sync() {
         this.gameData.stageProgress = {
             amounts: this.values,
-            gatherLevels: this.gatherLevels
+            gatherLevels: this.gatherLevels,
+            discoveries: this.discoveries
         };
     }
 

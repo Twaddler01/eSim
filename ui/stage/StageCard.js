@@ -413,6 +413,19 @@ export default class StageCard {
 
             return;
         }
+        
+        // COMPLETED (Discoveries)
+        if (state === 'completed') {
+            this.actionButton
+                .setFillStyle(0x222222)
+                .setStrokeStyle(1, 0x555555);
+        
+            this.actionText
+                .setText('COMPLETED')
+                .setColor('#66ff66');
+        
+            return;
+        }
 
         // LOCKED
         this.lockOverlay

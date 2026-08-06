@@ -93,7 +93,8 @@ export const saveFields = {
 // Prinary structure for storing/saving data
 export const stageProgress = {
     amounts: {},
-    gatherLevels: {}
+    gatherLevels: {},
+    discoveries: {}
 };
 
 // Combined data (rootData) for saving, etc

@@ -51,5 +51,16 @@ export const stageItems = [
         }, actionLabel: 'CREATE' },
 
     // Discoveries
-    { id: 'coming_soon', title: 'COMING SOON', tab: 'discover', category: 'discovery', unlocked: false, max: 1, actionLabel: 'DISCOVER' }
+    //{ id: 'coming_soon', title: 'COMING SOON', tab: 'discover', category: 'discovery', unlocked: false, max: 1, actionLabel: 'DISCOVER' }
+    {
+        id: 'big_bang',
+        title: 'BIG BANG',
+        tab: 'discover',
+        category: 'discovery',
+        discovery: true,
+        unlocked: true,
+        description: 'The beginning of the universe.',
+        requirements: {},
+        actionLabel: 'UNLOCK'
+    }
 ];

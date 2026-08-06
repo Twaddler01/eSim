@@ -352,11 +352,15 @@ export default class StageUI {
 
     // Availability
     getAvailability(item) {
-    
+        // Discoveries
+        if (item.discovery) {
+            return this.getDiscoveryStatus(item);
+        }
+
         if (!item.unlocked) {
             return 'locked';
         }
-    
+
         const amount =
             this.stageProgress.get(item.id);
     
@@ -402,10 +406,10 @@ export default class StageUI {
             type: this.currentTab,
         
             amount:
-                this.stageProgress.get(item.id),
-        
+                item.discovery ? null : this.stageProgress.get(item.id),
+            
             max:
-                getItemMax(item, this.stageProgress),
+                item.discovery ? null : getItemMax(item, this.stageProgress),
         
             availability:
                 this.getAvailability(item),
@@ -418,13 +422,16 @@ export default class StageUI {
                 this.getAvailability(item) === 'available',
         
             onAction: () => {
-        
                 if (this.currentTab === 'gather') {
                     this.gather(item);
                 }
         
                 if (this.currentTab === 'create') {
                     this.create(item);
+                }
+                
+                if (this.currentTab === 'discover') {
+                    this.discover(item);
                 }
             }
         
@@ -465,67 +472,60 @@ export default class StageUI {
                         )
                         : item.max;
     
+                const isDiscovery = item.discovery === true;
+                
                 this.viewport.updateCard(
                     item.id,
                     {
-                        amount:
-                            this.stageProgress.get(
-                                item.id
-                            ),
-    
-                        max,
-    
-                        availability:
-                            this.getAvailability(
-                                item
-                            )
+                        amount: isDiscovery ? null : this.stageProgress.get(item.id),
+                        max: isDiscovery ? null : getItemMax(item, this.stageProgress),
+                        availability: this.getAvailability(item)
                     }
                 );
             }
         });
     }
 
-    updateGatherUpgradeCard(id) {
-        const item =
-            stageItems.find(
-                item =>
-                    item.id === id
-            );
+    // Discoveries
+    getDiscoveryStatus(item) {
     
-        if (!item) return;
+        if (this.stageProgress.isDiscovered(item.id)) {
+            return 'completed';
+        }
     
-        // Only relevant if this item is
-        // currently displayed.
-        if (
-            item.tab !== this.currentTab
-        ) {
+        if (!item.unlocked) {
+            return 'locked';
+        }
+    
+        const requirementsMet =
+            Object.entries(item.requirements ?? {})
+                .every(([id, required]) => {
+                    return (
+                        this.stageProgress.get(id) >= required
+                    );
+                });
+    
+        if (!requirementsMet) {
+            return 'insufficient';
+        }
+    
+        return 'available';
+    }
+    
+    discover(item) {
+        const status = this.getDiscoveryStatus(item);
+    
+        if (status !== 'available') {
             return;
         }
     
-        this.viewport.updateCard(
-            item.id,
-            {
-                amount:
-                    this.stageProgress.get(
-                        item.id
-                    ),
-    
-                max:
-                    getItemMax(
-                        item,
-                        this.stageProgress
-                    ),
-    
-                availability:
-                    this.getAvailability(item)
-            }
-        );
+        this.stageProgress.discover(item.id);
     }
 
     // Destroy
     destroy() {
         this.removeProgressListener?.();
-        this.removeTabListener?.();;
+        this.removeTabListener?.();
 
         this.inventory?.destroy();
         this.viewport?.destroy();

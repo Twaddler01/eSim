@@ -235,8 +235,8 @@ export default class StageInventory {
         const categories = {};
 
         inventoryItems.forEach(item => {
-            // Only show unlocked
-            if (!item.unlocked) return;
+            // Only show unlocked, non-discovery items
+            if (!item.unlocked || item.discovery) return;
 
             const amount =
                 this.stageProgress.get(
