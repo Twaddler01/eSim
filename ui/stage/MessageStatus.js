@@ -54,11 +54,11 @@ export default class MessageStatus {
         // Message viewport dimensions
         // --------------------------------------------------
 
-        const winX = this.x + 1;
-        const winY = this.y + 1;
+        const winX = this.x;
+        const winY = this.y;
 
-        const winWidth = this.width - 1;
-        const winHeight = this.height - 1;
+        const winWidth = this.width;
+        const winHeight = this.height;
 
         this.msgArea = {
             x: winX,
@@ -87,9 +87,9 @@ export default class MessageStatus {
 
         maskShape.fillRect(
             winX,
-            winY + 1,
+            winY + 2,
             winWidth,
-            winHeight - 3
+            winHeight - 4
         );
 
         this.messageMask =

@@ -41,21 +41,12 @@ export default class StageInventory {
     }
 
     create() {
-        this.titleBg = this.scene.add.rectangle(
-                this.x,
-                this.y,
-                this.width,
-                39,
-                0x000055
-            )
-            .setOrigin(0);
-        
         this.background =
             this.scene.add.rectangle(
                 this.x,
-                this.y + 41,
+                this.y,
                 this.width,
-                this.height - 41,
+                this.height,
                 0x000055
             )
             .setOrigin(0);
@@ -64,34 +55,18 @@ export default class StageInventory {
             this.depth
         );
 
-        // Title
-        this.title =
-            this.scene.add.text(
-                this.x + 10,
-                this.y + 10,
-                'INVENTORY',
-                {
-                    fontSize: '20px',
-                    color: '#ffffff'
-                }
-            );
-
-        this.title.setDepth(
-            this.depth + 1
-        );
-
         // Content viewport
         this.contentX =
-            this.x + 1;
+            this.x;
 
         this.contentY =
-            this.y + 40;
+            this.y;
 
         this.contentWidth =
-            this.width - 2;
+            this.width;
 
         this.contentHeight =
-            this.height - 41;
+            this.height;
 
         // Content container
         this.content =

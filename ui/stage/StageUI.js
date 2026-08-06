@@ -23,6 +23,12 @@ export default class StageUI {
 
         this.headerHeight = 280;
         this.headerTitleHeight = 40;
+        
+        this.headerBoxX = 10;
+        this.headerBoxY = 10;
+        this.belowHeaderY = 50;
+        this.headerBoxWidth = this.width / 3 - 8;
+        this.headerBoxHeight = this.headerHeight - this.headerTitleHeight;
 
         this.createUI();
     }
@@ -58,9 +64,6 @@ export default class StageUI {
         // Header
         this.createHeader();
 
-        this.headerBox1();
-        this.headerBox2();
-
         // Inventory
         this.inventory =
             new StageInventory(
@@ -68,10 +71,10 @@ export default class StageUI {
                 this.stageProgress,
                 stageItems,
                 {
-                    x: this.headerBox2.x,
-                    y: this.headerBox2.y,
-                    width: this.headerBox2.width,
-                    height: this.headerBox2.height
+                    x: this.headerBoxX + this.headerBoxWidth + 1,
+                    y: this.belowHeaderY + 1,
+                    width: this.headerBoxWidth,
+                    height: this.headerHeight - this.headerTitleHeight - 1,
                 }
             );
 
@@ -83,10 +86,10 @@ export default class StageUI {
                 this.scene,
                 this.scene.gameTimer,
                 {
-                    x: this.headerBox1.x - 1,
-                    y: this.headerBox1.y,
-                    width: this.headerBox1.width + 1,
-                    height: this.headerBox1.height + 1,
+                    x: this.headerBoxX,
+                    y: this.belowHeaderY,
+                    width: this.headerBoxWidth,
+                    height: this.headerHeight - this.headerTitleHeight + 1,
                     fontSize: '18px',
                     fontColor: '#33FFE4'
                 }
@@ -144,6 +147,83 @@ export default class StageUI {
         this.refreshCurrentTab();
     }
 
+    // Header
+    createHeader() {
+        this.scene.add.rectangle(
+            this.headerBoxX,
+            this.headerBoxY,
+            this.headerBoxWidth,
+            this.headerTitleHeight,
+            0x000055
+        )
+        .setOrigin(0);
+
+        this.scene.add.text(
+            40,
+            10,
+            'CELL STAGE',
+            {
+                fontSize: '28px',
+                color: '#ffffff'
+            }
+        );
+        
+        this.scene.add.rectangle(
+            this.headerBoxX + this.headerBoxWidth + 1,
+            this.headerBoxY,
+            this.headerBoxWidth,
+            this.headerTitleHeight,
+            0x000055
+        )
+        .setOrigin(0);
+
+        this.scene.add.text(
+            this.headerBoxX + this.headerBoxWidth + 80,
+            this.headerTitleHeight / 2 - 2,
+            'INVENTORY',
+            {
+                fontSize: '24px',
+                color: '#ffffff'
+            }
+        );
+        
+        this.scene.add.rectangle(
+            this.headerBoxX + ((this.headerBoxWidth + 1)*2),
+            this.headerBoxY,
+            this.headerBoxWidth,
+            this.headerTitleHeight,
+            0x000055
+        )
+        .setOrigin(0);
+
+        this.scene.add.text(
+            this.headerBoxX + (this.headerBoxWidth + 1) * 2 + 80,
+            this.headerTitleHeight / 2 - 2,
+            'DISCOVERY',
+            {
+                fontSize: '24px',
+                color: '#ffffff'
+            }
+        );
+    }
+
+    // DISCOVERY AREA
+    headerBox3() {
+        this.headerBox3 =
+            this.scene.add.rectangle(
+                10 +
+                    this.headerBoxWidth +
+                    1 +
+                    this.width / 3 - 8 +
+                    1,
+                10 + this.headerTitleHeight + 1,
+                this.width / 3 - 7,
+                this.headerHeight - this.headerTitleHeight - 1,
+                0x444444
+            )
+            .setOrigin(0);
+    }
+
     // Change tab
     changeTab(id) {
 
@@ -155,73 +235,6 @@ export default class StageUI {
 
         // Changing tabs DOES rebuild the cards.
         this.refreshCurrentTab();
-    }
-
-    // Header
-    createHeader() {
-
-        this.scene.add.rectangle(
-            10,
-            10,
-            this.width / 3 - 10,
-            40,
-            0x000055
-        )
-        .setOrigin(0);
-
-
-        this.scene.add.text(
-            40,
-            10,
-            'CELL STAGE',
-            {
-                fontSize: '28px',
-                color: '#ffffff'
-            }
-        );
-    }
-
-    headerBox1() {
-        this.headerBox1 =
-            this.scene.add.rectangle(
-                10,
-                50,
-                this.width / 3 - 9,
-                this.headerHeight -
-                    this.headerTitleHeight,
-                0x444444
-            )
-            .setOrigin(0)
-            .setVisible(false);
-    }
-
-    headerBox2() {
-        this.headerBox2 =
-            this.scene.add.rectangle(
-                10 + this.headerBox1.width + 1,
-                10,
-                this.width / 3 - 8,
-                this.headerHeight,
-                0x444444
-            )
-            .setOrigin(0)
-            .setVisible(false);
-    }
-
-    headerBox3() {
-        this.headerBox3 =
-            this.scene.add.rectangle(
-                10 +
-                    this.headerBox1.width +
-                    1 +
-                    this.headerBox2.width +
-                    1,
-                10,
-                this.width / 3 - 7,
-                this.headerHeight,
-                0x444444
-            )
-            .setOrigin(0);
     }
 
     // Gather
