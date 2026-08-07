@@ -34,9 +34,8 @@ jobs:
               <text x="0" y="18"
                     fill="#8b949e"
                     font-family="Arial,sans-serif"
-                    font-size="14">
-                [ Last updated: ${{ steps.date.outputs.date }} ]
-              </text>
+                    font-size="14"
+                    font-weight="bold">[ Last updated: ${{ steps.date.outputs.date }} ]</text>
             </svg>
             EOF
 
