@@ -6,7 +6,7 @@ export const stageData = [
 export const stageItems = [
 
     // Elements
-    { id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: true, max: 10, actionLabel: 'GATHER',
+    { id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER',
         gather: {
             upgrade: {
                 enabled: true,
@@ -15,7 +15,7 @@ export const stageItems = [
             }
         },
     },
-    { id: 'carbon', title: 'CARBON', tab: 'gather', category: 'element', unlocked: true, max: 20, actionLabel: 'GATHER',
+    { id: 'carbon', title: 'CARBON', tab: 'gather', category: 'element', unlocked: false, max: 20, actionLabel: 'GATHER',
         gather: {
             upgrade: {
                 enabled: true,
@@ -24,24 +24,24 @@ export const stageItems = [
             }
         },
     },
-    { id: 'hydrogen', title: 'HYDROGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { id: 'silicone', title: 'SILICONE', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { id: 'aluminum', title: 'ALUMINUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { id: 'hydrogen', title: 'HYDROGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { id: 'silicon', title: 'SILICON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { id: 'aluminum', title: 'ALUMINUM', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
     { id: 'nitrogen', title: 'NITROGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
     { id: 'neon', title: 'NEON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
 
     // Molecules
-    { id: 'water_molecule', title: 'Water Molecule', tab: 'create', category: 'molecule', unlocked: true,
+    { id: 'water_molecule', title: 'Water Molecule', tab: 'create', category: 'molecule', unlocked: false,
         requirements: {
             water: 5
         },
         produces: {
             water_molecule: 1
         }, actionLabel: 'CREATE' },
-    { id: 'water_molecule2', title: 'Water Molecule dx2', tab: 'create', category: 'molecule', unlocked: true,
+    { id: 'water_molecule2', title: 'Water Molecule dx2', tab: 'create', category: 'molecule', unlocked: false,
         requirements: {
             water: 15,
             carbon: 1
@@ -58,9 +58,31 @@ export const stageItems = [
         tab: 'discover',
         category: 'discovery',
         discovery: true,
-        unlocked: true,
+        startsUnlocked: true,
+        tracked: true,
         description: 'The beginning of the universe.',
-        requirements: {},
+        // No requirements
+        requirements: { initial: 0 },
+        unlocks: { 
+            discoveries: ['primodial_soup'],
+            items: [ 'water', 'carbon', 'hydrogen' ],
+        },
+        actionLabel: 'UNLOCK'
+    },
+    {
+        id: 'primodial_soup',
+        title: 'PRIMORDIAL SOUP',
+        tab: 'discover',
+        category: 'discovery',
+        discovery: true,
+        unlocked: false,
+        description: 'It could stir up something interesting.',
+        requirements: { 
+            water: 50,
+            carbon: 25,
+            hydrogen: 10
+        },
+        unlocks: {},
         actionLabel: 'UNLOCK'
     }
 ];

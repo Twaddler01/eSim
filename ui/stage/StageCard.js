@@ -4,7 +4,7 @@ export default class StageCard {
 
     constructor(scene, options = {}) {
         this.scene = scene;
-        
+    
         this.container = options.container ?? scene.add.container();
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
@@ -17,6 +17,8 @@ export default class StageCard {
         this.id = options.id ?? null;
         this.title = options.title ?? 'Item';
         this.amount = options.amount ?? 0;
+        this.description = options.description ?? '';
+        this.startsUnlocked = options.startsUnlocked ?? false;
 
         // null = no maximum
         this.max = options.max ?? null;
@@ -90,6 +92,20 @@ export default class StageCard {
                 }
             );
 
+        this.descriptionText =
+            this.scene.add.text(
+                this.x + 15,
+                this.y + 48,
+                this.description,
+                {
+                    fontSize: '16px',
+                    color: '#cccccc',
+                    wordWrap: {
+                        width: this.width - 30
+                    }
+                }
+            );
+
         // Amount
         this.amountText =
             this.scene.add.text(
@@ -101,13 +117,14 @@ export default class StageCard {
                     color: '#ffffff'
                 }
             );
+        this.amountText.setVisible(!this.description);
 
         // Craft requirements
         let contentBottom =
             this.y + 75;
 
-        if (this.type === 'create') {
-            this.createCraftLayout(
+        if (this.type === 'create' || this.type === 'discover') {
+            this.createRequirementLayout(
                 this.x + 15,
                 this.y + 48
             );
@@ -206,6 +223,7 @@ export default class StageCard {
         this.container.add([
             this.background,
             this.titleText,
+            this.descriptionText,
             this.amountText,
             ...(this.reqLabel
                 ? [this.reqLabel]
@@ -254,16 +272,18 @@ export default class StageCard {
     }
 
     // CRAFT LAYOUT
-    createCraftLayout(
+    createRequirementLayout(
         startX,
         startY
     ) {
+
+        const reqLabelTitle = this.type === 'discover' ? 'Objectives:' : 'Requirements:';
 
         this.reqLabel =
             this.scene.add.text(
                 startX,
                 startY + 25,
-                'Requirements:',
+                reqLabelTitle,
                 {
                     fontSize: '16px',
                     color: '#ffffff'
@@ -340,13 +360,12 @@ export default class StageCard {
                 
                 const reqItem = stageItems.find(i => i.id === requirement.id);
                 const reqItemTitle = reqItem ? reqItem.title : requirement.id;
-
-                requirement.text.setText(
+                const reqDisplay = this.startsUnlocked ? 'Initial Discovery ✓' :
                     `${reqItemTitle}: ` +
                     `${Math.floor(amount)} / ` +
                     `${requirement.required} ` +
-                    `${ready ? '✓' : '✕'}`
-                );
+                    `${ready ? '✓' : '✕'}`;
+                requirement.text.setText(reqDisplay);
 
                 requirement.text.setColor(
                     ready

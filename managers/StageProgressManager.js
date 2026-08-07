@@ -19,6 +19,9 @@ export default class StageProgressManager {
         this.discoveries =
             gameData.stageProgress?.discoveries ?? {};
 
+        this.unlocked =
+            gameData.stageProgress?.unlocked ?? {};
+
         // Observable changes
         this.events =
             new Phaser.Events.EventEmitter();
@@ -58,6 +61,32 @@ export default class StageProgressManager {
         );
 
         return newAmount;
+    }
+
+    // UNLOCK
+    getUnlocked(id) {
+        return this.unlocked[id] === true;
+    }
+    
+    unlock(id) {
+        if (this.unlocked[id]) {
+            return;
+        }
+        this.unlocked[id] = true;
+        this.sync();
+        this.events.emit('updated', {
+            id,
+            type: 'unlock'
+        });
+    }
+    
+    lock(id) {
+        delete this.unlocked[id];
+        this.sync();
+        this.events.emit('updated', {
+            id,
+            type: 'unlock'
+        });
     }
 
     // Add amount
@@ -135,7 +164,9 @@ export default class StageProgressManager {
         this.gameData.stageProgress = {
             amounts: this.values,
             gatherLevels: this.gatherLevels,
-            discoveries: this.discoveries
+            discoveries: this.discoveries,
+            unlocked: this.unlocked,
+            tracked: this.tracked
         };
     }
 

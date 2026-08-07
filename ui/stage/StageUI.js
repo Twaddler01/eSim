@@ -6,6 +6,7 @@ import MessageStatus from './MessageStatus.js';
 import StageProgressManager from '../../managers/StageProgressManager.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
+import StageDiscoveryTracker from './StageDiscoveryTracker.js';
 
 export default class StageUI {
 
@@ -78,7 +79,7 @@ export default class StageUI {
                 }
             );
 
-        this.headerBox3();
+        //this.headerBox3();
 
         // Messages
         this.messageStatus =
@@ -142,6 +143,16 @@ export default class StageUI {
                 }
             );
 
+        // DISCOVERY TRACKER
+        this.discoveryTracker =
+            new StageDiscoveryTracker(this.scene, this.stageProgress, stageItems, {
+                    x: 10 + this.headerBoxWidth + 1 + this.width / 3 - 8 + 1,
+                    y: 10 + this.headerTitleHeight + 1,
+                    width: this.width / 3 - 7,
+                    height: this.headerHeight - this.headerTitleHeight - 1
+                }
+            );
+
         // Initial tab
         this.currentTab = 'gather';
         this.refreshCurrentTab();
@@ -159,9 +170,9 @@ export default class StageUI {
         .setOrigin(0);
 
         this.scene.add.text(
-            40,
+            50,
             10,
-            'CELL STAGE',
+            '== CELL STAGE ==',
             {
                 fontSize: '28px',
                 color: '#ffffff'
@@ -197,9 +208,9 @@ export default class StageUI {
         .setOrigin(0);
 
         this.scene.add.text(
-            this.headerBoxX + (this.headerBoxWidth + 1) * 2 + 80,
+            this.headerBoxX + (this.headerBoxWidth + 1) * 2 + 40,
             this.headerTitleHeight / 2 - 2,
-            'DISCOVERY',
+            'DISCOVERY TRACKER',
             {
                 fontSize: '24px',
                 color: '#ffffff'
@@ -370,7 +381,11 @@ export default class StageUI {
             return this.getDiscoveryStatus(item);
         }
 
-        if (!item.unlocked) {
+        const unlocked =
+            item.startsUnlocked ||
+            this.stageProgress.getUnlocked(item.id);
+        
+        if (!unlocked) {
             return 'locked';
         }
 
@@ -506,7 +521,11 @@ export default class StageUI {
             return 'completed';
         }
     
-        if (!item.unlocked) {
+        const unlocked =
+            item.startsUnlocked ||
+            this.stageProgress.getUnlocked(item.id);
+    
+        if (!unlocked) {
             return 'locked';
         }
     
@@ -526,13 +545,26 @@ export default class StageUI {
     }
     
     discover(item) {
-        const status = this.getDiscoveryStatus(item);
-    
-        if (status !== 'available') {
+        if (this.getDiscoveryStatus(item) !== 'available') {
             return;
         }
     
         this.stageProgress.discover(item.id);
+    
+        const unlocks = item.unlocks ?? {};
+    
+        // Unlock discoveries
+        (unlocks.discoveries ?? []).forEach(id => {
+            this.stageProgress.unlock(id);
+        });
+    
+        // Unlock gather/create/etc items
+        (unlocks.items ?? []).forEach(id => {
+            this.stageProgress.unlock(id);
+        });
+    
+        // Refresh cards because newly unlocked cards may appear
+        this.refreshCurrentTab();
     }
 
     // Destroy

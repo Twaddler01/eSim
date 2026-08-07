@@ -94,7 +94,9 @@ export const saveFields = {
 export const stageProgress = {
     amounts: {},
     gatherLevels: {},
-    discoveries: {}
+    discoveries: {},
+    unlocked: {},
+    tracked: {}
 };
 
 // Combined data (rootData) for saving, etc
