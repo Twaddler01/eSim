@@ -29,16 +29,15 @@ jobs:
         run: |
           mkdir -p public
 
-          cat > public/readme-date.svg <<EOF
-            <svg xmlns="http://www.w3.org/2000/svg" width="260" height="28">
+            cat > public/readme-date.svg <<EOF
+            <svg xmlns="http://www.w3.org/2000/svg" width="300" height="28">
               <text x="0" y="18"
                     fill="#57606a"
                     font-family="Arial,sans-serif"
-                    font-size="14">
-                [ Last updated: ${{ steps.date.outputs.date }} ]
-              </text>
+                    font-size="14"
+                    font-weight="bold">[ Last updated: ${{ steps.date.outputs.date }} ]</text>
             </svg>
-          EOF
+            EOF
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
