@@ -1,4 +1,4 @@
-**Last updated:** <!-- LAST_UPDATED -->
+![README updated](https://Twaddler01.github.io/eSim/readme-date.svg)
 
 # About
 - eSim is a gather/discover/create simulation game coded in Javscript using the Phaser 3 framework.
