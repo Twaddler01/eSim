@@ -12,7 +12,8 @@
 
 # Future Updates
 - More structural content.
-- Auto-gather.
+- Auto-gather - "element collector".
 ### Cell Stage updates
 - A beginning "big bang" sequence when starting a new game.
 - Possible link to 'break down' molecules into individual elements, along with combining existing individual elements.
+- Organize stages: "cell stage" should be second, with a "creation stage" first.
