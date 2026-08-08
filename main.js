@@ -1,10 +1,10 @@
-import BootScene from '/scenes/BootScene.js';
-import EvolveScene from '/scenes/EvolveScene.js';
+import BootScene from './scenes/BootScene.js';
+import EvolveScene from './scenes/EvolveScene.js';
 import MainScene from './scenes/MainScene.js';
-import { DEBUG } from 'config.js';
+import { DEBUG } from './config.js';
 
 const test = document.createElement('div');
-test.innerHTML = 'this is a test...1';
+test.innerHTML = 'script test...1';
 document.body.appendChild(test);
 
 // Override console.log, console.warn, and console.error for exporting into a file
