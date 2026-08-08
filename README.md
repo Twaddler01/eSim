@@ -13,6 +13,7 @@
 # Future Updates
 - More structural content.
 - Auto-gather - "element collector".
+- More dynamic uogrades, including custom caps for rate/max, etc.
 ### Cell Stage updates
 - A beginning "big bang" sequence when starting a new game.
 - Possible link to 'break down' molecules into individual elements, along with combining existing individual elements.
