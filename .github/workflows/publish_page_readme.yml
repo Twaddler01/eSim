@@ -36,6 +36,8 @@ jobs:
             --exclude='public' \
             ./ public/
 
+          sed -i 's/export const DEBUG = true;/export const DEBUG = false;/' public/config.js
+
           cat > public/readme-date.svg <<EOF
           <svg xmlns="http://www.w3.org/2000/svg" width="300" height="28">
             <text x="0" y="18"
