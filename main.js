@@ -1,7 +1,7 @@
-import BootScene from "./scenes/BootScene.js";
-import EvolveScene from "./scenes/EvolveScene.js";
+import BootScene from "/scenes/BootScene.js";
+import EvolveScene from "/scenes/EvolveScene.js";
 import MainScene from "./scenes/MainScene.js";
-import { DEBUG } from './config.js';
+import { DEBUG } from '/config.js';
 
 // Override console.log, console.warn, and console.error for exporting into a file
 function logExport() {
