@@ -37,8 +37,8 @@ export default class MainScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('opened', 'assets/MenuItem_open.png');
-        this.load.image('closed', 'assets/MenuItem_closed.png');
+        //this.load.image('opened', 'assets/MenuItem_open.png');
+        //this.load.image('closed', 'assets/MenuItem_closed.png');
     }
 
     create() {

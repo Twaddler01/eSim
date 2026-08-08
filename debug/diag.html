@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eSim Diagnostic</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+
+        h2 {
+            margin-bottom: 5px;
+        }
+
+        #status {
+            margin-bottom: 15px;
+        }
+
+        #console {
+            background: #111;
+            color: #ddd;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        .ok {
+            color: #7CFC00;
+        }
+
+        .error {
+            color: #ff5555;
+        }
+
+        .warning {
+            color: #ffd75f;
+        }
+
+        .info {
+            color: #7db7ff;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>eSim Diagnostic</h2>
+<div id="status">Testing...</div>
+
+<div id="console"></div>
+
+<script>
+
+const BASE = 'https://Twaddler01.github.io/eSim/';
+
+const output = document.getElementById('console');
+const status = document.getElementById('status');
+
+let passed = 0;
+let failed = 0;
+
+function log(message, className = '') {
+
+    const line = document.createElement('div');
+
+    if (className) {
+        line.className = className;
+    }
+
+    line.textContent = message;
+
+    output.appendChild(line);
+}
+
+async function checkFile(file) {
+
+    const url = BASE + file;
+
+    const start = performance.now();
+
+    try {
+
+        const response = await fetch(url, {
+            method: 'GET',
+            cache: 'no-store'
+        });
+
+        const elapsed = Math.round(performance.now() - start);
+
+        if (response.ok) {
+
+            passed++;
+
+            log(
+                `✓ ${file}    ${response.status}    ${elapsed}ms`,
+                'ok'
+            );
+
+        } else {
+
+            failed++;
+
+            log(
+                `✗ ${file}    ${response.status} ${response.statusText}`,
+                'error'
+            );
+        }
+
+    } catch (error) {
+
+        failed++;
+
+        log(
+            `✗ ${file}    REQUEST FAILED`,
+            'error'
+        );
+
+        log(
+            `    ${error.message}`,
+            'error'
+        );
+    }
+}
+
+
+async function runDiagnostics() {
+
+    log(`Testing: ${BASE}`, 'info');
+
+    log('');
+    log('FILES');
+    log('--------------------------------');
+
+    const files = [
+        'index.html',
+        'config.js',
+        'phaser.js',
+        'main.js',
+        './scenes/BootScene.js',
+    ];
+
+    for (const file of files) {
+        await checkFile(file);
+    }
+
+    log('');
+    log('RESULT');
+    log('--------------------------------');
+
+    log(`Passed: ${passed}`, 'ok');
+    log(`Failed: ${failed}`, failed ? 'error' : 'ok');
+
+    if (failed === 0) {
+
+        status.textContent =
+            'All requested files responded successfully.';
+
+        status.className = 'ok';
+
+    } else {
+
+        status.textContent =
+            'One or more files failed.';
+
+        status.className = 'error';
+    }
+}
+
+
+runDiagnostics();
+
+</script>
+
+</body>
+</html>
