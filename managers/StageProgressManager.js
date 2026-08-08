@@ -120,10 +120,13 @@ export default class StageProgressManager {
         this.sync();
 
         this.events.emit(
-            'gather-upgrade',
+        'updated',
+        {
+            type: 'gather-upgrade',
             id,
-            newLevel
-        );
+            level: newLevel
+        }
+    );
 
         return newLevel;
     }
@@ -177,6 +180,30 @@ export default class StageProgressManager {
 
     off(event, handler) {
         this.events.off(event, handler);
+    }
+
+    getGatherUpgradeStats(id, item) {
+        const upgrade =
+            item.gather?.upgrade;
+    
+        if (!upgrade?.enabled) {
+            return null;
+        }
+    
+        const level =
+            this.getGatherLevel(id);
+    
+        const rateIncrease =
+            upgrade.rateIncrease ?? 0;
+    
+        const maxIncrease =
+            upgrade.maxIncrease ?? 0;
+
+        return {
+            level,
+            rateIncrease: level * rateIncrease, // gatherIncrease
+            maxIncrease: level * maxIncrease
+        };
     }
 
     // Destroy

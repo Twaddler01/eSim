@@ -110,50 +110,58 @@ export default class StageViewport {
     }
 
     // Update one card
-updateCard(id, data) {
-
-    const card =
-        this.cards.get(id);
-
-    if (!card) return;
-
-    if (data.amount !== undefined) {
-
-        card.setAmount(
-            data.amount
+    updateCard(id, data) {
+    
+        const card =
+            this.cards.get(id);
+    
+        if (!card) return;
+    
+        if (data.amount !== undefined) {
+    
+            card.setAmount(
+                data.amount
+            );
+        }
+    
+        if (data.max !== undefined) {
+    
+            card.setMax(
+                data.max
+            );
+        }
+    
+        if (data.upgradeStats !== undefined) {
+        
+            card.upgradeStats =
+                data.upgradeStats;
+    
+            card.updateUpgrades();
+        }
+    
+        if (data.availability !== undefined) {
+    
+            card.availability =
+                data.availability;
+    
+            card.updateAvailability();
+        }
+    
+        card.updateRequirements(
+            card.getAmount
         );
     }
-
-    if (data.max !== undefined) {
-
-        card.setMax(
-            data.max
-        );
-    }
-
-    if (data.availability !== undefined) {
-
-        card.availability =
-            data.availability;
-
-        card.updateAvailability();
-    }
-
-    card.updateRequirements(
-        card.getAmount
-    );
-}
 
     // Update multiple existing cards
-updateCards(updates) {
-
-    updates.forEach(data => {
-        this.updateCard(
-            data.id,
-            data
-        );
-    });
-}
+    updateCards(updates) {
+    
+        updates.forEach(data => {
+            this.updateCard(
+                data.id,
+                data
+            );
+        });
+    }
 
     // Update scroll limits
     updateScrollLimits() {

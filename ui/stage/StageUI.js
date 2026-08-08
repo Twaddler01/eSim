@@ -248,6 +248,39 @@ export default class StageUI {
         this.refreshCurrentTab();
     }
 
+gather(item) {
+    const current =
+        this.stageProgress.get(item.id);
+
+    const max =
+        getItemMax(item, this.stageProgress);
+
+    // Inventory is full.
+    // Don't add anything, but still allow upgrade logic.
+    if (current >= max) {
+        this.checkGatherUpgrade(item);
+        return;
+    }
+
+    const gatherAmount =
+        this.getGatherAmount(item);
+
+    const newAmount =
+        Math.min(
+            current + gatherAmount,
+            max
+        );
+
+    this.stageProgress.set(
+        item.id,
+        newAmount
+    );
+
+    // Check whether this gather filled the inventory.
+    this.checkGatherUpgrade(item);
+}
+
+/*
     // Gather
     gather(item) {
         const current =
@@ -262,7 +295,7 @@ export default class StageUI {
     
         const gatherAmount =
             this.getGatherAmount(item);
-    
+
         const newAmount =
             Math.min(
                 current + gatherAmount,
@@ -276,7 +309,7 @@ export default class StageUI {
     
         this.checkGatherUpgrade(item);
     }
-
+*/
     getGatherLevel(item) {
         return this.stageProgress.getGatherLevel(item.id);
     }
@@ -287,19 +320,70 @@ export default class StageUI {
         const upgrade =
             item.gather?.upgrade;
     
-        if (!upgrade?.enabled) {
+        if (!upgrade?.enabled || !upgrade.rateIncrease) {
             return baseAmount;
         }
     
         const level =
             this.getGatherLevel(item);
-    
+
         return (
             baseAmount +
             level * upgrade.rateIncrease
         );
     }
-    
+
+checkGatherUpgrade(item) {
+    const upgrade =
+        item.gather?.upgrade;
+
+    if (!upgrade?.enabled) {
+        return;
+    }
+
+    const current =
+        this.stageProgress.get(item.id);
+
+    const max =
+        getItemMax(item, this.stageProgress);
+
+    if (current < max) {
+        return;
+    }
+
+    const rateIncrease =
+        upgrade.rateIncrease ?? 0;
+
+    const level =
+        this.getGatherLevel(item);
+
+    const currentGatherRate =
+        1 +
+        level * rateIncrease;
+
+    // Rate has reached the maximum useful amount.
+    // Do NOT purchase another rate upgrade.
+    if (
+        rateIncrease > 0 &&
+        currentGatherRate >= max
+    ) {
+        return;
+    }
+
+    // Reset amount
+    this.stageProgress.set(
+        item.id,
+        0
+    );
+
+    // Increase upgrade level
+    this.stageProgress.addGatherLevel(
+        item.id,
+        1
+    );
+}
+
+/*
     checkGatherUpgrade(item) {
         const upgrade =
             item.gather?.upgrade;
@@ -328,6 +412,13 @@ export default class StageUI {
         this.stageProgress.addGatherLevel(
             item.id,
             1
+        );
+    }
+*/
+    getUpgrades(item) {
+        return this.stageProgress.getGatherUpgradeStats(
+            item.id,
+            item
         );
     }
 
@@ -438,6 +529,11 @@ export default class StageUI {
             
             max:
                 item.discovery ? null : getItemMax(item, this.stageProgress),
+            
+            nextMax:
+                item.gather ? getItemMax(item, this.stageProgress, 'next') : null,
+                
+            upgradeStats: this.getUpgrades(item),
         
             availability:
                 this.getAvailability(item),
@@ -486,20 +582,17 @@ export default class StageUI {
                 Object.keys(
                     item.requirements ?? {}
                 ).includes(id);
+            
+            const affectsUpgrade =
+                item.id === id &&
+                item.gather?.upgrade?.enabled;
     
             if (
                 affectsAmount ||
-                affectsRequirement
+                affectsRequirement ||
+                affectsUpgrade
             ) {
-    
-                const max =
-                    item.tab === 'gather'
-                        ? getItemMax(
-                            item,
-                            this.stageProgress
-                        )
-                        : item.max;
-    
+
                 const isDiscovery = item.discovery === true;
                 
                 this.viewport.updateCard(
@@ -507,6 +600,7 @@ export default class StageUI {
                     {
                         amount: isDiscovery ? null : this.stageProgress.get(item.id),
                         max: isDiscovery ? null : getItemMax(item, this.stageProgress),
+                        upgradeStats: item.gather?.upgrade?.enabled ? this.getUpgrades(item) : null,
                         availability: this.getAvailability(item)
                     }
                 );

@@ -10,8 +10,7 @@ export const stageItems = [
         gather: {
             upgrade: {
                 enabled: true,
-                maxIncrease: 50,
-                rateIncrease: 0.2
+                rateIncrease: 0.2 // caps before max
             }
         },
     },
@@ -24,7 +23,14 @@ export const stageItems = [
             }
         },
     },
-    { id: 'hydrogen', title: 'HYDROGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { id: 'hydrogen', title: 'HYDROGEN', tab: 'gather', category: 'element', unlocked: false, max: 20, actionLabel: 'GATHER',
+        gather: {
+            upgrade: {
+                enabled: true,
+                maxIncrease: 200,
+            }
+        },
+    },
     { id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
     { id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
     { id: 'silicon', title: 'SILICON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },

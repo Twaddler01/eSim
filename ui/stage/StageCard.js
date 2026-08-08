@@ -10,6 +10,9 @@ export default class StageCard {
         this.y = options.y ?? 0;
         this.width = options.width ?? 300;
         this.type = options.type ?? 'gather';
+        
+        this.upgradeDisplayHeight = 60; // 0
+
         this.height = options.height ?? this.getCardHeight(options);
         this.depth = this.scene.depths?.cards ?? 0;
 
@@ -22,17 +25,25 @@ export default class StageCard {
 
         // null = no maximum
         this.max = options.max ?? null;
+// WIP
+this.nextMax = options.nextMax ?? null;
+        this.upgradeStats = options.upgradeStats ?? null;
         this.availability = options.availability ?? 'available';
         this.requirements = options.requirements ?? {};
         this.produces = options.produces ?? {};
         this.actionLabel = options.actionLabel ?? 'ACTION';
-
+        this.upgradable = options.gather?.upgrade?.enabled === true;
+    
         // Callbacks
         this.onAction = options.onAction ?? null;
         this.canAction = options.canAction ?? (() => true);
         this.getAmount = options.getAmount ?? (() => 0);
 
+        this.upgradeGatherRow = [];
+        this.upgradeMaxRow = [];
+        
         this.requirementTexts = [];
+        this.upgradeTexts = [];
         this.reqLabel = null;
 
         this.create();
@@ -132,7 +143,7 @@ export default class StageCard {
             contentBottom =
                 this.createRequirements();
         }
-
+        
         // Progress bar
         const barX = this.x + 15;
         const barY = contentBottom + 5;
@@ -158,6 +169,14 @@ export default class StageCard {
                 0x44aa44
             )
             .setOrigin(0);
+
+        if (this.type === 'gather' && this.upgradable) {
+            // Upgrade display
+            this.createUpgradeLayout(
+                barX,
+                barY + 20
+            );
+        }
 
         // Action button
         const buttonWidth = 120;
@@ -232,6 +251,7 @@ export default class StageCard {
                 requirement =>
                     requirement.text
             ),
+            ...this.upgradeTexts,
             this.progressBackground,
             this.progressFill,
             this.actionButton,
@@ -266,9 +286,148 @@ export default class StageCard {
             case 'research':
                 return 200;
             case 'gather':
+                return 180 + this.upgradeDisplayHeight;
             default:
                 return 180;
         }
+    }
+
+    // CURRENT UPGRADES -- For createUpgradeLayout()
+    updateUpgrades() {
+        if (!this.upgradeStats) {
+            return;
+        }
+    
+        const gatherActive =
+            this.upgradeStats.rateIncrease > 0;
+    
+        const maxActive =
+            this.upgradeStats.maxIncrease > 0;
+    
+        // Title
+        this.upgradeLabelTitle.setVisible(
+            gatherActive || maxActive
+        );
+    
+        // Individual rows
+        this.upgradeGatherRow.forEach(
+            text => text.setVisible(gatherActive)
+        );
+    
+        this.upgradeMaxRow.forEach(
+            text => text.setVisible(maxActive)
+        );
+    
+        // Values
+        this.upgradeGatherText.setText(
+            `${Math.round(
+                this.upgradeStats.rateIncrease * 10
+            ) / 10}`
+        );
+    
+        this.upgradeMaxText.setText(
+            `${this.upgradeStats.maxIncrease}`
+        );
+    
+        // Reposition active rows
+        let currentY =
+            this.upgradeLabelTitle.y + 30;
+    
+        if (gatherActive) {
+            this.upgradeGatherRow.forEach(
+                text => text.y = currentY
+            );
+    
+            currentY += 22;
+        }
+    
+        if (maxActive) {
+            this.upgradeMaxRow.forEach(
+                text => text.y = currentY
+            );
+        }
+    }
+    
+    // UPGRADE LAYOUT
+    createUpgradeLayout(startX, startY) {
+        let currentY = startY;
+        this.upgradeLabelTitle =
+            this.scene.add.text(
+                startX,
+                currentY,
+                'ACTIVE UPGRADES',
+                {
+                    fontSize: '16px',
+                    color: '#ffffff'
+                }
+            )
+            .setOrigin(0);
+
+        currentY += 30;
+        this.upgradeAmountLabel =
+            this.scene.add.text(
+                startX + 5,
+                currentY,
+                'GATHER increase: +',
+                {
+                    fontSize: '16px',
+                    color: '#66ff66'
+                }
+            )
+            .setOrigin(0);
+        
+        this.upgradeGatherText =
+            this.scene.add.text(
+                startX + 5 + 145,
+                currentY,
+                '0',
+                {
+                    fontSize: '16px',
+                    color: '#66ff66'
+                }
+            )
+            .setOrigin(0);
+        
+        currentY += 22;
+        this.upgradeMaxLabel =
+            this.scene.add.text(
+                startX + 5,
+                currentY,
+                'MAX increase: +',
+                {
+                    fontSize: '16px',
+                    color: '#66ff66'
+                }
+            )
+            .setOrigin(0);
+        
+        this.upgradeMaxText =
+            this.scene.add.text(
+                startX + 5 + 120,
+                currentY,
+                '0',
+                {
+                    fontSize: '16px',
+                    color: '#66ff66'
+                }
+            )
+            .setOrigin(0);
+
+        this.upgradeGatherRow = [
+            this.upgradeAmountLabel,
+            this.upgradeGatherText
+        ];
+        
+        this.upgradeMaxRow = [
+            this.upgradeMaxLabel,
+            this.upgradeMaxText
+        ];
+
+        this.upgradeTexts = [
+            this.upgradeLabelTitle,
+            ...this.upgradeGatherRow,
+            ...this.upgradeMaxRow
+        ];
     }
 
     // CRAFT LAYOUT
@@ -333,6 +492,10 @@ export default class StageCard {
             );
         }
 
+        if (data.upgradeStats !== undefined) {
+            this.upgradeStats = data.upgradeStats;
+        }
+
         if (data.availability !== undefined) {
             this.availability =
                 data.availability;
@@ -340,6 +503,9 @@ export default class StageCard {
 
         // Update requirement display
         this.updateRequirements(this.getAmount);
+
+        // Refresh upgrade display
+        this.updateUpgrades();
 
         // Update button / overlay
         this.updateAvailability();
@@ -466,7 +632,6 @@ export default class StageCard {
 
     // PROGRESS
     updateProgress() {
-
         // No maximum = no progress bar
         if (this.max == null || this.max <= 0) {
             this.progressBackground.setVisible(false);
@@ -533,6 +698,17 @@ export default class StageCard {
 
         this.requirementTexts = [];
 
+        // Upgrades
+        this.upgradeTexts
+            .forEach(
+                upgrade =>
+                    upgrade.destroy()
+            );
+
+        this.upgradeTexts = [];
+        this.upgradeGatherRow = [];
+        this.upgradeMaxRow = [];
+        
         // Optional requirements label
         this.reqLabel?.destroy();
         this.reqLabel = null;
