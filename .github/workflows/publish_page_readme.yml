@@ -30,14 +30,12 @@ jobs:
         run: |
           mkdir -p public
 
-          # Copy project files to Pages
-          cp -r ./* public/
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='public' \
+            ./ public/
 
-          # Remove files that should not be published
-          rm -rf public/.git
-          rm -rf public/.github
-
-          # Create README date display
           cat > public/readme-date.svg <<EOF
           <svg xmlns="http://www.w3.org/2000/svg" width="300" height="28">
             <text x="0" y="18"
