@@ -5,7 +5,7 @@
 # About
 - eSim is a gather/discover/create simulation game coded in Javscript using the Phaser 3 framework.
 - Strictly client-side (Node.js not utilized)
-- URL: Coming Soon!
+- URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
 - Auto-gather - "element collector".
