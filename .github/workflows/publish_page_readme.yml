@@ -1,0 +1,57 @@
+name: Deploy eSim to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get README date
+        id: date
+        run: |
+          DATE=$(git log -1 --format=%cs -- README.md)
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare Pages files
+        run: |
+          mkdir -p public
+
+          # Copy project files to Pages
+          cp -r ./* public/
+
+          # Remove files that should not be published
+          rm -rf public/.git
+          rm -rf public/.github
+
+          # Create README date display
+          cat > public/readme-date.svg <<EOF
+          <svg xmlns="http://www.w3.org/2000/svg" width="300" height="28">
+            <text x="0" y="18"
+                  fill="#8b949e"
+                  font-family="Arial,sans-serif"
+                  font-size="14"
+                  font-weight="bold">[ Last updated: ${{ steps.date.outputs.date }} ]</text>
+          </svg>
+          EOF
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
