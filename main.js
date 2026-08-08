@@ -1,6 +1,7 @@
 import BootScene from "/scenes/BootScene.js";
 import EvolveScene from "/scenes/EvolveScene.js";
 import MainScene from "/scenes/MainScene.js";
+import { DEBUG } from './config.js';
 
 // Override console.log, console.warn, and console.error for exporting into a file
 function logExport() {
@@ -96,8 +97,10 @@ function htmlExport() {
 }
 
 // DEBUGGING FUNCTIONS
-logExport();
-htmlExport();
+if (DEBUG) {
+    logExport();
+    htmlExport();
+}
 
 // PHASER START
 const MAX_WIDTH = 1280; // Max width for mobile portrait

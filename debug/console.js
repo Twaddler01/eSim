@@ -1,3 +1,6 @@
+import { DEBUG } from './config.js';
+if (!DEBUG) return;
+
 /*!
  * MiniConsole
  * v1.5
