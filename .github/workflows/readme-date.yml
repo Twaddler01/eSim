@@ -28,7 +28,6 @@ jobs:
       - name: Create badge
         run: |
           mkdir -p public
-
           cat > public/readme-date.svg <<EOF
           <svg xmlns="http://www.w3.org/2000/svg" width="300" height="28">
             <text x="0" y="18"
