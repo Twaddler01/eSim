@@ -6,14 +6,12 @@
 - URL: Coming Soon!
 
 # Work In Progress
-- Completely reworking structure to be more mobile friendly and to integrate different stages of life, including the cellular stage.
-- Current work is primarily focused on code architecture.
-- Testing out new features.
+- Auto-gather - "element collector".
+- Current work is primarily focused on code architecture and testing out new features.
 
 # Future Updates
 - More structural content.
-- Auto-gather - "element collector".
-- More dynamic uogrades, including custom caps for rate/max, etc.
+- More dynamic upgrades, including caps for rate/max, etc.
 ### Cell Stage updates
 - A beginning "big bang" sequence when starting a new game.
 - Possible link to 'break down' molecules into individual elements, along with combining existing individual elements.
