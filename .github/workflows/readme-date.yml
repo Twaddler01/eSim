@@ -1,9 +1,7 @@
 name: Update README date badge
 
 on:
-  push:
-    paths:
-      - README.md
+  workflow_dispatch:
 
 permissions:
   contents: read
