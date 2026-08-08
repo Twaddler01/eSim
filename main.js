@@ -1,8 +1,3 @@
-
-const test = document.createElement('div');
-test.innerHTML = 'this is a test';
-document.body.appendChild(test);
-/*
 import BootScene from "/scenes/BootScene.js";
 import EvolveScene from "/scenes/EvolveScene.js";
 import MainScene from "./scenes/MainScene.js";
@@ -151,5 +146,3 @@ window.addEventListener("resize", () => {
     const { width, height } = getGameSize();
     game.scale.resize(width, height);
 });
-
-*/
