@@ -1,70 +1,98 @@
-import { gameData } from './gameData.js';
+// debug/debug.js
 
-export default class Debug {
+// Override console.log, console.warn, and console.error for exporting into a file
+function logExport() {
+    var logs = [];
+    const originalConsoleLog = console.log;
+    const originalConsoleWarn = console.warn;
+    const originalConsoleError = console.error;
 
-    constructor(scene) {
-        this.scene = scene;
-        this.debugButtons(700, 10);
-    }
+    console.log = function (message) {
+        if (typeof message === 'object') {
+            message = JSON.stringify(message);
+        }
+        logs.push(`LOG: ${message}`);
+        originalConsoleLog(message);
+    };
 
-    debugButtons(debugX, debugY) {
-        const debugFn = {
-            debugUITitle(scene) {
-                const titleBg = scene.add.rectangle(0, 0, 180, 40, 0x333333).setOrigin(0);
-                const titleText = scene.add.text(10, titleBg.height / 2, 'DEBUG BUTTONS:', {
-                    fontSize: '20px',
-                    color: '#fff',
-                    fontStyle: 'bold',
-                }).setOrigin(0, 0.5);
-            
-                return scene.add.container(debugX, debugY, [titleBg, titleText]);
-            },
-        
-            debugUIButton(scene, label, onClick) {
-                const bg = scene.add.rectangle(0, 0, 180, 40, 0x333333)
-                    .setOrigin(0)
-                    .setInteractive({ useHandCursor: true })
-                    .on('pointerdown', () => {
-                        if (onClick) onClick();
-                    });
-                
-                const border = scene.add.graphics();
-                border.lineStyle(2, 0xffffff);
-                border.strokeRect(bg.x, bg.y, bg.width, bg.height);
-                
-                const text = scene.add.text(10, bg.height / 2, label, {
-                    fontSize: '20px',
-                    color: '#fff'
-                }).setOrigin(0, 0.5);
-                
-                debugY += 50;
-                return scene.add.container(debugX, debugY, [bg, border, text]);
-            }
-        };
-        
-        debugFn.debugUITitle(this.scene);
+    console.warn = function (message) {
+        if (typeof message === 'object') {
+            message = JSON.stringify(message);
+        }
+        logs.push(`WARNING: ${message}`);
+        originalConsoleWarn(message);
+    };
 
-        debugFn.debugUIButton(this.scene, 'Clear Data', () => {
-            this.scene.saveManager.clear();            
-        });
-        
-        debugFn.debugUIButton(this.scene, 'gameData.elapsedTime', () => {
-            console.log('gameData.elapsedTime');
-            console.log(this.scene.gameTimer.getSaveData());
-        });
-        
-        debugFn.debugUIButton(this.scene, 'objData', () => {
-            console.log(JSON.stringify(gameData.objData, null, 2));
-        });
-        
-        debugFn.debugUIButton(this.scene, 'debug save data', () => {
-            this.scene.saveManager.debug();
-        });   
-        
-        debugFn.debugUIButton(this.scene, 'Add message', () => {
-            this.scene.messageStatus.addMessage(
-                'You found a Stone Axe. Its durability is beginning to decrease. You found a Stone Axe. Its durability is beginning to decrease. You found a Stone Axe. Its durability is beginning to decrease.'
-            );
-        });
-    }
+    console.error = function (message) {
+        if (typeof message === 'object') {
+            message = JSON.stringify(message);
+        }
+        logs.push(`ERROR: ${message}`);
+        originalConsoleError(message);
+    };
+
+    let exportButton = document.createElement('button');
+    exportButton.id = 'exportButton';
+    exportButton.innerHTML = 'Export Logs';
+    document.getElementById('debugButtons').appendChild(exportButton);
+
+    exportButton.addEventListener("click", function () {
+        // Save logs to a file
+        let logString = logs.join('\n');
+
+        // Create a Blob containing the text data
+        const blob = new Blob([logString], { type: 'text/plain' });
+
+        // Create a download link
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = 'logs.txt';
+
+        // Append the link to the document
+        document.getElementById('debugButtons').appendChild(link);
+
+        // Trigger the download
+        link.click();
+
+        // Remove the link from the document
+        document.getElementById('debugButtons').removeChild(link);
+    });
 }
+
+// Allow exporting of HTML to inspect/debug elements
+function htmlExport() {
+    // Create the "Export HTML" button
+    const exportHTMLButton = document.createElement('button');
+    exportHTMLButton.id = 'exportHTMLButton';
+    exportHTMLButton.textContent = 'Export HTML';
+    
+    // Append the button to the document body
+    document.body.appendChild(exportHTMLButton);
+    
+    // Add an event listener to the "Export HTML" button
+    exportHTMLButton.addEventListener("click", function () {
+        // Get the HTML content of the entire document
+        let htmlContent = document.documentElement.outerHTML;
+    
+        // Create a Blob containing the HTML content
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+    
+        // Create a download link
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = 'page.html';
+    
+        // Append the link to the document
+        document.getElementById('debugButtons').appendChild(link);
+    
+        // Trigger the download
+        link.click();
+    
+        // Remove the link from the document
+        document.getElementById('debugButtons').removeChild(link);
+    });
+}
+
+// RUN DEBUGGING FUNCTIONS
+logExport();
+//htmlExport();

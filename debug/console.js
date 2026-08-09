@@ -1,5 +1,4 @@
-import { DEBUG } from '../config.js'
-
+import { DEBUG } from '../config.js';
 /*!
  * MiniConsole
  * v1.5
@@ -12,8 +11,8 @@ import { DEBUG } from '../config.js'
  *       anything in the browser's normal dev tools console,
  * 		 if it has one.
  */
- 
-function start() {
+
+function startConsole() {
     document.getElementById('consoleLog').innerHTML = `
         <div style="background-color:#333">
     	<h3 style="margin-bottom: 8px;color:white">Console</h3>
@@ -245,9 +244,8 @@ function start() {
     		result.push(i); 
     	return result; 
     }
-} // end staet()
+}
 
-// Only start if DEBUG is enabled
 if (DEBUG) {
-    start();
+    startConsole();
 }

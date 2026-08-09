@@ -1,5 +1,4 @@
 // debug/zoom.js
-
 let zoom = 1;
 
 const MIN_ZOOM = 0.5;

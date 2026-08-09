@@ -2,10 +2,10 @@ import StageUI from '../ui/stage/StageUI.js';
 import { gameData } from '../data/gameData.js';
 import GameTimer from '../systems/GameTimer.js';
 
-export default class EvolveScene extends Phaser.Scene {
+export default class CreationScene extends Phaser.Scene {
 
     constructor() {
-        super('EvolveScene');
+        super('CreationScene');
         
         this.depths = {
             background: 0,
