@@ -169,10 +169,10 @@ export default class StageUI {
         )
         .setOrigin(0);
 
-        this.scene.add.text(
-            50,
+        addText(this.scene,
+            20,
             10,
-            '== CELL STAGE ==',
+            '== CREATION STAGE ==',
             {
                 fontSize: '28px',
                 color: '#ffffff'
