@@ -1,9 +1,9 @@
 # Recent Updates
 ![README updated](https://Twaddler01.github.io/eSim/readme-date.svg)
-- Updated all fonts to "Arial" using "addText" global function to keep font family consistent with client browser settings and ensure precise Phaser text alignment/size. 
+- Updated all fonts to "Arial" using "addText" global function to keep font family consistent with client browser settings and ensure precise Phaser text alignment/size. A different global font may be used in future updates.
 
 # About
-- eSim is a gather/discover/create simulation game coded in Javscript using the Phaser 3 framework.
+- eSim is a Christian-themed discover/gather/create simulation game coded in Javscript using the Phaser 3 framework.
 - Strictly client-side (Node.js not utilized)
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
@@ -11,10 +11,11 @@
 - Auto-gather - "element collector".
 - Current work is primarily focused on code architecture and testing out new features.
 
-# Future Updates
+# Future Updates / Ideas
 - More structural content.
 - More dynamic upgrades, including caps for rate/max, etc.
-### Cell Stage updates
-- A beginning "big bang" sequence when starting a new game.
-- Possible link to 'break down' molecules into individual elements, along with combining existing individual elements.
-- Organize stages: "cell stage" should be second, with a "creation stage" first.
+- Game theme(s): Designing game theme around a "Creationism" simulation-type concept, acting as a wise man perceiving God throughout the ages. Starting from the day of creation, to all the way through eternity.
+- Organized stages: A "creation stage" will be first. Many more stages (scenes) are planned.
+### Creation Stage
+- An "In the beginning..." sequence/video when starting a new game.
+- Focused on darkness and light elements: black holes, light photons, etc.
