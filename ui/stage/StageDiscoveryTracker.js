@@ -51,6 +51,7 @@ export default class StageDiscoveryTracker {
                 this.y + 10,
                 '',
                 {
+                    fontFamily: 'Arial',
                     fontSize: '18px',
                     color: '#ffffff'
                 }
@@ -64,6 +65,7 @@ export default class StageDiscoveryTracker {
                 this.y + 40,
                 '',
                 {
+                    fontFamily: 'Arial',
                     fontSize: '18px',
                     color: '#ffffff'
                 }
@@ -77,6 +79,7 @@ export default class StageDiscoveryTracker {
                 this.y + 70,
                 '',
                 {
+                    fontFamily: 'Arial',
                     fontSize: '18px',
                     color: '#ffffff'
                 }
@@ -90,6 +93,7 @@ export default class StageDiscoveryTracker {
                 this.y + 165,
                 '',
                 {
+                    fontFamily: 'Arial',
                     fontSize: '16px',
                     color: '#ffffff'
                 }
@@ -257,6 +261,7 @@ export default class StageDiscoveryTracker {
                     y,
                     reqText,
                     {
+                        fontFamily: 'Arial',
                         fontSize: '16px',
                         color: ready ? '#66ff66' : '#ff6666'
                     }
