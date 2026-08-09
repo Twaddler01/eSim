@@ -80,7 +80,7 @@ this.nextMax = options.nextMax ?? null;
             
         // Availability message
         this.availabilityText =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + this.width / 2,
                 this.y + this.height / 2,
                 '',
@@ -93,7 +93,7 @@ this.nextMax = options.nextMax ?? null;
 
         // Title
         this.titleText =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + 15,
                 this.y + 12,
                 this.title,
@@ -104,7 +104,7 @@ this.nextMax = options.nextMax ?? null;
             );
 
         this.descriptionText =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + 15,
                 this.y + 48,
                 this.description,
@@ -119,7 +119,7 @@ this.nextMax = options.nextMax ?? null;
 
         // Amount
         this.amountText =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + 15,
                 this.y + 48,
                 '',
@@ -213,7 +213,7 @@ this.nextMax = options.nextMax ?? null;
         );
 
         this.actionText =
-            this.scene.add.text(
+            addText(this.scene,
                 buttonX + buttonWidth / 2,
                 buttonY + buttonHeight / 2,
                 this.actionLabel,
@@ -352,7 +352,7 @@ this.nextMax = options.nextMax ?? null;
     createUpgradeLayout(startX, startY) {
         let currentY = startY;
         this.upgradeLabelTitle =
-            this.scene.add.text(
+            addText(this.scene,
                 startX,
                 currentY,
                 'ACTIVE UPGRADES',
@@ -365,7 +365,7 @@ this.nextMax = options.nextMax ?? null;
 
         currentY += 30;
         this.upgradeAmountLabel =
-            this.scene.add.text(
+            addText(this.scene,
                 startX + 5,
                 currentY,
                 'GATHER increase: +',
@@ -377,7 +377,7 @@ this.nextMax = options.nextMax ?? null;
             .setOrigin(0);
         
         this.upgradeGatherText =
-            this.scene.add.text(
+            addText(this.scene,
                 startX + 5 + 145,
                 currentY,
                 '0',
@@ -390,7 +390,7 @@ this.nextMax = options.nextMax ?? null;
         
         currentY += 22;
         this.upgradeMaxLabel =
-            this.scene.add.text(
+            addText(this.scene,
                 startX + 5,
                 currentY,
                 'MAX increase: +',
@@ -402,7 +402,7 @@ this.nextMax = options.nextMax ?? null;
             .setOrigin(0);
         
         this.upgradeMaxText =
-            this.scene.add.text(
+            addText(this.scene,
                 startX + 5 + 120,
                 currentY,
                 '0',
@@ -439,7 +439,7 @@ this.nextMax = options.nextMax ?? null;
         const reqLabelTitle = this.type === 'discover' ? 'Objectives:' : 'Requirements:';
 
         this.reqLabel =
-            this.scene.add.text(
+            addText(this.scene,
                 startX,
                 startY + 25,
                 reqLabelTitle,
@@ -461,7 +461,7 @@ this.nextMax = options.nextMax ?? null;
         .forEach(([id, required]) => {
 
             const text =
-                this.scene.add.text(
+                addText(this.scene,
                     this.x + 15,
                     y,
                     '',

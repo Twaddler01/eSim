@@ -46,7 +46,7 @@ export default class StageDiscoveryTracker {
             
         // Title
         this.title =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + 10,
                 this.y + 10,
                 '',
@@ -59,7 +59,7 @@ export default class StageDiscoveryTracker {
         
         // Description
         this.description =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + 10,
                 this.y + 40,
                 '',
@@ -72,7 +72,7 @@ export default class StageDiscoveryTracker {
 
         // Objectives label
         this.objectiveText =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + 10,
                 this.y + 70,
                 '',
@@ -85,7 +85,7 @@ export default class StageDiscoveryTracker {
 
         // Requirements
         this.totalLabel =
-            this.scene.add.text(
+            addText(this.scene,
                 this.x + 10,
                 this.y + 165,
                 '',
@@ -252,7 +252,7 @@ export default class StageDiscoveryTracker {
 
                 const reqText = discovery.startsUnlocked ? 'Initial Discovery ✓' : `${title}: ${amount}/${required} ${ready ? '✓' : '✕'}`;
     
-                const text = this.scene.add.text(
+                const text = addText(this.scene,
                     textX,
                     y,
                     reqText,

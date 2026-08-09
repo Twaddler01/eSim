@@ -102,7 +102,7 @@ export default class StageNavigation {
         // --------------------------------------------------
 
         const buttonLabel =
-            this.scene.add.text(
+            addText(this.scene,
                 x + buttonWidth / 2,
                 y + this.height / 2,
                 label,

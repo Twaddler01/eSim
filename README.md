@@ -1,6 +1,6 @@
-# Updates:
-
+# Recent Updates
 ![README updated](https://Twaddler01.github.io/eSim/readme-date.svg)
+- Updated all fonts to "Arial" using "addText" global function to keep font family consistent with client browser settings and ensure precise Phaser text alignment/size. 
 
 # About
 - eSim is a gather/discover/create simulation game coded in Javscript using the Phaser 3 framework.

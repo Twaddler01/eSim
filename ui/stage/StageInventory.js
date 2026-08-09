@@ -242,7 +242,7 @@ export default class StageInventory {
                 
                 // Category heading
                 const categoryText =
-                    this.scene.add.text(
+                    addText(this.scene,
                         this.contentX + 10,
                         y,
                         category.toUpperCase(),
@@ -265,7 +265,7 @@ export default class StageInventory {
                         const itemMax = max > 0 ? ' / ' + max : '';
 
                         const text =
-                            this.scene.add.text(
+                            addText(this.scene,
                                 this.contentX + 20,
                                 y,
                                 

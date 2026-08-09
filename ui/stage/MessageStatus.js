@@ -226,7 +226,7 @@ export default class MessageStatus {
         
         const padding = 24;
     
-        const text = this.scene.add.text(
+        const text = addText(this.scene,
             padding,
             0,
             displayMessage,

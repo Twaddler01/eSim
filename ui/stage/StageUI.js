@@ -188,7 +188,7 @@ export default class StageUI {
         )
         .setOrigin(0);
 
-        this.scene.add.text(
+        addText(this.scene,
             this.headerBoxX + this.headerBoxWidth + 80,
             this.headerTitleHeight / 2 - 2,
             'INVENTORY',
@@ -207,7 +207,7 @@ export default class StageUI {
         )
         .setOrigin(0);
 
-        this.scene.add.text(
+        addText(this.scene,
             this.headerBoxX + (this.headerBoxWidth + 1) * 2 + 40,
             this.headerTitleHeight / 2 - 2,
             'DISCOVERY TRACKER',
