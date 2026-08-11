@@ -431,11 +431,25 @@ export default class StageUI {
 
     // Build cards for current tab
     refreshCurrentTab() {
-        const cards =
+        let cards =
             stageItems.filter(
                 item =>
                     item.tab === this.currentTab
             );
+
+        // Add active master objective to Discover tab
+        if (this.currentTab === 'discover') {
+        
+            const masterCard =
+                this.stageProgress.getMasterObjectiveCardData();
+        
+            if (masterCard) {
+                cards = [
+                    masterCard,
+                    ...cards
+                ];
+            }
+        }
 
         const displayCards = cards.map(item => ({
         
@@ -450,9 +464,11 @@ export default class StageUI {
 
             masterProgress:
                 item.master
-                    ? this.stageProgress.getMasterObjectiveProgress(
-                        this.stageProgress.getActiveMasterObjective()
-                    )
+                    ? {
+                        completed: item.amount,
+                        total: item.max,
+                        percent: item.percent
+                    }
                     : null,
 
             amount:
@@ -473,9 +489,8 @@ export default class StageUI {
                 return this.stageProgress.get(id);
             },
         
-            canAction: () =>
-                this.getAvailability(item) === 'available',
-        
+            canAction: () => item.master ? false : this.getAvailability(item) === 'available',
+
             onAction: () => {
                 if (this.currentTab === 'gather') {
                     this.gather(item);

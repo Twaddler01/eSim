@@ -373,6 +373,7 @@ export default class StageProgressManager {
             description: objective.description,
             amount: progress.completed,
             max: progress.total,
+            percent: progress.percent,
             availability: 'available',
             actionLabel: 'VIEW',
             type: 'discover',
