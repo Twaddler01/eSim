@@ -1,4 +1,5 @@
 import { DEBUG } from '../config.js';
+
 /*!
  * MiniConsole
  * v1.5

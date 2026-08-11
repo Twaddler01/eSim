@@ -4,7 +4,7 @@ import { gatherRenderer, craftRenderer, inventoryRenderer, resRenderer } from  '
 import InventoryManager from '../systems/InventoryManager.js';
 import PlayerStatusManager from '../systems/PlayerStatusManager.js';
 import MessageStatus from '../ui/stage/MessageStatus.js';
-import { lifeStage_menuData, menuData, saveFields, gameData } from '../data/gameData.js';
+import { currentStage_menuData, menuData, saveFields, gameData } from '../data/gameData.js';
 import SaveManager from '../systems/SaveManager.js';
 import GameTimer from '../systems/GameTimer.js';
 

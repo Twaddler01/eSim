@@ -55,8 +55,8 @@ export default class SaveManager {
             saveData.elapsedTime = this.rootData.elapsedTime;
 
             // Life / evolution stage
-            saveData.lifeStage = structuredClone(
-                this.rootData.lifeStage
+            saveData.currentStage = structuredClone(
+                this.rootData.currentStage
             );
             
             // Stages
@@ -136,8 +136,8 @@ export default class SaveManager {
             }
             
             // Restore life / evolution stage
-            if (savedData.lifeStage) {
-                Object.assign(this.rootData.lifeStage, savedData.lifeStage);
+            if (savedData.currentStage) {
+                Object.assign(this.rootData.currentStage, savedData.currentStage);
             }
             
             if (savedData.stageProgress) {
@@ -208,7 +208,7 @@ export default class SaveManager {
         // Clear messages
         this.rootData.messageData.length = 0;
 
-        Object.assign(this.rootData.lifeStage, structuredClone(this.defaultData.lifeStage));
+        Object.assign(this.rootData.currentStage, structuredClone(this.defaultData.currentStage));
         
         console.log('[SaveManager] Cleared saved state');
     }

@@ -10,7 +10,8 @@ export default class StageCard {
         this.y = options.y ?? 0;
         this.width = options.width ?? 300;
         this.type = options.type ?? 'gather';
-        
+        this.master = options.master ?? false;
+
         this.upgradeDisplayHeight = 60; // 0
 
         this.height = options.height ?? this.getCardHeight(options);
@@ -33,11 +34,13 @@ this.nextMax = options.nextMax ?? null;
         this.produces = options.produces ?? {};
         this.actionLabel = options.actionLabel ?? 'ACTION';
         this.upgradable = options.gather?.upgrade?.enabled === true;
-    
+        this.objectives = options.objectives ?? [];
+
         // Callbacks
         this.onAction = options.onAction ?? null;
         this.canAction = options.canAction ?? (() => true);
         this.getAmount = options.getAmount ?? (() => 0);
+        this.getObjectiveComplete = options.getObjectiveComplete ?? (() => false);
 
         this.upgradeGatherRow = [];
         this.upgradeMaxRow = [];
@@ -135,13 +138,16 @@ this.nextMax = options.nextMax ?? null;
             this.y + 75;
 
         if (this.type === 'create' || this.type === 'discover') {
+        
             this.createRequirementLayout(
                 this.x + 15,
                 this.y + 48
             );
-
+        
             contentBottom =
-                this.createRequirements();
+                this.master
+                    ? this.createMasterObjectives()
+                    : this.createRequirements();
         }
         
         // Progress bar
@@ -436,7 +442,7 @@ this.nextMax = options.nextMax ?? null;
         startY
     ) {
 
-        const reqLabelTitle = this.type === 'discover' ? 'Objectives:' : 'Requirements:';
+        const reqLabelTitle = this.type === 'discover' ? 'Objective:' : 'Requirements:';
 
         this.reqLabel =
             addText(this.scene,
@@ -484,6 +490,37 @@ this.nextMax = options.nextMax ?? null;
         return y;
     }
 
+    // CREATE REQUIREMENTS FOR MASTER DISCOVERIES
+    createMasterObjectives() {
+    
+        let y = this.y + 95;
+    
+        (this.objectives ?? []).forEach(id => {
+    
+            const text =
+                addText(
+                    this.scene,
+                    this.x + 15,
+                    y,
+                    '',
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                );
+    
+            this.requirementTexts.push({
+                id,
+                masterObjective: true,
+                text
+            });
+    
+            y += 22;
+        });
+    
+        return y;
+    }
+
     // UPDATE EVERYTHING
     update(data = {}) {
         if (data.amount !== undefined) {
@@ -515,6 +552,33 @@ this.nextMax = options.nextMax ?? null;
     updateRequirements(getAmount) {
         this.requirementTexts
             .forEach(requirement => {
+                // MASTER OBJECTIVE
+                if (requirement.masterObjective) {
+                    const completed =
+                        this.getObjectiveComplete(requirement.id);
+// need master objectives ??
+                    const item =
+                        stageItems.find(
+                            i => i.id === requirement.id
+                        );
+        
+                    const title =
+                        item?.title ?? requirement.id;
+        
+                    requirement.text.setText(
+                        `${title}: ${completed ? '✓' : '✕'}`
+                    );
+        
+                    requirement.text.setColor(
+                        completed
+                            ? '#66ff66'
+                            : '#ff6666'
+                    );
+        
+                    return;
+                }
+        
+                // NORMAL REQUIREMENT
                 const amount =
                     getAmount(
                         requirement.id
@@ -526,7 +590,7 @@ this.nextMax = options.nextMax ?? null;
                 
                 const reqItem = stageItems.find(i => i.id === requirement.id);
                 const reqItemTitle = reqItem ? reqItem.title : requirement.id;
-                const reqDisplay = this.startsUnlocked ? 'Initial Discovery ✓' :
+                const reqDisplay = this.startsUnlocked ? 'Learn About: THE BEGINNING ✓' :
                     `${reqItemTitle}: ` +
                     `${Math.floor(amount)} / ` +
                     `${requirement.required} ` +
@@ -584,7 +648,7 @@ this.nextMax = options.nextMax ?? null;
         // INSUFFICIENT
         if (state === 'insufficient') {
             this.availabilityText
-                .setText('NEED MATERIALS')
+                .setText('REQUIREMENTS NOT MET')
                 .setVisible(true)
                 .setColor('#ff6666');
 

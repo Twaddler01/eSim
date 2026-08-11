@@ -1,28 +1,6 @@
 // gameData.js
 
-/**
- * @typedef {Object} MenuParent
- * @property {string} id - Unique identifier for the parent menu section.
- * @property {string} type - Renderer type used to select the render function.
- * @property {Array} content - Array of items inside this parent menu.
- * @property {number} [contentHeight] - Default is 40. Height in pixels for each content item in this parent.
- */
-
-/**
- * @typedef {Object} MenuData
- * @property {MenuParent[]} parent - Array of parent menu objects.
- */
-
-/**
- * Menu data structure defining the parent menus and their content.
- * @type {MenuData}
- */
- 
-export const lifeStage = {
-    stage: 0
-};
- 
-export const lifeStage_menuData = {
+export const currentStage_menuData = {
   parent: [
     { id: 'Gathering', type: 'gather', content: [] },
     { id: 'Crafting', type: 'craft', content: [] },
@@ -78,8 +56,6 @@ export const playerData = [
     { id: 'warmth', title: 'Warmth', val: 25, init: 25 }
 ];
 
-export const messageData = [];
-
 // Saved data fields for objData 
 export const saveFields = {
     stats: ['cnt', 'unlocked'],
@@ -88,6 +64,14 @@ export const saveFields = {
     mat: ['cnt', 'unlocked'],
     res: ['unlocked']
     // playerData: ['id', 'val']
+};
+
+//// NEW ////
+
+export const messageData = [];
+
+export const currentStage = {
+    stage: 0
 };
 
 // Prinary structure for storing/saving data
@@ -102,10 +86,10 @@ export const stageProgress = {
 // Combined data (rootData) for saving, etc
 export const gameData = {
     objData, // REVAMP: Needs removal
-    playerData, // ??
+    playerData, // REVAMP
     messageData,
     elapsedTime: 0,
     saveFields, // REVAMP: Needs removal
-    lifeStage,
+    currentStage,
     stageProgress
 };

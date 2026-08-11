@@ -20,7 +20,7 @@ export default class BootScene extends Phaser.Scene {
             saveManager
         );
 
-        if (gameData.lifeStage.stage < 1) {
+        if (gameData.currentStage.stage < 1) {
             this.scene.start('CreationScene');
         } else {
             this.scene.start('MainScene');

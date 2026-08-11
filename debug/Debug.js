@@ -66,8 +66,8 @@ function htmlExport() {
     exportHTMLButton.id = 'exportHTMLButton';
     exportHTMLButton.textContent = 'Export HTML';
     
-    // Append the button to the document body
-    document.body.appendChild(exportHTMLButton);
+    // Append the button
+    document.getElementById('debugButtons').appendChild(exportHTMLButton);
     
     // Add an event listener to the "Export HTML" button
     exportHTMLButton.addEventListener("click", function () {
@@ -95,4 +95,4 @@ function htmlExport() {
 
 // RUN DEBUGGING FUNCTIONS
 logExport();
-//htmlExport();
+htmlExport();

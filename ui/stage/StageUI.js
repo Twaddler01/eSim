@@ -1,6 +1,6 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-import { stageData, stageItems } from '../../data/stageData.js';
+import { stageData, stageItems, masterObjectives } from '../../data/stageData.js';
 import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
 import StageProgressManager from '../../managers/StageProgressManager.js';
@@ -37,10 +37,13 @@ export default class StageUI {
     // Create UI
     createUI() {
         this.stageProgress =
-            new StageProgressManager(gameData);
+            new StageProgressManager(gameData, stageData, stageItems, masterObjectives);
 
-        // Current stage
-        this.stage = stageData[0];
+        // Set current stage
+        this.stageTitle = this.stageProgress.setStage('creation');
+
+        // Header
+        this.createHeader();
 
         // Listen for changes
         this.removeProgressListener =
@@ -62,9 +65,6 @@ export default class StageUI {
                 }
             );
 
-        // Header
-        this.createHeader();
-
         // Inventory
         this.inventory =
             new StageInventory(
@@ -78,8 +78,6 @@ export default class StageUI {
                     height: this.headerHeight - this.headerTitleHeight - 1,
                 }
             );
-
-        //this.headerBox3();
 
         // Messages
         this.messageStatus =
@@ -145,7 +143,7 @@ export default class StageUI {
 
         // DISCOVERY TRACKER
         this.discoveryTracker =
-            new StageDiscoveryTracker(this.scene, this.stageProgress, stageItems, {
+            new StageDiscoveryTracker(this.scene, this.stageProgress, stageItems, masterObjectives, {
                     x: 10 + this.headerBoxWidth + 1 + this.width / 3 - 8 + 1,
                     y: 10 + this.headerTitleHeight + 1,
                     width: this.width / 3 - 7,
@@ -169,10 +167,10 @@ export default class StageUI {
         )
         .setOrigin(0);
 
-        addText(this.scene,
+        this.stageTitleText = addText(this.scene,
             20,
             10,
-            '== CREATION STAGE ==',
+            this.stageTitle, // setStage() adds title
             {
                 fontSize: '28px',
                 color: '#ffffff'
@@ -218,23 +216,6 @@ export default class StageUI {
         );
     }
 
-    // DISCOVERY AREA
-    headerBox3() {
-        this.headerBox3 =
-            this.scene.add.rectangle(
-                10 +
-                    this.headerBoxWidth +
-                    1 +
-                    this.width / 3 - 8 +
-                    1,
-                10 + this.headerTitleHeight + 1,
-                this.width / 3 - 7,
-                this.headerHeight - this.headerTitleHeight - 1,
-                0x444444
-            )
-            .setOrigin(0);
-    }
-
     // Change tab
     changeTab(id) {
 
@@ -248,40 +229,6 @@ export default class StageUI {
         this.refreshCurrentTab();
     }
 
-gather(item) {
-    const current =
-        this.stageProgress.get(item.id);
-
-    const max =
-        getItemMax(item, this.stageProgress);
-
-    // Inventory is full.
-    // Don't add anything, but still allow upgrade logic.
-    if (current >= max) {
-        this.checkGatherUpgrade(item);
-        return;
-    }
-
-    const gatherAmount =
-        this.getGatherAmount(item);
-
-    const newAmount =
-        Math.min(
-            current + gatherAmount,
-            max
-        );
-
-    this.stageProgress.set(
-        item.id,
-        newAmount
-    );
-
-    // Check whether this gather filled the inventory.
-    this.checkGatherUpgrade(item);
-}
-
-/*
-    // Gather
     gather(item) {
         const current =
             this.stageProgress.get(item.id);
@@ -289,13 +236,16 @@ gather(item) {
         const max =
             getItemMax(item, this.stageProgress);
     
+        // Inventory is full.
+        // Don't add anything, but still allow upgrade logic.
         if (current >= max) {
+            this.checkGatherUpgrade(item);
             return;
         }
     
         const gatherAmount =
             this.getGatherAmount(item);
-
+    
         const newAmount =
             Math.min(
                 current + gatherAmount,
@@ -307,9 +257,10 @@ gather(item) {
             newAmount
         );
     
+        // Check whether this gather filled the inventory.
         this.checkGatherUpgrade(item);
     }
-*/
+
     getGatherLevel(item) {
         return this.stageProgress.getGatherLevel(item.id);
     }
@@ -333,57 +284,6 @@ gather(item) {
         );
     }
 
-checkGatherUpgrade(item) {
-    const upgrade =
-        item.gather?.upgrade;
-
-    if (!upgrade?.enabled) {
-        return;
-    }
-
-    const current =
-        this.stageProgress.get(item.id);
-
-    const max =
-        getItemMax(item, this.stageProgress);
-
-    if (current < max) {
-        return;
-    }
-
-    const rateIncrease =
-        upgrade.rateIncrease ?? 0;
-
-    const level =
-        this.getGatherLevel(item);
-
-    const currentGatherRate =
-        1 +
-        level * rateIncrease;
-
-    // Rate has reached the maximum useful amount.
-    // Do NOT purchase another rate upgrade.
-    if (
-        rateIncrease > 0 &&
-        currentGatherRate >= max
-    ) {
-        return;
-    }
-
-    // Reset amount
-    this.stageProgress.set(
-        item.id,
-        0
-    );
-
-    // Increase upgrade level
-    this.stageProgress.addGatherLevel(
-        item.id,
-        1
-    );
-}
-
-/*
     checkGatherUpgrade(item) {
         const upgrade =
             item.gather?.upgrade;
@@ -402,6 +302,25 @@ checkGatherUpgrade(item) {
             return;
         }
     
+        const rateIncrease =
+            upgrade.rateIncrease ?? 0;
+    
+        const level =
+            this.getGatherLevel(item);
+    
+        const currentGatherRate =
+            1 +
+            level * rateIncrease;
+    
+        // Rate has reached the maximum useful amount.
+        // Do NOT purchase another rate upgrade.
+        if (
+            rateIncrease > 0 &&
+            currentGatherRate >= max
+        ) {
+            return;
+        }
+    
         // Reset amount
         this.stageProgress.set(
             item.id,
@@ -414,7 +333,7 @@ checkGatherUpgrade(item) {
             1
         );
     }
-*/
+
     getUpgrades(item) {
         return this.stageProgress.getGatherUpgradeStats(
             item.id,
@@ -522,8 +441,16 @@ checkGatherUpgrade(item) {
         
             ...item,
         
-            type: this.currentTab,
-        
+            type:
+                this.currentTab,
+
+            // Returns as function
+            getObjectiveComplete:
+                id => this.getObjectiveComplete(id),
+
+            masterProgress:
+                this.stageProgress.getMasterObjectiveProgress(this.stageProgress.getActiveMasterObjective()),
+
             amount:
                 item.discovery ? null : this.stageProgress.get(item.id),
             
@@ -637,7 +564,11 @@ checkGatherUpgrade(item) {
     
         return 'available';
     }
-    
+
+    getObjectiveComplete(id) {
+        return this.stageProgress.isObjectiveComplete(id);
+    }
+
     discover(item) {
         if (this.getDiscoveryStatus(item) !== 'available') {
             return;
