@@ -143,7 +143,7 @@ export default class StageUI {
 
         // DISCOVERY TRACKER
         this.discoveryTracker =
-            new StageDiscoveryTracker(this.scene, this.stageProgress, stageItems, masterObjectives, {
+            new StageDiscoveryTracker(this.scene, this.stageProgress, stageItems, {
                     x: 10 + this.headerBoxWidth + 1 + this.width / 3 - 8 + 1,
                     y: 10 + this.headerTitleHeight + 1,
                     width: this.width / 3 - 7,
@@ -449,7 +449,11 @@ export default class StageUI {
                 id => this.getObjectiveComplete(id),
 
             masterProgress:
-                this.stageProgress.getMasterObjectiveProgress(this.stageProgress.getActiveMasterObjective()),
+                item.master
+                    ? this.stageProgress.getMasterObjectiveProgress(
+                        this.stageProgress.getActiveMasterObjective()
+                    )
+                    : null,
 
             amount:
                 item.discovery ? null : this.stageProgress.get(item.id),
@@ -570,25 +574,16 @@ export default class StageUI {
     }
 
     discover(item) {
-        if (this.getDiscoveryStatus(item) !== 'available') {
+    
+        if (
+            this.getDiscoveryStatus(item) !==
+            'available'
+        ) {
             return;
         }
     
         this.stageProgress.discover(item.id);
     
-        const unlocks = item.unlocks ?? {};
-    
-        // Unlock discoveries
-        (unlocks.discoveries ?? []).forEach(id => {
-            this.stageProgress.unlock(id);
-        });
-    
-        // Unlock gather/create/etc items
-        (unlocks.items ?? []).forEach(id => {
-            this.stageProgress.unlock(id);
-        });
-    
-        // Refresh cards because newly unlocked cards may appear
         this.refreshCurrentTab();
     }
 

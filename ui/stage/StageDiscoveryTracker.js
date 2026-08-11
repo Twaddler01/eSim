@@ -2,11 +2,10 @@ import { listenToEvent } from '../../utils/stageHelpers.js';
 
 export default class StageDiscoveryTracker {
 
-    constructor(scene, stageProgress, stageItems, masterObjectives, options = {}) {
+    constructor(scene, stageProgress, stageItems, options = {}) {
         this.scene = scene;
         this.stageProgress = stageProgress;
         this.stageItems = stageItems;
-        this.masterObjectives = masterObjectives;
 
         this.container = options.container ?? scene.add.container();
         
@@ -150,128 +149,103 @@ export default class StageDiscoveryTracker {
             this.x + this.width / 2;
     
         const barWidth =
-            this.width - barX + this.x - 10;
+            this.width / 2 - 10;
     
         const barHeight = 8;
     
         let currentTotal = 0;
         let requiredTotal = 0;
     
-        objective.objectives.forEach(requirement => {
+        Object.entries(objective.requirements ?? {})
+            .forEach(([id, required]) => {
     
-            let current = 0;
-            let required = 1;
+                const current =
+                    this.stageProgress.get(id) ?? 0;
     
-            if (requirement.type === 'discovery') {
+                const cappedCurrent =
+                    Math.min(current, required);
     
-                current =
-                    this.stageProgress.isDiscovered(
-                        requirement.id
-                    ) ? 1 : 0;
+                const ready =
+                    current >= required;
     
-                required = 1;
-            }
+                currentTotal += cappedCurrent;
+                requiredTotal += required;
     
-            if (requirement.type === 'resource') {
+                const item =
+                    this.stageItems.find(
+                        item => item.id === id
+                    );
     
-                current =
-                    this.stageProgress.get(
-                        requirement.id
-                    ) ?? 0;
+                const title =
+                    item?.title ?? id;
     
-                required =
-                    requirement.amount;
-            }
+                const displayAmount =
+                    `${Math.floor(cappedCurrent)}/${required}`;
     
-            const cappedCurrent =
-                Math.min(current, required);
+                const reqText =
+                    `${title}: ${displayAmount} ` +
+                    `${ready ? '✓' : '✕'}`;
     
-            const ready =
-                current >= required;
+                const text =
+                    addText(
+                        this.scene,
+                        textX,
+                        y,
+                        reqText,
+                        {
+                            fontSize: '16px',
+                            color:
+                                ready
+                                    ? '#66ff66'
+                                    : '#ff6666'
+                        }
+                    );
     
-            currentTotal += cappedCurrent;
-            requiredTotal += required;
+                const barBg =
+                    this.scene.add.rectangle(
+                        barX,
+                        y + 5,
+                        barWidth,
+                        barHeight,
+                        0x222222
+                    )
+                    .setOrigin(0);
     
-            const item =
-                this.stageItems.find(
-                    i => i.id === requirement.id
-                );
+                const barFill =
+                    this.scene.add.rectangle(
+                        barX,
+                        y + 5,
+                        barWidth *
+                            Phaser.Math.Clamp(
+                                current / required,
+                                0,
+                                1
+                            ),
+                        barHeight,
+                        ready
+                            ? 0x44aa44
+                            : 0xaa8844
+                    )
+                    .setOrigin(0);
     
-            const title =
-                item?.title ??
-                requirement.id;
+                this.container.add([
+                    text,
+                    barBg,
+                    barFill
+                ]);
     
-            const displayAmount =
-                requirement.type === 'discovery'
-                    ? ready
-                        ? '✓'
-                        : '✕'
-                    : `${Math.floor(cappedCurrent)}/${required}`;
+                this.requirements.push({
+                    id,
+                    type: 'resource',
+                    required,
+                    title,
+                    text,
+                    barBg,
+                    barFill
+                });
     
-            const reqText =
-                `${title}: ${displayAmount} ` +
-                `${ready ? '✓' : '✕'}`;
-    
-            const text =
-                addText(
-                    this.scene,
-                    textX,
-                    y,
-                    reqText,
-                    {
-                        fontSize: '16px',
-                        color:
-                            ready
-                                ? '#66ff66'
-                                : '#ff6666'
-                    }
-                );
-    
-            const barBg =
-                this.scene.add.rectangle(
-                    barX,
-                    y + 5,
-                    barWidth,
-                    barHeight,
-                    0x222222
-                )
-                .setOrigin(0);
-    
-            const barFill =
-                this.scene.add.rectangle(
-                    barX,
-                    y + 5,
-                    barWidth *
-                        Phaser.Math.Clamp(
-                            current / required,
-                            0,
-                            1
-                        ),
-                    barHeight,
-                    ready
-                        ? 0x44aa44
-                        : 0xaa8844
-                )
-                .setOrigin(0);
-    
-            this.container.add([
-                text,
-                barBg,
-                barFill
-            ]);
-    
-            this.requirements.push({
-                id: requirement.id,
-                type: requirement.type,
-                required,
-                title,
-                text,
-                barBg,
-                barFill
+                y += 22;
             });
-    
-            y += 22;
-        });
     
         this.totalY = y;
     
@@ -410,7 +384,6 @@ export default class StageDiscoveryTracker {
     refresh() {
         const master =
             this.stageProgress.getActiveMasterObjective();
-    
         if (master) {
             this.refreshMasterObjective(master);
             return;
@@ -420,28 +393,44 @@ export default class StageDiscoveryTracker {
             this.getTrackedObjective();
     
         if (!objective) {
+    
             this.clearRequirements();
     
-            this.title.setText('No Active Discovery');
+            this.title.setText(
+                'No Active Discovery'
+            );
+    
             this.description.setText('');
             this.objectiveText.setText('');
     
             return;
         }
     
-        if (this.currentDiscovery?.id !== objective.id) {
+        if (
+            this.currentDiscovery?.id !==
+            objective.id
+        ) {
     
-            this.currentDiscovery = objective;
+            this.clearRequirements();
     
-            this.title.setText(objective.title);
+            this.currentDiscovery =
+                objective;
+    
+            this.title.setText(
+                objective.title
+            );
     
             this.description.setText(
                 `"${objective.description}"`
             );
     
-            this.objectiveText.setText('CURRENT DISCOVERY');
-    
-            this.buildRequirements(objective);
+            this.objectiveText.setText(
+                'CURRENT DISCOVERY'
+            );
+
+            this.buildRequirements(
+                objective
+            );
         }
     
         this.updateRequirementProgress();
@@ -571,29 +560,8 @@ export default class StageDiscoveryTracker {
         return current / needed;
     }
 
-    getCurrentDiscovery() {
-        return stageItems.find(item =>
-            item.discovery &&
-            !this.stageProgress.isDiscovered(item.id) &&
-            this.stageProgress.getUnlocked(item.id)
-        );
-    }
-
-    isMasterObjectiveComplete(objective) {
-    
-        return objective.objectives.every(id =>
-            this.stageProgress.isDiscovered(id)
-        );
-    }
-
     getTrackedObjective() {
-        const stage =
-            this.stageProgress.getCurrentStageId();
-    
-        return this.masterObjectives.find(objective =>
-            objective.stage === stage &&
-            !this.isMasterObjectiveComplete(objective)
-        ) ?? null;
+        return this.stageProgress.getCurrentDiscovery();
     }
 
     updateTotalBar(percent) {

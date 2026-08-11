@@ -71,10 +71,11 @@ export const stageItems = [
         tracked: true,
         description: 'In the beginning, God created....',
         // No requirements
-        requirements: { initial: 0 },
+        requirements: {},
         unlocks: { 
+            master: [ 'creation' ],
             discoveries: [ 'creation_day_1' ],
-            items: [ 'darkness' ],
+            items: [ 'darkness' ]
         },
         actionLabel: 'COMPLETE'
     },
@@ -90,7 +91,7 @@ export const stageItems = [
         requirements: { darkness: 10 },
         unlocks: { 
             discoveries: [ 'creation_day_2' ],
-            items: [ 'light' ],
+            items: [ 'light' ]
         },
         actionLabel: 'COMPLETE'
     },

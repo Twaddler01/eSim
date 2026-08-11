@@ -27,3 +27,12 @@ export default class BootScene extends Phaser.Scene {
         }
     }
 }
+
+/*
+try {
+    //
+}
+} catch (error) {
+    console.error(error.stack);
+}
+*/

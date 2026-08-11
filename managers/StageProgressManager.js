@@ -25,6 +25,11 @@ export default class StageProgressManager {
         this.unlocked =
             gameData.stageProgress?.unlocked ?? {};
 
+        this.unlockedMasterObjectives =
+            new Set(
+                gameData.stageProgress?.unlockedMasterObjectives ?? []
+            );
+
         this.completedMasterObjectives =
             new Set(
                 gameData.stageProgress?.completedMasterObjectives ?? []
@@ -97,6 +102,26 @@ export default class StageProgressManager {
         });
     }
 
+    isMasterObjectiveUnlocked(id) {
+        return this.unlockedMasterObjectives.has(id);
+    }
+
+    unlockMasterObjective(id) {
+        if (this.unlockedMasterObjectives.has(id)) {
+            return false;
+        }
+        this.unlockedMasterObjectives.add(id);
+        this.sync();
+        this.events.emit(
+            'updated',
+            {
+                type: 'master-unlock',
+                id
+            }
+        );
+        return true;
+    }
+
     // Add amount
     add(id, amount) {
         return this.set(
@@ -157,17 +182,55 @@ export default class StageProgressManager {
     }
 
     discover(id) {
+    
         if (this.isDiscovered(id)) {
             return false;
         }
     
+        const item =
+            this.stageItems.find(
+                item => item.id === id
+            );
+    
+        if (!item) {
+            console.warn(
+                `discover() - Unknown item: ${id}`
+            );
+            return false;
+        }
+    
+        // Mark discovery complete
         this.discoveries[id] = true;
     
+        // Process unlocks
+        const unlocks =
+            item.unlocks ?? {};
+    
+        // Master objectives
+        (unlocks.master ?? [])
+            .forEach(masterId => {
+                this.unlockMasterObjective(masterId);
+            });
+    
+        // Discoveries
+        (unlocks.discoveries ?? [])
+            .forEach(discoveryId => {
+                this.unlock(discoveryId);
+            });
+    
+        // Resources / items
+        (unlocks.items ?? [])
+            .forEach(itemId => {
+                this.unlock(itemId);
+            });
+    
+        // Save state
         this.sync();
     
         // See whether this completed a master objective
         this.checkMasterObjectives();
     
+        // Notify UI
         this.events.emit(
             'updated',
             {
@@ -186,8 +249,9 @@ export default class StageProgressManager {
             gatherLevels: this.gatherLevels,
             discoveries: this.discoveries,
             unlocked: this.unlocked,
-            tracked: this.tracked,
-            completedMasterObjectives: [...this.completedMasterObjectives]
+            tracked: this.tracked, // WIP
+            completedMasterObjectives: [...this.completedMasterObjectives],
+            unlockedMasterObjectives: [...this.unlockedMasterObjectives]
         };
     }
 
@@ -253,81 +317,86 @@ export default class StageProgressManager {
         this.scene.start(nextStage.scene);
     }
 
-isMasterObjectiveComplete(objective) {
-    return objective.objectives.every(id =>
-        this.isDiscovered(id)
-    );
-}
-
-getMasterObjectiveProgress(objective) {
-    const total =
-        objective.objectives.length;
-
-    const completed =
-        objective.objectives.filter(id =>
+    isMasterObjectiveComplete(objective) {
+        return objective.objectives.every(id =>
             this.isDiscovered(id)
-        ).length;
+        );
+    }
+    
+    getMasterObjectiveProgress(objective) {
+        const total =
+            objective.objectives.length;
 
-    return {
-        completed,
-        total,
-        percent:
-            total === 0
-                ? 1
-                : completed / total
-    };
-}
-
-getActiveMasterObjective() {
-    const stage =
-        this.getCurrentStageId();
-
-    return this.masterObjectives.find(objective =>
-        objective.stage === stage &&
-        !this.completedMasterObjectives.has(objective.id)
-    ) ?? null;
-}
-
-getMasterObjectiveCardData() {
-
-    const objective =
-        this.getActiveMasterObjective();
-
-    if (!objective) {
-        return null;
+        const completed =
+            objective.objectives.filter(id =>
+                this.isDiscovered(id)
+            ).length;
+    
+        return {
+            completed,
+            total,
+            percent:
+                total === 0
+                    ? 1
+                    : completed / total
+        };
+    }
+    
+    getActiveMasterObjective() {
+    
+        const stage =
+            this.getCurrentStageId();
+    
+        return this.masterObjectives.find(
+            objective =>
+                objective.stage === stage &&
+                this.isMasterObjectiveUnlocked(objective.id) &&
+                !this.isMasterObjectiveComplete(objective)
+        ) ?? null;
     }
 
-    const progress =
-        this.getMasterObjectiveProgress(objective);
-
-    return {
-        id: objective.id,
-        title: objective.title,
-        description: objective.description,
-        amount: progress.completed,
-        max: progress.total,
-        availability: 'available',
-        actionLabel: 'VIEW',
-        type: 'discover',
-        master: true,
-        objectives: objective.objectives
-    };
-}
-
-getCurrentDiscovery() {
-    const stage =
-        this.getCurrentStageId();
-
-    return this.stageItems.find(item =>
-        item.discovery &&
-        item.stage === stage &&
-        !this.isDiscovered(item.id) &&
-        (
-            item.startsUnlocked ||
-            this.getUnlocked(item.id)
-        )
-    ) ?? null;
-}
+    getMasterObjectiveCardData() {
+    
+        const objective =
+            this.getActiveMasterObjective();
+    
+        if (!objective) {
+            return null;
+        }
+    
+        const progress =
+            this.getMasterObjectiveProgress(objective);
+    
+        return {
+            id: objective.id,
+            title: objective.title,
+            description: objective.description,
+            amount: progress.completed,
+            max: progress.total,
+            availability: 'available',
+            actionLabel: 'VIEW',
+            type: 'discover',
+            master: true,
+            objectives: objective.objectives
+        };
+    }
+    
+        getCurrentDiscovery() {
+        const stage =
+            this.getCurrentStageId();
+        return (
+            this.stageItems.find(item =>
+                item.discovery &&
+                item.stage === stage &&
+                item.tracked &&
+                !this.isDiscovered(item.id) &&
+                (
+                    item.startsUnlocked ||
+                    this.getUnlocked(item.id)
+                )
+            ) ?? null
+        );
+    }
 
     checkMasterObjectives() {
         this.masterObjectives.forEach(objective => {
