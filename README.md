@@ -1,5 +1,6 @@
 # Recent Updates
 ![README updated](https://Twaddler01.github.io/eSim/readme-date.svg)
+- Added ScrollBox class for scrolling in different areas.
 - Updated all fonts to "Arial" using "addText" global function to keep font family consistent with client browser settings and ensure precise Phaser text alignment/size. A different global font may be used in future updates.
 
 # About
@@ -8,8 +9,9 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Auto-gather - "element collector".
-- Current work is primarily focused on code architecture and testing out new features.
+- Clean up tracker and Discover tab elements.
+- Add ScrollBox class integration to tracker and navigation tabs.
+- Add an auto-gather/creator - e.g. "element collector", etc.
 
 # Future Updates / Ideas
 - More structural content.
