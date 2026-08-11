@@ -1,4 +1,5 @@
 import { messageData } from '../../data/gameData.js';
+import ScrollBox from '../../utils/ScrollBox.js';
 
 export default class MessageStatus {
 
@@ -29,175 +30,40 @@ export default class MessageStatus {
     // --------------------------------------------------
     // Draw message window
     // --------------------------------------------------
-
+    
     draw() {
-        const width = this.width;
-        const height = this.height;
-        const x = this.x;
-        const y = this.y;
-
-        // --------------------------------------------------
-        // Background
-        // --------------------------------------------------
-
         this.scene.add.rectangle(
-            x,
-            y,
-            width,
-            height,
+            this.x,
+            this.y,
+            this.width,
+            this.height,
             0x000055
         )
             .setOrigin(0)
             .setStrokeStyle(1, 0x000000);
-
-        // --------------------------------------------------
-        // Message viewport dimensions
-        // --------------------------------------------------
-
-        const winX = this.x;
-        const winY = this.y;
-
-        const winWidth = this.width;
-        const winHeight = this.height;
-
+    
         this.msgArea = {
-            x: winX,
-            y: winY,
-            width: winWidth,
-            height: winHeight
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height
         };
-
-        // --------------------------------------------------
-        // Message container
-        // --------------------------------------------------
-
+    
+        this.scrollBox =
+            new ScrollBox(
+                this.scene,
+                {
+                    x: this.x,
+                    y: this.y + 3,
+                    width: this.width,
+                    height: this.height - 6,
+                    depth: this.depth,
+                    maskPadding: 2
+                }
+            );
+    
         this.messageContainer =
-            this.scene.add.container(0, 0);
-        this.messageContainer.setDepth(this.depth);
-
-
-        // --------------------------------------------------
-        // Mask
-        // --------------------------------------------------
-
-        const maskShape =
-            this.scene.make.graphics({ add: false });
-
-        maskShape.fillStyle(0xffffff);
-
-        maskShape.fillRect(
-            winX,
-            winY + 2,
-            winWidth,
-            winHeight - 4
-        );
-
-        this.messageMask =
-            maskShape.createGeometryMask();
-
-        this.messageContainer.setMask(
-            this.messageMask
-        );
-
-
-        // --------------------------------------------------
-        // Scrolling
-        // --------------------------------------------------
-
-        this.scrollZone = this.scene.add.zone(
-            winX,
-            winY,
-            winWidth,
-            winHeight
-        )
-            .setOrigin(0)
-            .setInteractive();
-
-
-        // --------------------------------------------------
-        // Desktop mouse wheel
-        // --------------------------------------------------
-
-        this.scrollZone.on(
-            'wheel',
-            (pointer, over, dx, dy) => {
-
-                this.scrollY -= dy;
-
-                this.scrollY = Phaser.Math.Clamp(
-                    this.scrollY,
-                    0,
-                    this.maxScrollY
-                );
-
-                this.updateMessagePosition();
-            }
-        );
-
-
-        // --------------------------------------------------
-        // Mobile touch scrolling
-        // --------------------------------------------------
-
-        this.isDragging = false;
-
-        this.dragStartY = 0;
-        this.scrollStartY = 0;
-
-
-        this.scrollZone.on(
-            'pointerdown',
-            pointer => {
-
-                this.isDragging = true;
-
-                this.dragStartY = pointer.y;
-
-                this.scrollStartY =
-                    this.scrollY;
-            }
-        );
-
-
-        this.scrollZone.on(
-            'pointermove',
-            pointer => {
-
-                if (!this.isDragging) return;
-
-                const deltaY =
-                    pointer.y - this.dragStartY;
-
-                this.scrollY =
-                    this.scrollStartY - deltaY;
-
-                this.scrollY = Phaser.Math.Clamp(
-                    this.scrollY,
-                    0,
-                    this.maxScrollY
-                );
-
-                this.updateMessagePosition();
-            }
-        );
-
-
-        this.scrollZone.on(
-            'pointerup',
-            () => {
-
-                this.isDragging = false;
-            }
-        );
-
-
-        this.scrollZone.on(
-            'pointerout',
-            () => {
-
-                this.isDragging = false;
-            }
-        );
+            this.scrollBox.content;
     }
 
 
@@ -278,17 +144,9 @@ export default class MessageStatus {
         const newestMessageY =
             newestMessage.y;
 
-
-        this.scrollY =
-            newestMessageY - 10;
-
-
-        this.scrollY = Phaser.Math.Clamp(
-            this.scrollY,
-            0,
-            this.maxScrollY
+        this.scrollBox.setScroll(
+            newestMessageY - 10
         );
-
 
         this.updateMessagePosition();
     }
@@ -311,37 +169,21 @@ export default class MessageStatus {
     // --------------------------------------------------
 
     layoutMessages() {
-
+    
         const padding = 8;
         const spacing = 12;
-
+    
         let y = padding;
-
-
+    
         this.messages.forEach(message => {
-
+    
             message.y = y;
-
+    
             y += message.height + spacing;
         });
-
-
-        // --------------------------------------------------
-        // Total content height
-        // --------------------------------------------------
-
-        const contentHeight =
-            y;
-
-
-        this.maxScrollY = Math.max(
-            0,
-
-            contentHeight -
-            this.msgArea.height
-        );
+    
+        this.scrollBox.setContentHeight(y);
     }
-
 
     // --------------------------------------------------
     // Update message position

@@ -1,4 +1,5 @@
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
+import ScrollBox from '../../utils/ScrollBox.js';
 
 export default class StageInventory {
 
@@ -21,9 +22,6 @@ export default class StageInventory {
             this.scene.depths?.inventory ?? 10;
 
         this.items = [];
-
-        this.scrollY = 0;
-        this.maxScrollY = 0;
 
         this.create();
 
@@ -50,139 +48,26 @@ export default class StageInventory {
                 0x000055
             )
             .setOrigin(0);
-
+    
         this.background.setDepth(
             this.depth
         );
-
-        // Content viewport
-        this.contentX =
-            this.x;
-
-        this.contentY =
-            this.y;
-
-        this.contentWidth =
-            this.width;
-
-        this.contentHeight =
-            this.height;
-
-        // Content container
+    
+        this.scrollBox =
+            new ScrollBox(
+                this.scene,
+                {
+                    x: this.x,
+                    y: this.y,
+                    width: this.width,
+                    height: this.height,
+                    depth: this.depth,
+                    maskPadding: 3
+                }
+            );
+    
         this.content =
-            this.scene.add.container();
-
-        this.content.setDepth(
-            this.depth + 1
-        );
-
-        // Mask
-        const maskShape =
-            this.scene.make.graphics({
-                add: false
-            });
-        maskShape.fillStyle(0xffffff);
-
-        maskShape.fillRect(
-            this.contentX,
-            this.contentY + 3,
-            this.contentWidth,
-            this.contentHeight - 4
-        );
-
-        this.mask =
-            maskShape.createGeometryMask();
-
-        this.content.setMask(
-            this.mask
-        );
-
-        // Scroll zone
-        this.scrollZone =
-            this.scene.add.zone(
-                this.contentX,
-                this.contentY,
-                this.contentWidth,
-                this.contentHeight
-            )
-            .setOrigin(0)
-            .setInteractive();
-
-        // Mouse wheel
-        this.scrollZone.on(
-            'wheel',
-            (pointer, over, dx, dy) => {
-
-                this.scrollY -= dy;
-
-                this.scrollY =
-                    Phaser.Math.Clamp(
-                        this.scrollY,
-                        0,
-                        this.maxScrollY
-                    );
-
-                this.updateScrollPosition();
-            }
-        );
-
-        // Mobile touch scrolling
-        this.isDragging = false;
-        this.dragStartY = 0;
-        this.scrollStartY = 0;
-
-        this.scrollZone.on(
-            'pointerdown',
-            pointer => {
-
-                this.isDragging = true;
-
-                this.dragStartY =
-                    pointer.y;
-
-                this.scrollStartY =
-                    this.scrollY;
-            }
-        );
-
-        this.scrollZone.on(
-            'pointermove',
-            pointer => {
-
-                if (!this.isDragging) return;
-
-                const deltaY =
-                    pointer.y -
-                    this.dragStartY;
-
-                this.scrollY =
-                    this.scrollStartY -
-                    deltaY;
-
-                this.scrollY =
-                    Phaser.Math.Clamp(
-                        this.scrollY,
-                        0,
-                        this.maxScrollY
-                    );
-
-                this.updateScrollPosition();
-            }
-        );
-
-        this.scrollZone.on(
-            'pointerup',
-            () => {
-                this.isDragging = false;
-            }
-        );
-
-        this.scrollZone.on(
-            'pointerout',
-            () => {
-                this.isDragging = false;
-            }
-        );
+            this.scrollBox.content;
     }
 
     // Category colors
@@ -210,6 +95,7 @@ export default class StageInventory {
         const categories = {};
 
         inventoryItems.forEach(item => {
+            
             const unlocked =
                 item.startsUnlocked ||
                 this.stageProgress.getUnlocked(item.id);
@@ -243,7 +129,7 @@ export default class StageInventory {
                 // Category heading
                 const categoryText =
                     addText(this.scene,
-                        this.contentX + 10,
+                        this.x + 10,
                         y,
                         category.toUpperCase(),
                         {
@@ -266,7 +152,7 @@ export default class StageInventory {
 
                         const text =
                             addText(this.scene,
-                                this.contentX + 20,
+                                this.x + 20,
                                 y,
                                 
                                 `${item.title ?? item.id}: ${Math.floor(amount)}${itemMax}`,
@@ -298,31 +184,7 @@ export default class StageInventory {
             });
 
         // Calculate scroll range
-        const contentHeight = y;
-
-        this.maxScrollY =
-            Math.max(
-                0,
-                contentHeight -
-                this.contentHeight
-            );
-
-        // Keep current position valid
-        this.scrollY =
-            Phaser.Math.Clamp(
-                this.scrollY,
-                0,
-                this.maxScrollY
-            );
-        this.updateScrollPosition();
-        
-    }
-
-    // Update scroll position
-    updateScrollPosition() {
-        this.content.y =
-            this.contentY -
-            this.scrollY;
+        this.scrollBox.setContentHeight(y);
     }
 
     // Get inventory items

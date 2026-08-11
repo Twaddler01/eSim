@@ -9,7 +9,7 @@ export const stageItems = [
 // Resources
     { stage: 'creation', id: 'darkness', title: 'DARKNESS', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER' },
     { stage: 'creation', id: 'light', title: 'LIGHT', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER',
+    { stage: 'creation', id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: false, max: 50, actionLabel: 'GATHER',
         gather: {
             upgrade: {
                 enabled: true,
@@ -34,23 +34,23 @@ export const stageItems = [
             }
         },
     },
-    { stage: 'creation', id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'silicon', title: 'SILICON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'aluminum', title: 'ALUMINUM', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'nitrogen', title: 'NITROGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'neon', title: 'NEON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'silicon', title: 'SILICON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'aluminum', title: 'ALUMINUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'nitrogen', title: 'NITROGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'neon', title: 'NEON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
 
 // Creation
-    { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', tab: 'create', category: 'molecule', unlocked: false,
+    { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', tab: 'create', category: 'molecule', unlocked: true,
         requirements: {
             water: 5
         },
         produces: {
             water_molecule: 1
         }, actionLabel: 'CREATE' },
-    { stage: 'creation', id: 'water_molecule2', title: 'Water Molecule dx2', tab: 'create', category: 'molecule', unlocked: false,
+    { stage: 'creation', id: 'water_molecule2', title: 'Water Molecule dx2', tab: 'create', category: 'molecule', unlocked: true,
         requirements: {
             water: 15,
             carbon: 1

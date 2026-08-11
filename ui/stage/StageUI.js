@@ -386,11 +386,12 @@ export default class StageUI {
 
     // Availability
     getAvailability(item) {
+
         // Discoveries
         if (item.discovery) {
             return this.getDiscoveryStatus(item);
         }
-
+        
         const unlocked =
             item.startsUnlocked ||
             this.stageProgress.getUnlocked(item.id);
