@@ -34,13 +34,13 @@ export const stageItems = [
             }
         },
     },
-    { stage: 'creation', id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'silicon', title: 'SILICON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'aluminum', title: 'ALUMINUM', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'nitrogen', title: 'NITROGEN', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'neon', title: 'NEON', tab: 'gather', category: 'element', unlocked: true, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'helium', title: 'HELIUM', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'oxygen', title: 'OXYGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'silicon', title: 'SILICON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'aluminum', title: 'ALUMINUM', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'nitrogen', title: 'NITROGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'neon', title: 'NEON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
 
 // Creation
     { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', tab: 'create', category: 'molecule', unlocked: true,
@@ -149,5 +149,202 @@ export const masterObjectives = [
                 'early_humanity'
             ]
         }
+    }
+];
+
+// NEW WIP
+
+/* STATUS OPTIONS:
+LOCKED
+UNLOCKED
+AVAILABLE
+ACTIVE
+COMPLETED
+
+getObjectiveStatus(objective)
+{
+    status: 'available',
+    unlocked: true,
+    available: true,
+    complete: false,
+    tracked: true
+}
+LOCKED — objective hasn't been unlocked
+UNLOCKED — unlocked, but requirements aren't met
+AVAILABLE — requirements are met and can be completed
+COMPLETED — requirements were completed / action was performed
+tracked — not a status, but whether it appears in the tracker
+*/
+// type: parent, child, objective
+export const stageObjectives = [
+    {
+        // Parent objective (parent: true, children: [])
+        type: 'parent',
+        children: [
+            'creation_day_1',
+            'creation_day_2',
+            'creation_day_3',
+            'creation_day_4',
+            'creation_day_5',
+            'creation_day_6'
+        ],
+        id: 'days_of_creation',
+        title: 'DAYS OF CREATION',
+        stage: 'creation',
+        tracked: true,
+        description: 'Complete all six days of Creation.',
+        requirements: {}, // Other requirements still possible, only items for now, objective requirements will rely on other unlocks.objective
+        unlocks: {
+            objectives: [ 'creation_day_7' ],
+            items: []
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        // Regular objective (no parent, no children)
+        type: 'objective',
+        id: 'the_beginning',
+        title: 'THE BEGINNING',
+        stage: 'creation',
+        tracked: true,
+        startsUnlocked: true,
+        description: '"In the beginning, God created...."',
+        requirements: {},
+        unlocks: { 
+            objectives: [ 'days_of_creation', "creation_day_1" ],
+            items: [ 'darkness' ] // for testing purposes
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        // Child objective (no parent, child: true, has parentId)
+        type: 'child',
+        parentId: 'days_of_creation',
+        id: 'creation_day_1',
+        title: 'CREATION DAY 1',
+        stage: 'creation',
+        tracked: true,
+        description: 'Day 1 description....',
+        requirements: {
+            items: [ { darkness: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { 
+            objectives: [ 'creation_day_2' ], // other objectives can be unlocked too
+            items: [ 'light' ]
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        // Child objective (no parent, child: true, has parentId)
+        type: 'child',
+        parentId: 'days_of_creation',
+        id: 'creation_day_2',
+        title: 'CREATION DAY 2',
+        stage: 'creation',
+        tracked: true,
+        description: 'Day 2 description....',
+        requirements: {
+            items: [ { light: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { 
+            objectives: [ 'creation_day_3' ], // other objectives can be unlocked too
+            items: [ 'water' ]
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        // Child objective (no parent, child: true, has parentId)
+        type: 'child',
+        parentId: 'days_of_creation',
+        id: 'creation_day_3',
+        title: 'CREATION DAY 3',
+        stage: 'creation',
+        tracked: true,
+        description: 'Day 3 description....',
+        requirements: {
+            items: [ { water: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { 
+            objectives: [ 'creation_day_4' ], // other objectives can be unlocked too
+            items: [ 'carbon' ]
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        // Child objective (no parent, child: true, has parentId)
+        type: 'child',
+        parentId: 'days_of_creation',
+        id: 'creation_day_4',
+        title: 'CREATION DAY 4',
+        stage: 'creation',
+        tracked: true,
+        description: 'Day 4 description....',
+        requirements: {
+            items: [ { carbon: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { 
+            objectives: [ 'creation_day_5' ], // other objectives can be unlocked too
+            items: [ 'hydrogen' ]
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        // Child objective (no parent, child: true, has parentId)
+        type: 'child',
+        parentId: 'days_of_creation',
+        id: 'creation_day_5',
+        title: 'CREATION DAY 5',
+        stage: 'creation',
+        tracked: true,
+        description: 'Day 5 description....',
+        requirements: {
+            items: [ { hydrogen: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { 
+            objectives: [ 'creation_day_6' ], // other objectives can be unlocked too
+            items: [ 'helium' ]
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        // Child objective (no parent, child: true, has parentId)
+        type: 'child',
+        parentId: 'days_of_creation',
+        id: 'creation_day_6',
+        title: 'CREATION DAY 6',
+        stage: 'creation',
+        tracked: true,
+        description: 'Day 6 description....',
+        requirements: {
+            items: [ { helium: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { 
+            objectives: [], // parent will unlock next one
+            items: [ 'oxygen' ]
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        type: 'objective',
+        id: 'creation_day_7',
+        title: 'CREATION DAY 7',
+        stage: 'creation',
+        tracked: true,
+        description: 'Day 7 description....',
+        requirements: {
+            items: [ { oxygen: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { // no unlocks, testing for no active objectivs
+            objectives: [],
+            items: []
+        },
+        actionLabel: 'COMPLETE'
     }
 ];

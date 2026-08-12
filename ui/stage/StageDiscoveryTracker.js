@@ -1,4 +1,5 @@
 import { listenToEvent } from '../../utils/stageHelpers.js';
+import ScrollBox from '../../utils/ScrollBox.js';
 
 export default class StageDiscoveryTracker {
 
@@ -7,13 +8,15 @@ export default class StageDiscoveryTracker {
         this.stageProgress = stageProgress;
         this.stageItems = stageItems;
 
-        this.container = options.container ?? scene.add.container();
+        this.scrollBox = null;
         
         this.x = options.x ?? 0;
-        this.y = options.y ?? 0;
+        this.HeaderY = options.y ?? 0;
+        this.y = 0;
+        
         this.width = options.width ?? 300;
         this.height = options.height ?? 200;
-
+        
         this.depth =
             this.scene.depths?.tracker ?? 10;
 
@@ -37,12 +40,26 @@ export default class StageDiscoveryTracker {
         this.background =
             this.scene.add.rectangle(
                 this.x,
-                this.y,
+                this.HeaderY, // With header height
                 this.width,
                 this.height,
                 0x000055
             )
             .setOrigin(0);
+        
+        // Scroll box
+
+        this.scrollBox =
+            new ScrollBox(
+                this.scene,
+                {
+                    x: this.x,
+                    y: this.HeaderY, // With header height
+                    width: this.width,
+                    height: this.height,
+                    depth: this.depth
+                }
+            );
             
         // Title
         this.title =
@@ -115,16 +132,14 @@ export default class StageDiscoveryTracker {
             )
             .setOrigin(0);
 
-        // Add to container
-        this.container.add([
-            this.background,
-            this.title,
-            this.description,
-            this.objectiveText,
-            this.totalLabel,
-            this.totalBarBg,
-            this.totalBarFill
-        ]);
+        this.scrollBox.content.add([
+                this.title,
+                this.description,
+                this.objectiveText,
+                this.totalLabel,
+                this.totalBarBg,
+                this.totalBarFill
+            ]);
     }
 
     buildRequirements(objective) {
@@ -140,14 +155,15 @@ export default class StageDiscoveryTracker {
         });
     
         this.requirements = [];
-    
-        let y = this.y + 95;
-    
-        const textX = this.x + 10;
-    
-        const barX =
-            this.x + this.width / 2;
-    
+
+let y = this.y + 95;
+const textX = this.x + 10;
+const barX = this.x + this.width / 2;
+/*
+        let y = 95;
+        const textX = 10;
+        const barX = this.width / 2;
+*/
         const barWidth =
             this.width / 2 - 10;
     
@@ -228,7 +244,7 @@ export default class StageDiscoveryTracker {
                     )
                     .setOrigin(0);
     
-                this.container.add([
+                this.scrollBox.content.add([
                     text,
                     barBg,
                     barFill
@@ -248,19 +264,19 @@ export default class StageDiscoveryTracker {
             });
     
         this.totalY = y;
-    
+
         this.totalLabel.setPosition(
-            this.x + 10,
+            this.x + 10, // 10
             this.totalY + 8
         );
     
         this.totalBarBg.setPosition(
-            this.x + 10,
+            this.x + 10, // 10
             this.totalY + 30
         );
     
         this.totalBarFill.setPosition(
-            this.x + 10,
+            this.x + 10, //
             this.totalY + 30
         );
     
@@ -270,6 +286,7 @@ export default class StageDiscoveryTracker {
                 : currentTotal / requiredTotal;
     
         this.updateTotalBar(percent);
+        this.scrollBox.setContentHeight(this.totalY + 50);
     }
 
     buildMasterRequirements(master) {
@@ -284,16 +301,15 @@ export default class StageDiscoveryTracker {
         });
     
         this.requirements = [];
-    
-        let y =
-            this.y + 95;
-    
-        const textX =
-            this.x + 10;
-    
-        const barX =
-            this.x + this.width / 2;
-    
+
+let y = this.y + 95;
+const textX = this.x + 10;
+const barX = this.x + this.width / 2;
+/*
+        let y = 95;
+        const textX = 10;
+        const barX = this.width / 2;
+*/
         const barWidth =
             this.width / 2 - 10;
     
@@ -342,7 +358,7 @@ export default class StageDiscoveryTracker {
                 )
                 .setOrigin(0);
     
-            this.container.add([
+            this.scrollBox.content.add([
                 text,
                 barBg,
                 barFill
@@ -364,21 +380,22 @@ export default class StageDiscoveryTracker {
         this.totalY = y;
     
         this.totalLabel.setPosition(
-            this.x + 10,
+            this.x + 10, // 10
             this.totalY + 8
         );
     
         this.totalBarBg.setPosition(
-            this.x + 10,
+            this.x + 10, // 10
             this.totalY + 30
         );
     
         this.totalBarFill.setPosition(
-            this.x + 10,
+            this.x + 10, // 10
             this.totalY + 30
         );
     
         this.updateMasterRequirementProgress();
+        this.scrollBox.setContentHeight(this.totalY + 50);
     }
 
     refresh() {
@@ -421,11 +438,11 @@ export default class StageDiscoveryTracker {
             );
     
             this.description.setText(
-                `"${objective.description}"`
+                objective.description
             );
     
             this.objectiveText.setText(
-                'CURRENT DISCOVERY'
+                'CURRENT DISCOVERY ...(debug)'
             );
 
             this.buildRequirements(
@@ -458,7 +475,7 @@ export default class StageDiscoveryTracker {
             );
     
             this.objectiveText.setText(
-                'MASTER OBJECTIVE'
+                'MASTER OBJECTIVE...(debug)'
             );
     
             this.buildMasterRequirements(
@@ -532,6 +549,8 @@ export default class StageDiscoveryTracker {
         this.totalLabel.setVisible(false);
         this.totalBarBg.setVisible(false);
         this.totalBarFill.setVisible(false);
+        
+        this.scrollBox.scrollToTop();
     }
 
     getDiscoveryProgress(discovery) {
@@ -676,7 +695,7 @@ export default class StageDiscoveryTracker {
         this.totalBarBg?.destroy();
         this.totalBarFill?.destroy();
     
-        this.container?.destroy();
+        this.scrollBox?.destroy();
     
         this.requirements = [];
     }

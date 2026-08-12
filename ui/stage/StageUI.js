@@ -391,7 +391,7 @@ export default class StageUI {
         if (item.discovery) {
             return this.getDiscoveryStatus(item);
         }
-        
+
         const unlocked =
             item.startsUnlocked ||
             this.stageProgress.getUnlocked(item.id);

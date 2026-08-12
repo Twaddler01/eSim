@@ -382,7 +382,7 @@ export default class StageProgressManager {
         };
     }
     
-        getCurrentDiscovery() {
+    getCurrentDiscovery() {
         const stage =
             this.getCurrentStageId();
         return (
@@ -446,3 +446,17 @@ export default class StageProgressManager {
         this.events.destroy();
     }
 }
+
+// WIP functions:
+/*
+getObjective(id)
+getObjectiveStatus(id)
+isObjectiveUnlocked(id)
+isObjectiveComplete(id)
+isObjectiveAvailable(id)
+unlockObjective(id)
+completeObjective(id)
+getActiveObjectives()
+getTrackedObjectives()
+getParentProgress(id)
+*/
