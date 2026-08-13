@@ -95,7 +95,7 @@ export default class StageUI {
             );
 
         this.messageStatus.addMessageDelayed(
-            'Welcome to eSim: Cell Stage!',
+            'Welcome to eSim: Creation Stage!',
             2000
         );
 
@@ -438,13 +438,13 @@ export default class StageUI {
     
             const objectives =
                 this.stageProgress.getCurrentObjectives();
-    
+
             const objectiveCards =
                 objectives.map(
                     objective =>
                         this.getObjectiveCardData(objective)
                 );
-    
+
             cards = [
                 ...objectiveCards,
                 ...cards
@@ -507,7 +507,6 @@ getObjectiveCardData(objective) {
     };
 
     if (objective.type === 'parent') {
-
         const progress =
             this.stageProgress.getParentProgress(
                 objective.id
@@ -516,8 +515,20 @@ getObjectiveCardData(objective) {
         card.amount = progress.completed;
         card.max = progress.total;
         card.percent = progress.percent;
-    }
 
+        card.children =
+            (objective.children ?? [])
+                .map(childId =>
+                    stageObjectives.find(
+                        child => child.id === childId
+                    )
+                )
+                .filter(Boolean);
+
+        card.getChildComplete =
+            childId =>
+                this.stageProgress.isObjectiveComplete(childId);
+    }
     return card;
 }
 

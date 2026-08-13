@@ -33,7 +33,10 @@ this.nextMax = options.nextMax ?? null;
         this.produces = options.produces ?? {};
         this.actionLabel = options.actionLabel ?? 'ACTION';
         this.upgradable = options.gather?.upgrade?.enabled === true;
-
+        
+        this.children = options.children ?? [];
+        this.getChildComplete = options.getChildComplete ?? (() => false);
+    
         // Callbacks
         this.onAction = options.onAction ?? null;
         this.canAction = options.canAction ?? (() => true);
@@ -42,6 +45,7 @@ this.nextMax = options.nextMax ?? null;
         this.upgradeGatherRow = [];
         this.upgradeMaxRow = [];
         
+        this.childObjectiveTexts = [];
         this.requirementTexts = [];
         this.upgradeTexts = [];
         this.reqLabel = null;
@@ -130,31 +134,29 @@ this.nextMax = options.nextMax ?? null;
             );
         this.amountText.setVisible(!this.description);
 
-        let contentBottom =
-            this.y + 75;
-        
+        this.reqLabel =
+            addText(this.scene,
+                this.x + 15,
+                this.y + 73, // +25
+                (this.objective && this.children.length) || this.objectiveText ? 'Complete Objectives:' : 'Requirements:',
+                {
+                    fontSize: '16px',
+                    color: '#ffffff'
+                }
+            )
+            .setOrigin(0);
+
+        let contentBottom = this.y + 73;
         // Objective requirements
-        if (this.objective) {
+        /*if (this.objective) {
         
             this.createRequirementLayout(
                 this.x + 15,
                 this.y + 48
-            );
+            );*/
         
             contentBottom =
-                this.createObjectiveRequirements();
-        
-        // Craft requirements
-        } else {
-        
-            this.createRequirementLayout(
-                this.x + 15,
-                this.y + 48
-            );
-        
-            contentBottom =
-                this.createRequirements();
-        }
+                this.createObjectiveRequirements(this.y + 73);
         
         // Optional special objective text
         if (this.objectiveText) {
@@ -162,15 +164,23 @@ this.nextMax = options.nextMax ?? null;
                 addText(
                     this.scene,
                     this.x + 15,
-                    this.y + 96,
+                    contentBottom,
                     this.objectiveText,
                     {
                         fontSize: '16px',
                         color: '#66ff66'
                     }
                 );
+                contentBottom += this.objectiveTextDisplay + 5;
         }
-        
+
+        if (this.objective && this.children.length) {
+            contentBottom =
+                this.createChildObjectiveLayout(
+                    contentBottom
+                );
+        }
+
         // Progress bar
         const barX = this.x + 15;
         const barY = contentBottom + 5;
@@ -274,6 +284,10 @@ this.nextMax = options.nextMax ?? null;
             ...(this.reqLabel
                 ? [this.reqLabel]
                 : []),
+            ...this.childObjectiveTexts.map(
+                requirement =>
+                    requirement.text
+            ),
             ...this.requirementTexts.map(
                 requirement =>
                     requirement.text
@@ -307,8 +321,66 @@ this.nextMax = options.nextMax ?? null;
                     ).length;
                 return 190 + requirementCount * 22;
             }
-            case 'objective':
-                return 200;
+
+            case 'objective': {
+            
+                const itemRequirementCount =
+                    (options.requirements?.items ?? [])
+                        .reduce(
+                            (total, requirement) =>
+                                total +
+                                Object.keys(requirement).length,
+                            0
+                        );
+            
+                const childCount =
+                    options.children?.length ?? 0;
+            
+                const objectiveTextHeight =
+                    options.objectiveText
+                        ? 25
+                        : 0;
+            
+                return (
+                    150 +
+                    itemRequirementCount * 22 +
+                    childCount * 22 +
+                    objectiveTextHeight
+                );
+            }
+
+
+
+            /*case 'objective': {
+                const itemRequirementCount =
+                    (options.requirements?.items ?? [])
+                        .reduce(
+                            (total, requirement) =>
+                                total +
+                                Object.keys(requirement).length,
+                            0
+                        );
+            
+                const childCount =
+                    options.children?.length ?? 0;
+            
+                const requirementHeight =
+                    itemRequirementCount > 0
+                        ? 25 + itemRequirementCount * 22
+                        : 0;
+            
+                const childHeight =
+                    childCount > 0
+                        ? 25 + childCount * 22
+                        : 0;
+            
+                return (
+                    150 +
+                    requirementHeight +
+                    childHeight
+                );
+            }*/
+            
             case 'gather':
                 return 180 + this.upgradeDisplayHeight;
             default:
@@ -371,7 +443,64 @@ this.nextMax = options.nextMax ?? null;
             );
         }
     }
+
+    // PARENT LAYOUT
+    createChildObjectiveLayout(startY) {
     
+        let y = startY;
+    
+        if (!this.children.length) {
+            return y;
+        }
+    
+        this.children.forEach(child => {
+    
+            const text =
+                addText(
+                    this.scene,
+                    this.x + 15,
+                    y,
+                    '',
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                );
+    
+            this.childObjectiveTexts.push({
+                id: child.id ?? child,
+                title: child.title ?? child.id,
+                text
+            });
+    
+            y += 22;
+        });
+    
+        return y;
+    }
+    
+    updateChildObjectives() {
+        if (!this.childObjectiveTexts) {
+            return;
+        }
+    
+        this.childObjectiveTexts.forEach(child => {
+    
+            const complete =
+                this.getChildComplete?.(child.id) ?? false;
+    
+            child.text
+                .setText(
+                    `${child.title}: ${complete ? '✓' : '✕'}`
+                )
+                .setColor(
+                    complete
+                        ? '#66ff66'
+                        : '#ff6666'
+                );
+        });
+    }
+
     // UPGRADE LAYOUT
     createUpgradeLayout(startX, startY) {
         let currentY = startY;
@@ -454,100 +583,46 @@ this.nextMax = options.nextMax ?? null;
         ];
     }
 
-    // CRAFT LAYOUT
-    createRequirementLayout(
-        startX,
-        startY
-    ) {
-
-        this.reqLabel =
-            addText(this.scene,
-                startX,
-                startY + 25,
-                'Objectives:',
-                {
-                    fontSize: '16px',
-                    color: '#ffffff'
-                }
-            )
-            .setOrigin(0);
-    }
-
-    // CREATE REQUIREMENTS
-    createRequirements() {
-        let y = this.y + 95;
-
-        Object.entries(
-            this.requirements
-        )
-        .forEach(([id, required]) => {
-            
-            const text =
-                addText(this.scene,
-                    this.x + 15,
-                    y,
-                    '',
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                );
-
-
-            this.requirementTexts.push({
-                id,
-                required,
-                text
-            });
-
-            y += 22;
-        });
-
-        return y;
-    }
-
     // CREATE REQUIREMENTS FOR OBJECTIVES
-    createObjectiveRequirements() {
+    createObjectiveRequirements(startY) {
 
-        let y = this.y + 48;
+        let y = startY + 25;
+
+        // Parent objectives
+        // ??
+/*
+        const parentRequirements = this.children;
+
+        if (parentRequirements.length) {
+            parentRequirements.forEach(([id, required]) => {
+                
+                const text =
+                    addText(this.scene,
+                        this.x + 15,
+                        y,
+                        '',
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    );
     
-        // Optional special objective text
-        /*if (this.objectiveText) {
-
-            this.objectiveTextDisplay =
-                addText(
-                    this.scene,
-                    this.x + 15,
-                    y,
-                    this.objectiveText,
-                    {
-                        fontSize: '16px',
-                        color: '#66ff66'
-                    }
-                );
-                this.container.add([this.objectiveTextDisplay]);
-
-            y += 25;
-        }*/
     
+                this.requirementTexts.push({
+                    id,
+                    required,
+                    text
+                });
+    
+                y += 22;
+            });
+        }
+*/
         // Normal objective requirements
         const itemRequirements =
             this.requirements?.items ?? [];
-    
+            
         if (itemRequirements.length) {
-            addText(
-                this.scene,
-                this.x + 15,
-                y,
-                'Requirements:',
-                {
-                    fontSize: '16px',
-                    color: '#ffffff'
-                }
-            );
-    
-            y += 25;
-    
             itemRequirements.forEach(requirement => {
     
                 Object.entries(requirement)
@@ -594,6 +669,9 @@ this.nextMax = options.nextMax ?? null;
             this.availability =
                 data.availability;
         }
+        
+        // Update child objectives
+        this.updateChildObjectives();;
 
         // Update requirement display
         this.updateRequirements(this.getAmount);
@@ -606,36 +684,36 @@ this.nextMax = options.nextMax ?? null;
     }
 
     // REQUIREMENTS
-updateRequirements(getAmount) {
-    this.requirementTexts.forEach(
-        requirement => {
-
-            const amount =
-                getAmount(requirement.id);
-
-            const ready =
-                amount >= requirement.required;
-
-            const reqItem =
-                stageItems.find(
-                    item => item.id === requirement.id
+    updateRequirements(getAmount) {
+        this.requirementTexts.forEach(
+            requirement => {
+    
+                const amount =
+                    getAmount(requirement.id);
+    
+                const ready =
+                    amount >= requirement.required;
+    
+                const reqItem =
+                    stageItems.find(
+                        item => item.id === requirement.id
+                    );
+    
+                const title =
+                    reqItem?.title ?? requirement.id;
+    
+                requirement.text.setText(
+                    `${title}: ${Math.floor(amount)} / ${requirement.required} ${ready ? '✓' : '✕'}`
                 );
-
-            const title =
-                reqItem?.title ?? requirement.id;
-
-            requirement.text.setText(
-                `${title}: ${Math.floor(amount)} / ${requirement.required} ${ready ? '✓' : '✕'}`
-            );
-
-            requirement.text.setColor(
-                ready
-                    ? '#66ff66'
-                    : '#ff6666'
-            );
-        }
-    );
-}
+    
+                requirement.text.setColor(
+                    ready
+                        ? '#66ff66'
+                        : '#ff6666'
+                );
+            }
+        );
+    }
 
     // AVAILABILITY
     updateAvailability() {
@@ -784,6 +862,12 @@ updateRequirements(getAmount) {
             );
         }
 
+        this.childObjectiveTexts
+            .forEach(
+                requirement =>
+                    requirement.text.destroy()
+            );
+
         // Requirements
         this.requirementTexts
             .forEach(
@@ -810,6 +894,7 @@ updateRequirements(getAmount) {
 
         // Main elements
         this.background?.destroy();
+        this.descriptionText?.destroy();
         this.titleText?.destroy();
         this.amountText?.destroy();
 

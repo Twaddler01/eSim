@@ -268,6 +268,14 @@ completeObjective(id) {
         return false;
     }
 
+    // Parent must have every child completed.
+    if (
+        objective.type === 'parent' &&
+        !this.areAllChildrenComplete(id)
+    ) {
+        return false;
+    }
+
     const state =
         this.getObjectiveState(id);
 
@@ -302,16 +310,31 @@ completeObjective(id) {
 }
 
 getCurrentObjectives() {
+
     const stage =
         this.getCurrentStageId();
-    return this.objectives.filter(
-        objective =>
-            objective.stage === stage &&
-            (
-                this.isObjectiveUnlocked(objective.id) ||
-                this.isObjectiveComplete(objective.id)
-            )
-    );
+
+    const result =
+        this.objectives.filter(objective => {
+            const sameStage =
+                objective.stage === stage;
+
+            const unlocked =
+                this.isObjectiveUnlocked(
+                    objective.id
+                );
+            const complete =
+                this.isObjectiveComplete(
+                    objective.id
+                );
+
+            return (
+                sameStage &&
+                (unlocked || complete)
+            );
+        });
+
+    return result;
 }
 
 unlockObjective(id) {
@@ -410,86 +433,6 @@ areAllChildrenComplete(id) {
             this.getGatherLevel(id) + amount
         );
     }
-
-/*
-    // OLD
-    isDiscovered(id) {
-        return this.discoveries[id] === true;
-    }
-
-// TEMP: Only items
-discover(id) {
-    // Already discovered
-    if (this.isDiscovered(id)) {
-        return false;
-    }
-
-    const item =
-        this.stageItems.find(
-            item => item.id === id
-        );
-
-    if (!item) {
-        console.warn(
-            `discover() - Unknown item: ${id}`
-        );
-        return false;
-    }
-
-    // ------------------------------------------
-    // Complete discovery
-    // ------------------------------------------
-
-    this.discoveries[id] = true;
-
-
-    // ------------------------------------------
-    // Process unlocks
-    // ------------------------------------------
-
-    const unlocks =
-        item.unlocks ?? {};
-
-
-    // Objectives
-    (unlocks.objectives ?? [])
-        .forEach(objectiveId => {
-
-            this.unlockObjective(
-                objectiveId
-            );
-        });
-
-
-    // Items / resources
-    (unlocks.items ?? [])
-        .forEach(itemId => {
-
-            this.unlock(itemId);
-        });
-
-
-    // ------------------------------------------
-    // Save
-    // ------------------------------------------
-
-    this.sync();
-
-
-    // ------------------------------------------
-    // Notify UI
-    // ------------------------------------------
-
-    this.events.emit(
-        'updated',
-        {
-            type: 'discovery',
-            id
-        }
-    );
-
-    return true;
-}*/
 
     // Sync to gameData
     sync() {
