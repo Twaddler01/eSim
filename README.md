@@ -9,11 +9,11 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Clean up tracker and Discover tab elements.
-- Add ScrollBox class integration to tracker and navigation tabs.
-- Add an auto-gather/creator - e.g. "element collector", etc.
+- Tracker is temporarily on hold until Discover tab is fully updated with improved structure.
+- Cleaning up Discover tab elements.
 
 # Future Updates / Ideas
+- Add an auto-gather/creator - e.g. "element collector", etc.
 - More structural content.
 - More dynamic upgrades, including caps for rate/max, etc.
 - Game theme(s): Designing game theme around a "Creationism" simulation-type concept, acting as a wise man perceiving God throughout the ages. Starting from the day of creation, to all the way through eternity.
@@ -21,3 +21,7 @@
 ### Creation Stage
 - An "In the beginning..." sequence/video when starting a new game.
 - Focused on darkness and light elements: black holes, light photons, etc.
+
+# Comopleted Updates
+- Master discoveries are now parent objectives.
+- Added ScrollBox class integration for all scrollable areas.

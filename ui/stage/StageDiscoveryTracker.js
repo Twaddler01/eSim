@@ -6,7 +6,7 @@ export default class StageDiscoveryTracker {
     constructor(scene, stageProgress, stageItems, options = {}) {
         this.scene = scene;
         this.stageProgress = stageProgress;
-        this.stageItems = stageItems;
+        this.stageItems = []; // WIP for new objectives
 
         this.scrollBox = null;
         
@@ -399,15 +399,8 @@ const barX = this.x + this.width / 2;
     }
 
     refresh() {
-        const master =
-            this.stageProgress.getActiveMasterObjective();
-        if (master) {
-            this.refreshMasterObjective(master);
-            return;
-        }
-    
-        const objective =
-            this.getTrackedObjective();
+        const objective = null;
+            //this.getTrackedObjective();
     
         if (!objective) {
     

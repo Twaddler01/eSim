@@ -49,7 +49,8 @@ export const stageItems = [
         },
         produces: {
             water_molecule: 1
-        }, actionLabel: 'CREATE' },
+        }, actionLabel: 'CREATE'
+    },
     { stage: 'creation', id: 'water_molecule2', title: 'Water Molecule dx2', tab: 'create', category: 'molecule', unlocked: true,
         requirements: {
             water: 15,
@@ -57,98 +58,7 @@ export const stageItems = [
         },
         produces: {
             water_molecule2: 4
-        }, actionLabel: 'CREATE' },
-
-// Discoveries
-    {
-        id: 'the_beginning',
-        title: 'THE BEGINNING',
-        tab: 'discover',
-        category: 'discovery',
-        discovery: true,
-        stage: 'creation',
-        startsUnlocked: true,
-        tracked: true,
-        description: 'In the beginning, God created....',
-        // No requirements
-        requirements: {},
-        unlocks: { 
-            master: [ 'creation' ],
-            discoveries: [ 'creation_day_1' ],
-            items: [ 'darkness' ]
-        },
-        actionLabel: 'COMPLETE'
-    },
-    {
-        id: 'creation_day_1',
-        title: 'LEARN DAY 1',
-        tab: 'discover',
-        category: 'discovery',
-        discovery: true,
-        stage: 'creation',
-        description: 'Learning Day 1....',
-        // No requirements
-        requirements: { darkness: 10 },
-        unlocks: { 
-            discoveries: [ 'creation_day_2' ],
-            items: [ 'light' ]
-        },
-        actionLabel: 'COMPLETE'
-    },
-    {
-        id: 'creation_day_2',
-        title: 'LEARN DAY 2',
-        tab: 'discover',
-        category: 'discovery',
-        discovery: true,
-        stage: 'creation',
-        description: 'Learning Day 2....',
-        // No requirements
-        requirements: { light: 10 },
-        unlocks: { 
-            discoveries: [ 'creation_day_3' ],
-            items: [ 'water' ],
-        },
-        actionLabel: 'COMPLETE'
-    },
-    {
-        id: 'creation_day_3',
-        title: 'LEARN DAY 3',
-        tab: 'discover',
-        category: 'discovery',
-        discovery: true,
-        stage: 'creation',
-        description: 'Learning Day 3....',
-        // No requirements
-        requirements: { water: 10 },
-        unlocks: { 
-            discoveries: [ 'creation_day_4' ],
-            items: [ 'carbon' ],
-        },
-        actionLabel: 'COMPLETE'
-    }
-];
-
-export const masterObjectives = [
-    {
-        id: 'creation',
-        title: 'CREATION',
-        stage: 'creation',
-        description: 'Complete all six days of Creation.',
-
-        objectives: [
-            'creation_day_1',
-            'creation_day_2',
-            'creation_day_3',
-            'creation_day_4',
-            'creation_day_5',
-            'creation_day_6'
-        ],
-        unlocks: {
-            discoveries: [
-                'early_humanity'
-            ]
-        }
+        }, actionLabel: 'CREATE'
     }
 ];
 
@@ -156,24 +66,12 @@ export const masterObjectives = [
 
 /* STATUS OPTIONS:
 LOCKED
+   ↓
 UNLOCKED
-AVAILABLE
+   ↓ requirements satisfied
 ACTIVE
+   ↓ player completes it
 COMPLETED
-
-getObjectiveStatus(objective)
-{
-    status: 'available',
-    unlocked: true,
-    available: true,
-    complete: false,
-    tracked: true
-}
-LOCKED — objective hasn't been unlocked
-UNLOCKED — unlocked, but requirements aren't met
-AVAILABLE — requirements are met and can be completed
-COMPLETED — requirements were completed / action was performed
-tracked — not a status, but whether it appears in the tracker
 */
 // type: parent, child, objective
 export const stageObjectives = [
@@ -208,6 +106,7 @@ export const stageObjectives = [
         stage: 'creation',
         tracked: true,
         startsUnlocked: true,
+        objectiveText: 'Learn About: THE BEGINNING',
         description: '"In the beginning, God created...."',
         requirements: {},
         unlocks: { 

@@ -9,8 +9,7 @@ export default class StageCard {
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
         this.width = options.width ?? 300;
-        this.type = options.type ?? 'gather';
-        this.master = options.master ?? false;
+        this.objective = options.objective ?? false;
 
         this.upgradeDisplayHeight = 60; // 0
 
@@ -22,25 +21,23 @@ export default class StageCard {
         this.title = options.title ?? 'Item';
         this.amount = options.amount ?? 0;
         this.description = options.description ?? '';
-        this.startsUnlocked = options.startsUnlocked ?? false;
+        this.objectiveText = options.objectiveText ?? null;
 
         // null = no maximum
         this.max = options.max ?? null;
 // WIP
 this.nextMax = options.nextMax ?? null;
         this.upgradeStats = options.upgradeStats ?? null;
-        this.availability = options.availability ?? 'available';
+        this.availability = options.availability ?? 'locked';
         this.requirements = options.requirements ?? {};
         this.produces = options.produces ?? {};
         this.actionLabel = options.actionLabel ?? 'ACTION';
         this.upgradable = options.gather?.upgrade?.enabled === true;
-        this.objectives = options.objectives ?? [];
 
         // Callbacks
         this.onAction = options.onAction ?? null;
         this.canAction = options.canAction ?? (() => true);
         this.getAmount = options.getAmount ?? (() => 0);
-        this.getObjectiveComplete = options.getObjectiveComplete ?? (() => false);
 
         this.upgradeGatherRow = [];
         this.upgradeMaxRow = [];
@@ -133,11 +130,11 @@ this.nextMax = options.nextMax ?? null;
             );
         this.amountText.setVisible(!this.description);
 
-        // Craft requirements
         let contentBottom =
             this.y + 75;
-
-        if (this.type === 'create' || this.type === 'discover') {
+        
+        // Objective requirements
+        if (this.objective) {
         
             this.createRequirementLayout(
                 this.x + 15,
@@ -145,9 +142,33 @@ this.nextMax = options.nextMax ?? null;
             );
         
             contentBottom =
-                this.master
-                    ? this.createMasterObjectives()
-                    : this.createRequirements();
+                this.createObjectiveRequirements();
+        
+        // Craft requirements
+        } else {
+        
+            this.createRequirementLayout(
+                this.x + 15,
+                this.y + 48
+            );
+        
+            contentBottom =
+                this.createRequirements();
+        }
+        
+        // Optional special objective text
+        if (this.objectiveText) {
+            this.objectiveTextDisplay =
+                addText(
+                    this.scene,
+                    this.x + 15,
+                    this.y + 96,
+                    this.objectiveText,
+                    {
+                        fontSize: '16px',
+                        color: '#66ff66'
+                    }
+                );
         }
         
         // Progress bar
@@ -176,7 +197,7 @@ this.nextMax = options.nextMax ?? null;
             )
             .setOrigin(0);
 
-        if (this.type === 'gather' && this.upgradable) {
+        if (this.upgradable) {
             // Upgrade display
             this.createUpgradeLayout(
                 barX,
@@ -258,6 +279,9 @@ this.nextMax = options.nextMax ?? null;
                     requirement.text
             ),
             ...this.upgradeTexts,
+            ...(this.objectiveTextDisplay
+                ? [this.objectiveTextDisplay]
+                : []),
             this.progressBackground,
             this.progressFill,
             this.actionButton,
@@ -281,15 +305,9 @@ this.nextMax = options.nextMax ?? null;
                     Object.keys(
                         options.requirements ?? {}
                     ).length;
-                return (
-                    190 +
-                    requirementCount * 22
-                );
+                return 190 + requirementCount * 22;
             }
-
-            case 'discover':
-                return 200;
-            case 'research':
+            case 'objective':
                 return 200;
             case 'gather':
                 return 180 + this.upgradeDisplayHeight;
@@ -442,13 +460,11 @@ this.nextMax = options.nextMax ?? null;
         startY
     ) {
 
-        const reqLabelTitle = this.type === 'discover' ? 'Objective:' : 'Requirements:';
-
         this.reqLabel =
             addText(this.scene,
                 startX,
                 startY + 25,
-                reqLabelTitle,
+                'Objectives:',
                 {
                     fontSize: '16px',
                     color: '#ffffff'
@@ -465,7 +481,7 @@ this.nextMax = options.nextMax ?? null;
             this.requirements
         )
         .forEach(([id, required]) => {
-
+            
             const text =
                 addText(this.scene,
                     this.x + 15,
@@ -490,34 +506,75 @@ this.nextMax = options.nextMax ?? null;
         return y;
     }
 
-    // CREATE REQUIREMENTS FOR MASTER DISCOVERIES
-    createMasterObjectives() {
+    // CREATE REQUIREMENTS FOR OBJECTIVES
+    createObjectiveRequirements() {
+
+        let y = this.y + 48;
     
-        let y = this.y + 95;
-    
-        (this.objectives ?? []).forEach(id => {
-    
-            const text =
+        // Optional special objective text
+        /*if (this.objectiveText) {
+
+            this.objectiveTextDisplay =
                 addText(
                     this.scene,
                     this.x + 15,
                     y,
-                    '',
+                    this.objectiveText,
                     {
                         fontSize: '16px',
-                        color: '#ffffff'
+                        color: '#66ff66'
                     }
                 );
+                this.container.add([this.objectiveTextDisplay]);
+
+            y += 25;
+        }*/
     
-            this.requirementTexts.push({
-                id,
-                masterObjective: true,
-                text
+        // Normal objective requirements
+        const itemRequirements =
+            this.requirements?.items ?? [];
+    
+        if (itemRequirements.length) {
+            addText(
+                this.scene,
+                this.x + 15,
+                y,
+                'Requirements:',
+                {
+                    fontSize: '16px',
+                    color: '#ffffff'
+                }
+            );
+    
+            y += 25;
+    
+            itemRequirements.forEach(requirement => {
+    
+                Object.entries(requirement)
+                    .forEach(([id, required]) => {
+    
+                        const text =
+                            addText(
+                                this.scene,
+                                this.x + 15,
+                                y,
+                                '',
+                                {
+                                    fontSize: '16px',
+                                    color: '#ffffff'
+                                }
+                            );
+    
+                        this.requirementTexts.push({
+                            id,
+                            required,
+                            text
+                        });
+    
+                        y += 22;
+                    });
             });
-    
-            y += 22;
-        });
-    
+        }
         return y;
     }
 
@@ -549,146 +606,120 @@ this.nextMax = options.nextMax ?? null;
     }
 
     // REQUIREMENTS
-    updateRequirements(getAmount) {
-        this.requirementTexts
-            .forEach(requirement => {
-                // MASTER OBJECTIVE
-                if (requirement.masterObjective) {
-                    const completed =
-                        this.getObjectiveComplete(requirement.id);
-// need master objectives ??
-                    const item =
-                        stageItems.find(
-                            i => i.id === requirement.id
-                        );
-        
-                    const title =
-                        item?.title ?? requirement.id;
-        
-                    requirement.text.setText(
-                        `${title}: ${completed ? '✓' : '✕'}`
-                    );
-        
-                    requirement.text.setColor(
-                        completed
-                            ? '#66ff66'
-                            : '#ff6666'
-                    );
-        
-                    return;
-                }
-        
-                // NORMAL REQUIREMENT
-                const amount =
-                    getAmount(
-                        requirement.id
-                    );
+updateRequirements(getAmount) {
+    this.requirementTexts.forEach(
+        requirement => {
 
-                const ready =
-                    amount >=
-                    requirement.required;
-                
-                const reqItem = stageItems.find(i => i.id === requirement.id);
-                const reqItemTitle = reqItem ? reqItem.title : requirement.id;
-                const reqDisplay = this.startsUnlocked ? 'Learn About: THE BEGINNING ✓' :
-                    `${reqItemTitle}: ` +
-                    `${Math.floor(amount)} / ` +
-                    `${requirement.required} ` +
-                    `${ready ? '✓' : '✕'}`;
-                requirement.text.setText(reqDisplay);
+            const amount =
+                getAmount(requirement.id);
 
-                requirement.text.setColor(
-                    ready
-                        ? '#66ff66'
-                        : '#ff6666'
+            const ready =
+                amount >= requirement.required;
+
+            const reqItem =
+                stageItems.find(
+                    item => item.id === requirement.id
                 );
-            });
-    }
+
+            const title =
+                reqItem?.title ?? requirement.id;
+
+            requirement.text.setText(
+                `${title}: ${Math.floor(amount)} / ${requirement.required} ${ready ? '✓' : '✕'}`
+            );
+
+            requirement.text.setColor(
+                ready
+                    ? '#66ff66'
+                    : '#ff6666'
+            );
+        }
+    );
+}
 
     // AVAILABILITY
     updateAvailability() {
-        const state =
-            this.availability ??
-            (
-                this.canAction()
-                    ? 'available'
-                    : 'locked'
-            );
-
+    
+        const state = this.availability;
+    
         // Reset
         this.lockOverlay.setVisible(false);
         this.availabilityText.setVisible(false);
-
-        // AVAILABLE
-        if (state === 'available') {
+    
+        // ACTIVE
+        if (state === 'active') {
+    
             this.actionButton
                 .setFillStyle(0x333333)
                 .setStrokeStyle(1, 0xffffff);
-
+    
             this.actionText
                 .setText(this.actionLabel)
                 .setColor('#ffffff');
-
+    
             return;
         }
-
-        // MAXED
-        if (state === 'maxed') {
-            this.actionButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-
-            this.actionText
-                .setText('MAXED')
-                .setColor('#777777');
-
-            return;
-        }
-
-        // INSUFFICIENT
-        if (state === 'insufficient') {
+    
+        // UNLOCKED
+        if (state === 'unlocked') {
+    
             this.availabilityText
                 .setText('REQUIREMENTS NOT MET')
                 .setVisible(true)
                 .setColor('#ff6666');
-
+    
             this.actionButton
                 .setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
-
+    
             this.actionText
                 .setText('LOCKED')
                 .setColor('#777777');
-
+    
             return;
         }
-        
-        // COMPLETED (Discoveries)
+    
+        // COMPLETED
         if (state === 'completed') {
+    
+            this.actionButton
+                .setFillStyle(0x222222)
+                .setStrokeStyle(1, 0x555555);
+    
+            this.actionText
+                .setText('COMPLETED')
+                .setColor('#66ff66');
+    
+            return;
+        }
+    
+        // MAXED
+        if (state === 'maxed') {
+        
             this.actionButton
                 .setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
         
             this.actionText
-                .setText('COMPLETED')
-                .setColor('#66ff66');
+                .setText('MAXED')
+                .setColor('#777777');
         
             return;
         }
-
+    
         // LOCKED
         this.lockOverlay
             .setVisible(true)
             .setAlpha(0.55);
-
+    
         this.availabilityText
             .setText('LOCKED')
             .setVisible(true);
-
+    
         this.actionButton
             .setFillStyle(0x222222)
             .setStrokeStyle(1, 0x555555);
-
+    
         this.actionText
             .setText('LOCKED')
             .setColor('#777777');
