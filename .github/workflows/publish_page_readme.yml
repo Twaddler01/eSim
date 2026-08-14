@@ -44,7 +44,7 @@ jobs:
                   fill="#8b949e"
                   font-family="Arial,sans-serif"
                   font-size="14"
-                  font-weight="bold">[ Last updated: ${{ steps.date.outputs.date }} ]</text>
+                  font-weight="bold">[ Readme last updated: ${{ steps.date.outputs.date }} ]</text>
           </svg>
           EOF
 
