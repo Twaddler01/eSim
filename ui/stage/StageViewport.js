@@ -109,7 +109,6 @@ export default class StageViewport {
         return card;
     }
 
-    // Update one card
     updateCard(id, data) {
     
         const card =
@@ -118,25 +117,24 @@ export default class StageViewport {
         if (!card) return;
     
         if (data.amount !== undefined) {
-    
-            card.setAmount(
-                data.amount
-            );
+            card.setAmount(data.amount);
         }
     
         if (data.max !== undefined) {
-    
-            card.setMax(
-                data.max
-            );
+            card.setMax(data.max);
         }
     
+        let heightChanged = false;
+    
         if (data.upgradeStats !== undefined) {
-        
+    
             card.upgradeStats =
                 data.upgradeStats;
     
             card.updateUpgrades();
+    
+            heightChanged =
+                card.refreshHeight();
         }
     
         if (data.availability !== undefined) {
@@ -150,6 +148,30 @@ export default class StageViewport {
         card.updateRequirements(
             card.getAmount
         );
+    
+        if (heightChanged) {
+            this.relayoutCards();
+        }
+    }
+
+    relayoutCards() {
+    
+        const padding = 15;
+        let currentY = padding;
+    
+        this.cards.forEach(card => {
+    
+            card.setY(currentY);
+    
+            currentY +=
+                card.height +
+                padding;
+        });
+    
+        this.contentHeight =
+            currentY;
+    
+        this.updateScrollLimits();
     }
 
     // Update multiple existing cards

@@ -11,8 +11,6 @@ export default class StageCard {
         this.width = options.width ?? 300;
         this.objective = options.objective ?? false;
 
-        this.upgradeDisplayHeight = 60; // 0
-
         this.depth = this.scene.depths?.cards ?? 0;
 
         // Item data
@@ -39,6 +37,7 @@ this.nextMax = options.nextMax ?? null;
 
         this.children = options.children ?? [];
         this.getChildComplete = options.getChildComplete ?? (() => false);
+        this.isArchived = false;
     
         // Callbacks
         this.onAction = options.onAction ?? null;
@@ -190,7 +189,7 @@ this.nextMax = options.nextMax ?? null;
 
         // Progress bar
         const barX = this.x + 15;
-        const barY = contentBottom + 5;
+        const barY = contentBottom - 5;
         const barWidth = this.width - 30;
         const barHeight = 12;
 
@@ -318,6 +317,29 @@ this.nextMax = options.nextMax ?? null;
         });
     }
 
+    getUpgradeDisplayHeight() {
+        let upgradeY = 40;
+        if (!this.upgradeStats) {
+            return upgradeY;
+        }
+        
+        const gatherActive = this.upgradeStats.rateIncrease > 0;
+        const maxActive = this.upgradeStats.maxIncrease > 0;
+        if (gatherActive || maxActive) {
+            upgradeY += 30;
+        }
+
+        if (gatherActive) {
+            upgradeY += 22;
+        }
+    
+        if (maxActive) {
+            upgradeY += 22 
+        }
+        
+        return upgradeY;
+    }
+
     // CARD HEIGHT
     getCardHeight(options) {
         if (options.startsUnlocked) return 180;
@@ -370,7 +392,7 @@ this.nextMax = options.nextMax ?? null;
                 }
             }
             case 'gather':
-                return 180 + this.upgradeDisplayHeight;
+                return 140 + this.getUpgradeDisplayHeight();
             default:
                 return 180;
         }
@@ -412,24 +434,6 @@ this.nextMax = options.nextMax ?? null;
         this.upgradeMaxText.setText(
             `${this.upgradeStats.maxIncrease}`
         );
-    
-        // Reposition active rows
-        let currentY =
-            this.upgradeLabelTitle.y + 30;
-    
-        if (gatherActive) {
-            this.upgradeGatherRow.forEach(
-                text => text.y = currentY
-            );
-    
-            currentY += 22;
-        }
-    
-        if (maxActive) {
-            this.upgradeMaxRow.forEach(
-                text => text.y = currentY
-            );
-        }
     }
 
     // PARENT LAYOUT
@@ -442,7 +446,6 @@ this.nextMax = options.nextMax ?? null;
         }
     
         this.children.forEach(child => {
-    
             const text =
                 addText(
                     this.scene,
@@ -464,14 +467,19 @@ this.nextMax = options.nextMax ?? null;
             y += 22;
         });
     
-        return y;
+        return y + 10;
     }
     
     updateChildObjectives() {
         if (!this.childObjectiveTexts) {
             return;
         }
-    
+
+        // Completed objective = archived display.
+        if (this.isArchived) {
+            return;
+        }
+
         this.childObjectiveTexts.forEach(child => {
     
             const complete =
@@ -635,13 +643,18 @@ this.nextMax = options.nextMax ?? null;
 
         // Refresh upgrade display
         this.updateUpgrades();
-
+        
         // Update button / overlay
         this.updateAvailability();
     }
 
     // REQUIREMENTS
     updateRequirements(getAmount) {
+        // Completed objectives no longer track live amounts.
+        if (this.isArchived) {
+            return;
+        }
+    
         this.requirementTexts.forEach(
             requirement => {
     
@@ -716,6 +729,8 @@ this.nextMax = options.nextMax ?? null;
     
         // COMPLETED
         if (state === 'completed') {
+
+            this.setupCompletedDisplay();
 
             this.lockOverlay
             .setVisible(true)
@@ -816,8 +831,189 @@ this.nextMax = options.nextMax ?? null;
     
         this.updateProgress();
     }
-////
 
+    // REPOSITION CARDS
+    refreshHeight() {
+    
+        if (this.tab !== 'gather') {
+            return false;
+        }
+    
+        const newHeight =
+            140 +
+            this.getUpgradeDisplayHeight();
+    
+        if (newHeight === this.height) {
+            return false;
+        }
+    
+        this.height = newHeight;
+    
+        this.background.setSize(
+            this.width,
+            this.height
+        );
+    
+        this.lockOverlay.setSize(
+            this.width,
+            this.height
+        );
+    
+        this.availabilityText.setPosition(
+            this.x + this.width / 2,
+            this.y + this.height / 2
+        );
+    
+        const buttonWidth = 120;
+        const buttonHeight = 30;
+    
+        const buttonX =
+            this.x +
+            this.width / 2 -
+            buttonWidth / 2;
+    
+        const buttonY =
+            this.y +
+            this.height -
+            buttonHeight -
+            10;
+    
+        this.actionButton.setPosition(
+            buttonX,
+            buttonY
+        );
+    
+        this.actionText.setPosition(
+            buttonX + buttonWidth / 2,
+            buttonY + buttonHeight / 2
+        );
+    
+        return true;
+    }
+    
+    setY(y) {
+    
+        const delta =
+            y - this.y;
+    
+        if (delta === 0) {
+            return;
+        }
+    
+        this.y = y;
+    
+        this.background.y += delta;
+        this.lockOverlay.y += delta;
+    
+        this.titleText.y += delta;
+        this.descriptionText.y += delta;
+        this.amountText.y += delta;
+    
+        this.reqLabel?.setY(
+            this.reqLabel.y + delta
+        );
+    
+        this.objectiveTextDisplay?.setY(
+            this.objectiveTextDisplay.y + delta
+        );
+    
+        this.availabilityText.y += delta;
+    
+        this.childObjectiveTexts.forEach(
+            child => {
+                child.text.y += delta;
+            }
+        );
+    
+        this.requirementTexts.forEach(
+            requirement => {
+                requirement.text.y += delta;
+            }
+        );
+    
+        this.upgradeTexts.forEach(
+            text => {
+                text.y += delta;
+            }
+        );
+    
+        this.progressBackground.y += delta;
+        this.progressFill.y += delta;
+    
+        this.actionButton.y += delta;
+        this.actionText.y += delta;
+    }
+
+    setupCompletedDisplay() {
+        // Already archived — don't do anything again.
+        if (this.isArchived) {
+            return;
+        }
+    
+        // ------------------------------------------
+        // Freeze amounts with required
+        // ------------------------------------------
+    
+        this.requirementTexts.forEach(
+            requirement => {
+    
+                const reqItem =
+                    stageItems.find(
+                        item => item.id === requirement.id
+                    );
+    
+                const title =
+                    reqItem?.title ?? requirement.id;
+
+                requirement.text.setText(
+                    `${title}: ${Math.floor(requirement.required)} / ${requirement.required} ✓`
+                );
+    
+                requirement.text.setColor(
+                    '#ffffff'
+                );
+            }
+        );
+    
+        // ------------------------------------------
+        // Freeze child objectives
+        // ------------------------------------------
+    
+        this.childObjectiveTexts.forEach(
+            child => {
+    
+                child.text
+                    .setText(
+                        `${child.title}: ✓`
+                    )
+                    .setColor('#ffffff');
+            }
+        );
+    
+        // ------------------------------------------
+        // Freeze custom objective text
+        // ------------------------------------------
+    
+        this.objectiveTextDisplay
+            ?.setColor('#ffffff');
+    
+        // ------------------------------------------
+        // Mark archived
+        // ------------------------------------------
+    
+        this.isArchived = true;
+    
+        // ------------------------------------------
+        // Progress bar no longer needed
+        // ------------------------------------------
+    
+        this.progressBackground?.destroy();
+        this.progressFill?.destroy();
+    
+        this.progressBackground = null;
+        this.progressFill = null;
+    }
+    
     // DESTROY
     destroy() {
         // Button listener

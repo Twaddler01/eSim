@@ -70,331 +70,6 @@ export default class StageProgressManager {
         return newAmount;
     }
 
-    // UNLOCK
-    getUnlocked(id) {
-        return this.unlocked[id] === true;
-    }
-    
-    unlock(id) {
-        if (this.unlocked[id]) {
-            return;
-        }
-        this.unlocked[id] = true;
-        this.sync();
-        this.events.emit('updated', {
-            id,
-            type: 'unlock'
-        });
-    }
-    
-    lock(id) {
-        delete this.unlocked[id];
-        this.sync();
-        this.events.emit('updated', {
-            id,
-            type: 'unlock'
-        });
-    }
-
-    getTabId(id) {
-        const createItem = this.stageItems.find(s => s.id === id && s.tab === 'create');
-        if (createItem) {
-            return 'create';
-        }
-        const discoverItem = this.objectives.find(o => o.id === id && o.tab === 'discover');
-        if (discoverItem) {
-            return 'discover';
-        }
-        return 'gather';
-    }
-
-//////// NEW OBJECTIVES
-getObjective(id) {
-    return this.objectives.find(
-        objective => objective.id === id
-    ) ?? null;
-}
-
-getObjectiveState(id) {
-    return this.objectiveState[id] ?? {
-        unlocked: false,
-        completed: false
-    };
-}
-
-isObjectiveUnlocked(id) {
-    const objective =
-        this.getObjective(id);
-
-    if (!objective) {
-        return false;
-    }
-    if (objective.startsUnlocked) {
-        return true;
-    }
-    return this.getObjectiveState(id).unlocked === true;
-}
-
-isObjectiveComplete(id) {
-    return this.getObjectiveState(id).completed === true;
-}
-
-areObjectiveRequirementsMet(objective) {
-    const requirements =
-        objective.requirements ?? {};
-
-    const itemRequirements =
-        requirements.items ?? [];
-
-    return itemRequirements.every(
-        requirement => {
-            return Object.entries(requirement)
-                .every(([id, required]) => {
-
-                    return this.get(id) >= required;
-                });
-        }
-    );
-}
-
-getObjectiveStatus(id) {
-    const objective =
-        this.getObjective(id);
-
-    if (!objective) {
-        return 'locked';
-    }
-
-    if (this.isObjectiveComplete(id)) {
-        return 'completed';
-    }
-
-    if (!this.isObjectiveUnlocked(id)) {
-        return 'locked';
-    }
-
-    // Parent objectives require ALL children
-    // to be completed before becoming active.
-    if (objective.type === 'parent') {
-        if (!this.areAllChildrenComplete(id)) {
-            return 'unlocked';
-        }
-        return 'active';
-    }
-
-    // Normal objective requirements
-    if (!this.areObjectiveRequirementsMet(objective)) {
-        return 'unlocked';
-    }
-
-    return 'active';
-}
-/*
-LOCKED
-Not unlocked yet.
-creation_day_2
-before Day 1 unlocks it.
-
-UNLOCKED
-The player has access to it, but hasn't satisfied its requirements yet.
-Example:
-CREATION DAY 1
-Unlocked ✓
-Darkness: 4 / 10
-
-STATUS: UNLOCKED
-ACTIVE
-Unlocked and requirements are currently satisfied, so the player can perform the objective.
-CREATION DAY 1
-Unlocked ✓
-Darkness: 10 / 10
-
-STATUS: ACTIVE
-[COMPLETE]
-COMPLETED
-The objective has been completed.
-CREATION DAY 1
-STATUS: COMPLETED
-*/
-
-getTrackedObjectives() {
-    return this.getCurrentObjectives()
-        .filter(
-            objective =>
-                objective.tracked
-        );
-}
-
-getParentProgress(id) {
-    const objective =
-        this.getObjective(id);
-
-    if (
-        !objective ||
-        objective.type !== 'parent'
-    ) {
-        return null;
-    }
-
-    const children =
-        objective.children ?? [];
-
-    const completed =
-        children.filter(
-            childId =>
-                this.isObjectiveComplete(childId)
-        ).length;
-
-    const total =
-        children.length;
-
-    return {
-        completed,
-        total,
-        percent:
-            total > 0
-                ? completed / total
-                : 0
-    };
-}
-
-completeObjective(id) {
-    const objective =
-        this.getObjective(id);
-
-    if (!objective) {
-        return false;
-    }
-
-    if (
-        this.getObjectiveStatus(id) !==
-        'active'
-    ) {
-        return false;
-    }
-
-    // Parent must have every child completed.
-    if (
-        objective.type === 'parent' &&
-        !this.areAllChildrenComplete(id)
-    ) {
-        return false;
-    }
-
-    const state =
-        this.getObjectiveState(id);
-
-    state.completed = true;
-
-    this.objectiveCompletionCounter++;
-    
-    state.completedOrder =
-        this.objectiveCompletionCounter;
-
-    this.objectiveState[id] =
-        state;
-
-    // Unlock child/other objectives
-    (objective.unlocks?.objectives ?? [])
-        .forEach(objectiveId => {
-            this.unlockObjective(objectiveId);
-        });
-
-    // Unlock items
-    (objective.unlocks?.items ?? [])
-        .forEach(itemId => {
-            this.unlock(itemId);
-        });
-
-    this.sync();
-
-    this.events.emit(
-        'updated',
-        {
-            type: 'objective-complete',
-            id
-        }
-    );
-
-    return true;
-}
-
-getCurrentObjectives() {
-
-    const stage =
-        this.getCurrentStageId();
-
-    const result =
-        this.objectives.filter(objective => {
-            const sameStage =
-                objective.stage === stage;
-
-            const unlocked =
-                this.isObjectiveUnlocked(
-                    objective.id
-                );
-            const complete =
-                this.isObjectiveComplete(
-                    objective.id
-                );
-
-            return (
-                sameStage &&
-                (unlocked || complete)
-            );
-        });
-
-    return result;
-}
-
-unlockObjective(id) {
-    const objective =
-        this.getObjective(id);
-
-    if (!objective) {
-        return false;
-    }
-
-    const state =
-        this.getObjectiveState(id);
-
-    if (state.unlocked) {
-        return false;
-    }
-
-    state.unlocked = true;
-
-    this.objectiveState[id] =
-        state;
-
-    this.sync();
-
-    this.events.emit(
-        'updated',
-        {
-            type: 'objective-unlock',
-            id
-        }
-    );
-
-    return true;
-}
-
-// For parent objectives
-areAllChildrenComplete(id) {
-    const objective =
-        this.getObjective(id);
-
-    if (!objective || objective.type !== 'parent') {
-        return false;
-    }
-
-    return objective.children.every(
-        childId =>
-            this.isObjectiveComplete(childId)
-    );
-}
-
     // Add amount
     add(id, amount) {
         return this.set(
@@ -441,6 +116,365 @@ areAllChildrenComplete(id) {
         return this.setGatherLevel(
             id,
             this.getGatherLevel(id) + amount
+        );
+    }
+
+    // UNLOCK
+    getUnlocked(id) {
+        return this.unlocked[id] === true;
+    }
+    
+    unlock(id) {
+        if (this.unlocked[id]) {
+            return;
+        }
+        this.unlocked[id] = true;
+        this.sync();
+        this.events.emit('updated', {
+            id,
+            type: 'unlock'
+        });
+    }
+    
+    lock(id) {
+        delete this.unlocked[id];
+        this.sync();
+        this.events.emit('updated', {
+            id,
+            type: 'unlock'
+        });
+    }
+
+    getTabId(id) {
+        const createItem = this.stageItems.find(s => s.id === id && s.tab === 'create');
+        if (createItem) {
+            return 'create';
+        }
+        const discoverItem = this.objectives.find(o => o.id === id && o.tab === 'discover');
+        if (discoverItem) {
+            return 'discover';
+        }
+        return 'gather';
+    }
+
+//////// OBJECTIVES
+    getObjective(id) {
+        return this.objectives.find(
+            objective => objective.id === id
+        ) ?? null;
+    }
+    
+    getObjectiveState(id) {
+        return this.objectiveState[id] ?? {
+            unlocked: false,
+            completed: false
+        };
+    }
+    
+    isObjectiveUnlocked(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return false;
+        }
+        if (objective.startsUnlocked) {
+            return true;
+        }
+        return this.getObjectiveState(id).unlocked === true;
+    }
+    
+    isObjectiveComplete(id) {
+        return this.getObjectiveState(id).completed === true;
+    }
+    
+    areObjectiveRequirementsMet(objective) {
+    
+        // Item requirements
+        const itemRequirements =
+            objective.requirements?.items ?? [];
+    
+        const itemsMet =
+            itemRequirements.every(
+                requirement =>
+                    Object.entries(requirement)
+                        .every(([id, required]) =>
+                            this.get(id) >= required
+                        )
+            );
+    
+        if (!itemsMet) {
+            return false;
+        }
+    
+        // Child objectives
+        const childRequirements =
+            objective.children ?? [];
+    
+        const childrenMet =
+            childRequirements.every(
+                childId =>
+                    this.isObjectiveComplete(childId)
+            );
+    
+        return childrenMet;
+    }
+    
+    getObjectiveStatus(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return 'locked';
+        }
+    
+        if (this.isObjectiveComplete(id)) {
+            return 'completed';
+        }
+    
+        if (!this.isObjectiveUnlocked(id)) {
+            return 'locked';
+        }
+    
+        // Parent objectives require ALL children
+        // to be completed before becoming active.
+        if (objective.type === 'parent') {
+            if (!this.areAllChildrenComplete(id)) {
+                return 'unlocked';
+            }
+            return 'active';
+        }
+    
+        // Normal objective requirements
+        if (!this.areObjectiveRequirementsMet(objective)) {
+            return 'unlocked';
+        }
+    
+        return 'active';
+    }
+/*
+LOCKED
+Not unlocked yet.
+creation_day_2
+before Day 1 unlocks it.
+
+UNLOCKED
+The player has access to it, but hasn't satisfied its requirements yet.
+Example:
+CREATION DAY 1
+Unlocked ✓
+Darkness: 4 / 10
+
+STATUS: UNLOCKED
+ACTIVE
+Unlocked and requirements are currently satisfied, so the player can perform the objective.
+CREATION DAY 1
+Unlocked ✓
+Darkness: 10 / 10
+
+STATUS: ACTIVE
+[COMPLETE]
+COMPLETED
+The objective has been completed.
+CREATION DAY 1
+STATUS: COMPLETED
+*/
+
+    getTrackedObjectives() {
+        return this.getCurrentObjectives()
+            .filter(
+                objective =>
+                    objective.tracked
+            );
+    }
+    
+    getParentProgress(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (
+            !objective ||
+            objective.type !== 'parent'
+        ) {
+            return null;
+        }
+    
+        const children =
+            objective.children ?? [];
+    
+        const completed =
+            children.filter(
+                childId =>
+                    this.isObjectiveComplete(childId)
+            ).length;
+    
+        const total =
+            children.length;
+    
+        return {
+            completed,
+            total,
+            percent:
+                total > 0
+                    ? completed / total
+                    : 0
+        };
+    }
+    
+    completeObjective(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return false;
+        }
+    
+        if (
+            this.getObjectiveStatus(id) !==
+            'active'
+        ) {
+            return false;
+        }
+    
+        // Parent must have every child completed.
+        if (
+            objective.type === 'parent' &&
+            !this.areAllChildrenComplete(id)
+        ) {
+            return false;
+        }
+    
+        // Deduct requirement costs
+        this.consumeObjectiveRequirements(objective);
+    
+        const state =
+            this.getObjectiveState(id);
+    
+        state.completed = true;
+    
+        this.objectiveCompletionCounter++;
+        
+        state.completedOrder =
+            this.objectiveCompletionCounter;
+    
+        this.objectiveState[id] =
+            state;
+    
+        // Unlock child/other objectives
+        (objective.unlocks?.objectives ?? [])
+            .forEach(objectiveId => {
+                this.unlockObjective(objectiveId);
+            });
+    
+        // Unlock items
+        (objective.unlocks?.items ?? [])
+            .forEach(itemId => {
+                this.unlock(itemId);
+            });
+    
+        this.sync();
+    
+        this.events.emit(
+            'updated',
+            {
+                type: 'objective-complete',
+                id
+            }
+        );
+    
+        return true;
+    }
+    
+    consumeObjectiveRequirements(objective) {
+        const itemRequirements =
+            objective.requirements?.items ?? [];
+    
+        itemRequirements.forEach(requirement => {
+    
+            Object.entries(requirement)
+                .forEach(([id, amount]) => {
+    
+                    this.values[id] =
+                        Math.max(
+                            0,
+                            this.get(id) - amount
+                        );
+                });
+        });
+    }
+    
+    getCurrentObjectives() {
+        const stage =
+            this.getCurrentStageId();
+    
+        const result =
+            this.objectives.filter(objective => {
+                const sameStage =
+                    objective.stage === stage;
+    
+                const unlocked =
+                    this.isObjectiveUnlocked(
+                        objective.id
+                    );
+                const complete =
+                    this.isObjectiveComplete(
+                        objective.id
+                    );
+    
+                return (
+                    sameStage &&
+                    (unlocked || complete)
+                );
+            });
+    
+        return result;
+    }
+    
+    unlockObjective(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return false;
+        }
+    
+        const state =
+            this.getObjectiveState(id);
+    
+        if (state.unlocked) {
+            return false;
+        }
+    
+        state.unlocked = true;
+    
+        this.objectiveState[id] =
+            state;
+    
+        this.sync();
+    
+        this.events.emit(
+            'updated',
+            {
+                type: 'objective-unlock',
+                id
+            }
+        );
+    
+        return true;
+    }
+    
+    // For parent objectives
+    areAllChildrenComplete(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective || objective.type !== 'parent') {
+            return false;
+        }
+    
+        return objective.children.every(
+            childId =>
+                this.isObjectiveComplete(childId)
         );
     }
 
@@ -531,6 +565,7 @@ areAllChildrenComplete(id) {
             ?? Number.MAX_SAFE_INTEGER
         );
     }
+//////////////// END OBJECTIVES
 
     // Sync to gameData
     sync() {
@@ -612,18 +647,3 @@ areAllChildrenComplete(id) {
         this.events.destroy();
     }
 }
-
-// WIP functions:
-/*
-getObjective()
-getObjectiveState()
-isObjectiveUnlocked()
-isObjectiveComplete()
-areObjectiveRequirementsMet()
-getObjectiveStatus()
-unlockObjective()
-completeObjective()
-getCurrentObjectives() --
-getTrackedObjectives()
-getParentProgress()
-*/
