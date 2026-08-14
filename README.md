@@ -23,5 +23,7 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Comopleted Updates
+- Objectives completed in discover tab will now move to an "archived state" to be displayed differently and will no longer receive amount updates. 
+- Added update StageCard and StageViewport to resize (live) gather catds properly when upgrades are applied.
 - Master discoveries are now parent objectives.
 - Added ScrollBox class integration for all scrollable areas.
