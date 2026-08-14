@@ -13,7 +13,6 @@ export default class StageCard {
 
         this.upgradeDisplayHeight = 60; // 0
 
-        this.height = options.height ?? this.getCardHeight(options);
         this.depth = this.scene.depths?.cards ?? 0;
 
         // Item data
@@ -33,7 +32,8 @@ this.nextMax = options.nextMax ?? null;
         this.produces = options.produces ?? {};
         this.actionLabel = options.actionLabel ?? 'ACTION';
         this.upgradable = options.gather?.upgrade?.enabled === true;
-        
+        this.tab = options.tab ?? 'gather';
+
         this.children = options.children ?? [];
         this.getChildComplete = options.getChildComplete ?? (() => false);
     
@@ -49,6 +49,8 @@ this.nextMax = options.nextMax ?? null;
         this.requirementTexts = [];
         this.upgradeTexts = [];
         this.reqLabel = null;
+
+        this.height = options.height ?? this.getCardHeight(options);
 
         this.create();
     }
@@ -147,16 +149,8 @@ this.nextMax = options.nextMax ?? null;
             .setOrigin(0);
 
         let contentBottom = this.y + 73;
-        // Objective requirements
-        /*if (this.objective) {
         
-            this.createRequirementLayout(
-                this.x + 15,
-                this.y + 48
-            );*/
-        
-            contentBottom =
-                this.createObjectiveRequirements(this.y + 73);
+        contentBottom = this.createObjectiveRequirements(this.y + 73);
         
         // Optional special objective text
         if (this.objectiveText) {
@@ -171,7 +165,7 @@ this.nextMax = options.nextMax ?? null;
                         color: '#66ff66'
                     }
                 );
-                contentBottom += this.objectiveTextDisplay + 5;
+                contentBottom += this.objectiveTextDisplay.height + 5;
         }
 
         if (this.objective && this.children.length) {
@@ -313,7 +307,7 @@ this.nextMax = options.nextMax ?? null;
 
     // CARD HEIGHT
     getCardHeight(options) {
-        switch (options.type) {
+        switch (options.tab) {
             case 'create': {
                 const requirementCount =
                     Object.keys(
@@ -322,65 +316,46 @@ this.nextMax = options.nextMax ?? null;
                 return 190 + requirementCount * 22;
             }
 
-            case 'objective': {
-            
-                const itemRequirementCount =
-                    (options.requirements?.items ?? [])
-                        .reduce(
-                            (total, requirement) =>
-                                total +
-                                Object.keys(requirement).length,
-                            0
-                        );
-            
-                const childCount =
-                    options.children?.length ?? 0;
-            
-                const objectiveTextHeight =
-                    options.objectiveText
-                        ? 25
-                        : 0;
-            
-                return (
-                    150 +
-                    itemRequirementCount * 22 +
-                    childCount * 22 +
-                    objectiveTextHeight
-                );
-            }
+case 'discover': {
 
+    const childCount =
+        options.children?.length ?? 0;
 
+    const itemRequirementCount =
+        (options.requirements?.items ?? [])
+            .reduce(
+                (total, requirement) =>
+                    total +
+                    Object.keys(requirement).length,
+                0
+            );
 
-            /*case 'objective': {
-                const itemRequirementCount =
-                    (options.requirements?.items ?? [])
-                        .reduce(
-                            (total, requirement) =>
-                                total +
-                                Object.keys(requirement).length,
-                            0
-                        );
-            
-                const childCount =
-                    options.children?.length ?? 0;
-            
-                const requirementHeight =
-                    itemRequirementCount > 0
-                        ? 25 + itemRequirementCount * 22
-                        : 0;
-            
-                const childHeight =
-                    childCount > 0
-                        ? 25 + childCount * 22
-                        : 0;
-            
-                return (
-                    150 +
-                    requirementHeight +
-                    childHeight
-                );
-            }*/
-            
+    if (options.children?.length > 0 || itemRequirementCount > 0) {
+        // Starting point for the requirements section.
+        let contentHeight = 73;
+    
+        // "Complete Objectives:" / "Requirements:" label
+        contentHeight += 25;
+    
+        // Child objectives
+        if (childCount > 0) {
+            contentHeight += childCount * 22;
+        }
+    
+        // Item requirements
+        if (itemRequirementCount > 0) {
+            contentHeight += itemRequirementCount * 22;
+        }
+    
+        // Space below requirements + progress bar
+        contentHeight += 17;
+    
+        // Bottom padding / button area
+        contentHeight += 50;
+    
+        return contentHeight;
+    }
+}
             case 'gather':
                 return 180 + this.upgradeDisplayHeight;
             default:
@@ -585,39 +560,8 @@ this.nextMax = options.nextMax ?? null;
 
     // CREATE REQUIREMENTS FOR OBJECTIVES
     createObjectiveRequirements(startY) {
-
         let y = startY + 25;
 
-        // Parent objectives
-        // ??
-/*
-        const parentRequirements = this.children;
-
-        if (parentRequirements.length) {
-            parentRequirements.forEach(([id, required]) => {
-                
-                const text =
-                    addText(this.scene,
-                        this.x + 15,
-                        y,
-                        '',
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    );
-    
-    
-                this.requirementTexts.push({
-                    id,
-                    required,
-                    text
-                });
-    
-                y += 22;
-            });
-        }
-*/
         // Normal objective requirements
         const itemRequirements =
             this.requirements?.items ?? [];

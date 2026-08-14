@@ -499,6 +499,8 @@ getObjectiveCardData(objective) {
 
         amount: null,
         max: null,
+        
+        tab: this.stageProgress.getTabId(objective.id),
 
         availability:
             this.stageProgress.getObjectiveStatus(

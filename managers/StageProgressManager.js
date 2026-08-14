@@ -103,6 +103,18 @@ export default class StageProgressManager {
         });
     }
 
+    getTabId(id) {
+        const createItem = this.stageItems.find(s => s.id === id && s.tab === 'create');
+        if (createItem) {
+            return 'create';
+        }
+        const discoverItem = this.objectives.find(o => o.id === id && o.tab === 'discover');
+        if (discoverItem) {
+            return 'discover';
+        }
+        return 'gather';
+    }
+
 //////// NEW OBJECTIVES
 getObjective(id) {
     return this.objectives.find(

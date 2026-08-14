@@ -89,6 +89,7 @@ export const stageObjectives = [
         id: 'days_of_creation',
         title: 'DAYS OF CREATION',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Complete all six days of Creation.',
         requirements: {}, // Other requirements still possible, only items for now, objective requirements will rely on other unlocks.objective
@@ -104,6 +105,7 @@ export const stageObjectives = [
         id: 'the_beginning',
         title: 'THE BEGINNING',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         startsUnlocked: true,
         objectiveText: 'Learn About: THE BEGINNING',
@@ -122,6 +124,7 @@ export const stageObjectives = [
         id: 'creation_day_1',
         title: 'CREATION DAY 1',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Day 1 description....',
         requirements: {
@@ -141,6 +144,7 @@ export const stageObjectives = [
         id: 'creation_day_2',
         title: 'CREATION DAY 2',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Day 2 description....',
         requirements: {
@@ -160,6 +164,7 @@ export const stageObjectives = [
         id: 'creation_day_3',
         title: 'CREATION DAY 3',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Day 3 description....',
         requirements: {
@@ -179,6 +184,7 @@ export const stageObjectives = [
         id: 'creation_day_4',
         title: 'CREATION DAY 4',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Day 4 description....',
         requirements: {
@@ -198,6 +204,7 @@ export const stageObjectives = [
         id: 'creation_day_5',
         title: 'CREATION DAY 5',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Day 5 description....',
         requirements: {
@@ -217,6 +224,7 @@ export const stageObjectives = [
         id: 'creation_day_6',
         title: 'CREATION DAY 6',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Day 6 description....',
         requirements: {
@@ -234,6 +242,7 @@ export const stageObjectives = [
         id: 'creation_day_7',
         title: 'CREATION DAY 7',
         stage: 'creation',
+        tab: 'discover',
         tracked: true,
         description: 'Day 7 description....',
         requirements: {
