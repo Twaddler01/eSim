@@ -20,10 +20,10 @@
 - An "In the beginning..." sequence/video when starting a new game.
 - Focused on darkness and light elements: black holes, light photons, etc.
 
-# Comopleted Updates
+# Completed Updates
 - Updated README.md to specifically indicate last readme update date.
 - Objectives completed in discover tab will now move to an "archived state" to be displayed differently and will no longer receive amount updates. 
-- Added update StageCard and StageViewport to resize (live) gather catds properly when upgrades are applied.
+- Added an update to StageCard and StageViewport to dynamically resize cards (live) whenever upgrades or any card size changes are necessary.
 - Master discoveries are now parent objectives.
 - Added ScrollBox class integration for most scrollable areas.
 - Updated all fonts to "Arial" using "addText" global function to keep font family consistent with client browser settings and ensure precise Phaser text alignment/size. A different global font may be used in future updates.
