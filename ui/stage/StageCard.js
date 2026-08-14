@@ -24,6 +24,8 @@ export default class StageCard {
 
         // null = no maximum
         this.max = options.max ?? null;
+        // for parent obj
+        this.percent = options.percent ?? 0;
 // WIP
 this.nextMax = options.nextMax ?? null;
         this.upgradeStats = options.upgradeStats ?? null;
@@ -33,6 +35,7 @@ this.nextMax = options.nextMax ?? null;
         this.actionLabel = options.actionLabel ?? 'ACTION';
         this.upgradable = options.gather?.upgrade?.enabled === true;
         this.tab = options.tab ?? 'gather';
+        this.type = options.type ?? null;
 
         this.children = options.children ?? [];
         this.getChildComplete = options.getChildComplete ?? (() => false);
@@ -136,11 +139,21 @@ this.nextMax = options.nextMax ?? null;
             );
         this.amountText.setVisible(!this.description);
 
+        // Display requirements depending on specific conditions
+        let reqLabelText = ''; // Default gather
+        if (this.tab === 'discover' && this.type === 'parent') {
+            reqLabelText = 'Complete the following objectives:'
+        }
+        if (this.tab === 'create' || (this.tab === 'discover' && this.type !== 'parent')) {
+            reqLabelText = 'Requires:';
+        }
+
         this.reqLabel =
-            addText(this.scene,
+            addText(
+                this.scene,
                 this.x + 15,
-                this.y + 73, // +25
-                (this.objective && this.children.length) || this.objectiveText ? 'Complete Objectives:' : 'Requirements:',
+                this.y + 73,
+                reqLabelText,
                 {
                     fontSize: '16px',
                     color: '#ffffff'
@@ -307,6 +320,7 @@ this.nextMax = options.nextMax ?? null;
 
     // CARD HEIGHT
     getCardHeight(options) {
+        if (options.startsUnlocked) return 180;
         switch (options.tab) {
             case 'create': {
                 const requirementCount =
@@ -316,46 +330,45 @@ this.nextMax = options.nextMax ?? null;
                 return 190 + requirementCount * 22;
             }
 
-case 'discover': {
-
-    const childCount =
-        options.children?.length ?? 0;
-
-    const itemRequirementCount =
-        (options.requirements?.items ?? [])
-            .reduce(
-                (total, requirement) =>
-                    total +
-                    Object.keys(requirement).length,
-                0
-            );
-
-    if (options.children?.length > 0 || itemRequirementCount > 0) {
-        // Starting point for the requirements section.
-        let contentHeight = 73;
-    
-        // "Complete Objectives:" / "Requirements:" label
-        contentHeight += 25;
-    
-        // Child objectives
-        if (childCount > 0) {
-            contentHeight += childCount * 22;
-        }
-    
-        // Item requirements
-        if (itemRequirementCount > 0) {
-            contentHeight += itemRequirementCount * 22;
-        }
-    
-        // Space below requirements + progress bar
-        contentHeight += 17;
-    
-        // Bottom padding / button area
-        contentHeight += 50;
-    
-        return contentHeight;
-    }
-}
+            case 'discover': {
+                const childCount =
+                    options.children?.length ?? 0;
+            
+                const itemRequirementCount =
+                    (options.requirements?.items ?? [])
+                        .reduce(
+                            (total, requirement) =>
+                                total +
+                                Object.keys(requirement).length,
+                            0
+                        );
+            
+                if (options.children?.length > 0 || itemRequirementCount > 0) {
+                    // Starting point for the requirements section.
+                    let contentHeight = 73;
+                
+                    // "Complete Objectives:" / "Requirements:" label
+                    contentHeight += 25;
+                
+                    // Child objectives
+                    if (childCount > 0) {
+                        contentHeight += childCount * 22;
+                    }
+                
+                    // Item requirements
+                    if (itemRequirementCount > 0) {
+                        contentHeight += itemRequirementCount * 22;
+                    }
+                
+                    // Space below requirements + progress bar
+                    contentHeight += 17;
+                
+                    // Bottom padding / button area
+                    contentHeight += 50;
+                
+                    return contentHeight;
+                }
+            }
             case 'gather':
                 return 180 + this.upgradeDisplayHeight;
             default:
@@ -703,7 +716,11 @@ case 'discover': {
     
         // COMPLETED
         if (state === 'completed') {
-    
+
+            this.lockOverlay
+            .setVisible(true)
+            .setAlpha(0.55);
+            
             this.actionButton
                 .setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
@@ -759,8 +776,12 @@ case 'discover': {
         this.progressBackground.setVisible(true);
         this.progressFill.setVisible(true);
 
-        const percent =
+        let percent =
             Phaser.Math.Clamp(this.amount / this.max, 0, 1);
+        
+        if (this.type === 'parent') {
+            percent = this.percent;
+        }
 
         this.progressFill.width =
             this.progressBackground.width *
@@ -782,6 +803,7 @@ case 'discover': {
         this.updateProgress();
     }
 
+//// FOR CLASS: StageViewport
     // SET MAX
     setMax(max) {
         this.max = max;
@@ -794,6 +816,7 @@ case 'discover': {
     
         this.updateProgress();
     }
+////
 
     // DESTROY
     destroy() {
@@ -835,7 +858,11 @@ case 'discover': {
         // Optional requirements label
         this.reqLabel?.destroy();
         this.reqLabel = null;
-
+        
+        // Optional objective text
+        this.objectiveTextDisplay?.destroy();
+        this.objectiveTextDisplay = null;
+        
         // Main elements
         this.background?.destroy();
         this.descriptionText?.destroy();

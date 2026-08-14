@@ -8,7 +8,7 @@ const ZOOM_STEP = 0.1;
 let panX = 0;
 let panY = 0;
 
-let zoomEnabled = true;
+let zoomEnabled = false;
 
 
 // ==================================================

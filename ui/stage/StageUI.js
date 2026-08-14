@@ -436,9 +436,10 @@ export default class StageUI {
         // OBJECTIVES
         if (this.currentTab === 'discover') {
     
+            //const objectives = this.stageProgress.getCurrentObjectives();
             const objectives =
-                this.stageProgress.getCurrentObjectives();
-
+                this.stageProgress.getSortedCurrentObjectives();
+            
             const objectiveCards =
                 objectives.map(
                     objective =>

@@ -26,15 +26,8 @@ export default class StageProgressManager {
         this.unlocked =
             gameData.stageProgress?.unlocked ?? {};
 
-        this.unlockedMasterObjectives =
-            new Set(
-                gameData.stageProgress?.unlockedMasterObjectives ?? []
-            );
-
-        this.completedMasterObjectives =
-            new Set(
-                gameData.stageProgress?.completedMasterObjectives ?? []
-            );
+        this.objectiveCompletionCounter =
+            gameData.stageProgress?.objectiveCompletionCounter ?? 0;
 
         // Observable changes
         this.events =
@@ -259,9 +252,9 @@ getParentProgress(id) {
         completed,
         total,
         percent:
-            total === 0
-                ? 1
-                : completed / total
+            total > 0
+                ? completed / total
+                : 0
     };
 }
 
@@ -292,6 +285,11 @@ completeObjective(id) {
         this.getObjectiveState(id);
 
     state.completed = true;
+
+    this.objectiveCompletionCounter++;
+    
+    state.completedOrder =
+        this.objectiveCompletionCounter;
 
     this.objectiveState[id] =
         state;
@@ -446,15 +444,103 @@ areAllChildrenComplete(id) {
         );
     }
 
+    getSortedCurrentObjectives() {
+        const objectives =
+            this.getCurrentObjectives();
+    
+        const result = [];
+        const used = new Set();
+    
+        // -----------------------------------------
+        // 1. PARENTS
+        // -----------------------------------------
+    
+        const parents =
+            objectives.filter(
+                objective =>
+                    objective.type === 'parent' &&
+                    !this.isObjectiveComplete(objective.id)
+            );
+    
+        parents.forEach(parent => {
+    
+            result.push(parent);
+            used.add(parent.id);
+    
+            // Find the currently active child
+            const activeChild =
+                objectives.find(
+                    child =>
+                        child.type === 'child' &&
+                        child.parentId === parent.id &&
+                        !this.isObjectiveComplete(child.id) &&
+                        this.getObjectiveStatus(child.id) === 'active'
+                );
+    
+            if (activeChild) {
+                result.push(activeChild);
+                used.add(activeChild.id);
+            }
+        });
+    
+        // -----------------------------------------
+        // 2. OTHER INCOMPLETE OBJECTIVES
+        // -----------------------------------------
+    
+        objectives.forEach(objective => {
+    
+            if (used.has(objective.id)) {
+                return;
+            }
+    
+            if (this.isObjectiveComplete(objective.id)) {
+                return;
+            }
+    
+            result.push(objective);
+            used.add(objective.id);
+        });
+    
+        // -----------------------------------------
+        // 3. COMPLETED — MOST RECENT FIRST
+        // -----------------------------------------
+        
+        const completed =
+            objectives
+                .filter(
+                    objective =>
+                        this.isObjectiveComplete(objective.id)
+                )
+                .sort(
+                    (a, b) =>
+                        this.getCompletionOrder(b.id) -
+                        this.getCompletionOrder(a.id)
+                );
+        
+        completed.forEach(objective => {
+            result.push(objective);
+        });
+    
+        return result;
+    }
+    
+    getCompletionOrder(id) {
+        return (
+            this.getObjectiveState(id)
+                .completedOrder
+            ?? Number.MAX_SAFE_INTEGER
+        );
+    }
+
     // Sync to gameData
     sync() {
         this.gameData.stageProgress = {
             amounts: this.values,
             gatherLevels: this.gatherLevels,
-            //discoveries: this.discoveries, // OLD
             objectives: this.objectiveState,
             unlocked: this.unlocked,
-            tracked: this.tracked
+            tracked: this.tracked,
+            objectiveCompletionCounter: this.objectiveCompletionCounter
         };
     }
 

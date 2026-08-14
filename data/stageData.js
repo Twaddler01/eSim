@@ -133,7 +133,8 @@ export const stageObjectives = [
         },
         unlocks: { 
             objectives: [ 'creation_day_2' ], // other objectives can be unlocked too
-            items: [ 'light' ]
+// testing water
+            items: [ 'light', 'water' ]
         },
         actionLabel: 'COMPLETE'
     },
@@ -148,7 +149,8 @@ export const stageObjectives = [
         tracked: true,
         description: 'Day 2 description....',
         requirements: {
-            items: [ { light: 10 } ], // multiple allowed
+// testing water
+            items: [ { light: 10 }, { water: 10 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { 
