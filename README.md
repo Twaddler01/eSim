@@ -1,7 +1,5 @@
 # Recent Updates
 ![README updated](https://Twaddler01.github.io/eSim/readme-date.svg)
-- Added ScrollBox class for scrolling in different areas.
-- Updated all fonts to "Arial" using "addText" global function to keep font family consistent with client browser settings and ensure precise Phaser text alignment/size. A different global font may be used in future updates.
 
 # About
 - eSim is a Christian-themed discover/gather/create simulation game coded in Javscript using the Phaser 3 framework.
@@ -9,8 +7,8 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Tracker work is likely next.
 - Tracker is temporarily on hold until Discover tab is fully updated with improved structure.
-- Cleaning up Discover tab elements.
 
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
@@ -23,7 +21,9 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Comopleted Updates
+- Updated README.md to specifically indicate last readme update date.
 - Objectives completed in discover tab will now move to an "archived state" to be displayed differently and will no longer receive amount updates. 
 - Added update StageCard and StageViewport to resize (live) gather catds properly when upgrades are applied.
 - Master discoveries are now parent objectives.
-- Added ScrollBox class integration for all scrollable areas.
+- Added ScrollBox class integration for most scrollable areas.
+- Updated all fonts to "Arial" using "addText" global function to keep font family consistent with client browser settings and ensure precise Phaser text alignment/size. A different global font may be used in future updates.
