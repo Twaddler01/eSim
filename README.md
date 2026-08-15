@@ -7,6 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Clean up new discover tab layout and its StageCard relationship.
 - Tracker work is done for now.
 
 # Future Updates / Ideas

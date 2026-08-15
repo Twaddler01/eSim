@@ -91,7 +91,9 @@ export const stageObjectives = [
         stage: 'creation',
         tab: 'discover',
         description: 'Complete all six days of Creation.',
-        requirements: {}, // Other requirements still possible, only items for now, objective requirements will rely on other unlocks.objective
+        requirements: { 
+            items: [ { darkness: 5 } ]
+        }, // Other requirements still possible, only items for now, objective requirements will rely on other unlocks.objective
         unlocks: {
             objectives: [ 'creation_day_7' ],
             items: []
@@ -125,7 +127,7 @@ export const stageObjectives = [
         tab: 'discover',
         description: 'Day 1 description....',
         requirements: {
-            items: [ { darkness: 10 } ], // multiple allowed
+            items: [ { darkness: 5 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { 
@@ -146,7 +148,7 @@ export const stageObjectives = [
         description: 'Day 2 description....',
         requirements: {
 // testing water
-            items: [ { light: 10 }, { water: 10 } ], // multiple allowed
+            items: [ { light: 5 }, { water: 5 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { 
@@ -165,7 +167,7 @@ export const stageObjectives = [
         tab: 'discover',
         description: 'Day 3 description....',
         requirements: {
-            items: [ { water: 10 } ], // multiple allowed
+            items: [ { water: 5 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { 
@@ -184,7 +186,7 @@ export const stageObjectives = [
         tab: 'discover',
         description: 'Day 4 description....',
         requirements: {
-            items: [ { carbon: 10 } ], // multiple allowed
+            items: [ { carbon: 5 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { 
@@ -203,7 +205,7 @@ export const stageObjectives = [
         tab: 'discover',
         description: 'Day 5 description....',
         requirements: {
-            items: [ { hydrogen: 10 } ], // multiple allowed
+            items: [ { hydrogen: 5 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { 
@@ -222,7 +224,7 @@ export const stageObjectives = [
         tab: 'discover',
         description: 'Day 6 description....',
         requirements: {
-            items: [ { helium: 10 } ], // multiple allowed
+            items: [ { helium: 5 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { 
@@ -239,7 +241,7 @@ export const stageObjectives = [
         tab: 'discover',
         description: 'Day 7 description....',
         requirements: {
-            items: [ { oxygen: 10 } ], // multiple allowed
+            items: [ { oxygen: 5 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { // no unlocks, testing for no active objectivs

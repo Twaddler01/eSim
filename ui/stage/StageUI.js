@@ -432,7 +432,7 @@ export default class StageUI {
                 item =>
                     item.tab === this.currentTab
             );
-    
+            
         // OBJECTIVES
         if (this.currentTab === 'discover') {
     
@@ -459,7 +459,7 @@ export default class StageUI {
         const displayCards = cards.map(item => ({
         
             ...item,
-        
+            
             amount:
                 item.discovery ? null : this.stageProgress.get(item.id),
             
@@ -497,7 +497,9 @@ export default class StageUI {
             ...objective,
     
             objective: true,
-    
+            // For stageItems data (title)
+            reqItems: this.stageProgress.getReqItems(objective.id),
+
             amount: null,
             max: null,
             

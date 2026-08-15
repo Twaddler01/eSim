@@ -1,32 +1,18 @@
 export default class TrackerCard {
 
     constructor(scene, options = {}) {
-
         this.scene = scene;
 
-        this.x =
-            options.x ?? 0;
+        this.x = options.x ?? 0;
+        this.y = options.y ?? 0;
+        this.container = this.scene.add.container(this.x, this.y);
+        this.width = options.width ?? 300;
 
-        this.y =
-            options.y ?? 0;
+        this.objective = options.objective ?? null;
 
-        this.container =
-            this.scene.add.container(
-                this.x,
-                this.y
-            );
+        this.stageProgress = options.stageProgress ?? null;
 
-        this.width =
-            options.width ?? 300;
-
-        this.objective =
-            options.objective ?? null;
-
-        this.stageProgress =
-            options.stageProgress ?? null;
-
-        this.onUntrack =
-            options.onUntrack ?? null;
+        this.onUntrack = options.onUntrack ?? null;
 
         this.height = 0;
 
@@ -49,13 +35,8 @@ export default class TrackerCard {
         this.update();
     }
 
-
-    // ==================================================
     // CREATE
-    // ==================================================
-
     create() {
-
         this.background =
             this.scene.add.rectangle(
                 0,
@@ -70,11 +51,7 @@ export default class TrackerCard {
                 0x000000
             );
 
-
-        // --------------------------------------------------
         // TITLE
-        // --------------------------------------------------
-
         this.titleText =
             addText(
                 this.scene,
@@ -87,11 +64,7 @@ export default class TrackerCard {
                 }
             );
 
-
-        // --------------------------------------------------
         // DESCRIPTION
-        // --------------------------------------------------
-
         this.descriptionText =
             addText(
                 this.scene,
@@ -107,30 +80,19 @@ export default class TrackerCard {
                 }
             );
 
-
         let currentY =
             36 +
             this.descriptionText.height +
             8;
 
-
-        // ==================================================
         // PARENT OBJECTIVE
-        // ==================================================
-
         if (this.objective.type === 'parent') {
-
             currentY =
                 this.createParentDisplay(
                     currentY
                 );
-
         }
-
-        // ==================================================
         // NORMAL OBJECTIVE
-        // ==================================================
-
         else {
 
             currentY =
@@ -139,12 +101,8 @@ export default class TrackerCard {
                 );
         }
 
-        // -----------------------------------------
         // Progress bar
-        // -----------------------------------------
-        
-        const progressY =
-            currentY + 4;
+        const progressY = currentY + 4;
         
         this.progressBar =
             this.scene.add.rectangle(
@@ -182,10 +140,7 @@ export default class TrackerCard {
             progressY +
             34;
         
-        // -----------------------------------------
         // Complete button
-        // -----------------------------------------
-        
         this.completeButton =
             this.scene.add.rectangle(
                 10,
@@ -228,22 +183,15 @@ export default class TrackerCard {
         
         currentY += 34 + 10;
 
-        // --------------------------------------------------
         // FINAL HEIGHT
-        // --------------------------------------------------
-
-        this.height =
-            currentY + 10;
+        this.height = currentY + 10;
 
         this.background.setSize(
             this.width,
             this.height
         );
 
-        // --------------------------------------------------
         // ADD CONTENT
-        // --------------------------------------------------
-
         const children = [
             this.background,
             this.titleText,
@@ -288,19 +236,10 @@ export default class TrackerCard {
         this.container.add(children);
     }
 
-
-    // ==================================================
     // NORMAL REQUIREMENTS
-    // ==================================================
-
     createRequirementDisplay(currentY) {
-
-        // --------------------------------------------------
         // Special objective text
-        // --------------------------------------------------
-
         if (this.objective.objectiveText) {
-
             this.objectiveTextDisplay =
                 addText(
                     this.scene,
@@ -321,14 +260,9 @@ export default class TrackerCard {
                 8;
         }
 
-
-        // --------------------------------------------------
         // Item requirements
-        // --------------------------------------------------
-
         const itemRequirements =
             this.objective.requirements?.items ?? [];
-
 
         itemRequirements.forEach(
             requirement => {
@@ -363,25 +297,15 @@ export default class TrackerCard {
             }
         );
 
-
         return currentY;
     }
 
-
-    // ==================================================
     // PARENT DISPLAY
-    // ==================================================
-
     createParentDisplay(currentY) {
-
         const children =
             this.objective.children ?? [];
 
-
-        // --------------------------------------------------
         // Overall progress
-        // --------------------------------------------------
-
         this.progressTextOverall =
             addText(
                 this.scene,
@@ -394,15 +318,44 @@ export default class TrackerCard {
                 }
             );
 
-
         currentY +=
             22;
 
+        // Parent item requirements
+        const itemRequirements =
+            this.objective.requirements?.items ?? [];
+    
+        itemRequirements.forEach(
+            requirement => {
+                Object.entries(requirement)
+                    .forEach(
+                        ([id, required]) => {
+    
+                            const text =
+                                addText(
+                                    this.scene,
+                                    10,
+                                    currentY,
+                                    '',
+                                    {
+                                        fontSize: '14px',
+                                        color: '#ffffff'
+                                    }
+                                );
+    
+                            this.requirements.push({
+                                id,
+                                required,
+                                text
+                            });
+    
+                            currentY += 20;
+                        }
+                    );
+            }
+        );
 
-        // --------------------------------------------------
         // Individual children
-        // --------------------------------------------------
-
         children.forEach(
             childId => {
 
@@ -440,92 +393,67 @@ export default class TrackerCard {
             }
         );
 
-
         return currentY;
     }
 
-
-    // ==================================================
     // UPDATE
-    // ==================================================
-
-update() {
-
-    const progress =
-        this.stageProgress.getObjectiveProgressData(
-            this.objective.id
-        );
-
-    // -----------------------------------------
-    // Complete button
-    // -----------------------------------------
-
-    if (progress.ready) {
-
-        this.completeButton
-            .setFillStyle(0x335533)
-            .setStrokeStyle(1, 0x66aa66)
-            .setInteractive({
-                useHandCursor: true
-            });
-
-        this.completeButtonText
-            .setColor('#ffffff')
-            .setText('COMPLETE');
-
-    } else {
-
-        this.completeButton
-            .setFillStyle(0x222222)
-            .setStrokeStyle(1, 0x000000)
-            .disableInteractive();
-
-        this.completeButtonText
-            .setColor('#555555')
-            .setText('INCOMPLETE');
+    update() {
+        const progress =
+            this.stageProgress.getObjectiveProgressData(
+                this.objective.id
+            );
+    
+        // Complete button
+        if (progress.ready) {
+    
+            this.completeButton
+                .setFillStyle(0x335533)
+                .setStrokeStyle(1, 0x66aa66)
+                .setInteractive({
+                    useHandCursor: true
+                });
+    
+            this.completeButtonText
+                .setColor('#ffffff')
+                .setText('COMPLETE');
+    
+        } else {
+    
+            this.completeButton
+                .setFillStyle(0x222222)
+                .setStrokeStyle(1, 0x000000)
+                .disableInteractive();
+    
+            this.completeButtonText
+                .setColor('#555555')
+                .setText('INCOMPLETE');
+        }
+    
+        // Progress bar
+        this.progressFill.width =
+            (this.width - 20) *
+            progress.percent;
+    
+        if (progress.total > 0) {
+            this.progressText.setText(
+                `${progress.completed} / ${progress.total}`
+            );
+        } else {
+            this.progressText.setText(
+                'Ready to complete'
+            );
+        }
+    
+        // Objective-specific display
+        if (this.objective.type === 'parent') {
+            this.updateParent();
+        } else {
+            this.updateRequirements();
+        }
     }
 
-    // -----------------------------------------
-    // Progress bar
-    // -----------------------------------------
-
-    this.progressFill.width =
-        (this.width - 20) *
-        progress.percent;
-
-    if (progress.total > 0) {
-
-        this.progressText.setText(
-            `${progress.completed} / ${progress.total}`
-        );
-
-    } else {
-
-        this.progressText.setText(
-            'Ready to complete'
-        );
-    }
-
-    // -----------------------------------------
-    // Objective-specific display
-    // -----------------------------------------
-
-    if (this.objective.type === 'parent') {
-
-        this.updateParent();
-
-    } else {
-
-        this.updateRequirements();
-    }
-}
-
-    // ==================================================
     // UPDATE NORMAL REQUIREMENTS
-    // ==================================================
-
     updateRequirements() {
-
         this.requirements.forEach(
             requirement => {
 
@@ -567,10 +495,7 @@ update() {
         );
     }
 
-    // ==================================================
     // UPDATE PARENT
-    // ==================================================
-
     updateParent() {
         const progress =
                 this.stageProgress.getObjectiveProgressData(
@@ -581,10 +506,7 @@ update() {
             return;
         }
 
-        // --------------------------------------------------
         // Overall parent progress
-        // --------------------------------------------------
-
         this.progressTextOverall.setText(
             `Progress: ` +
             `${progress.completed} / ` +
@@ -598,11 +520,10 @@ update() {
                 : '#ffffff'
         );
 
+        // Parent item requirements
+        this.updateRequirements();
 
-        // --------------------------------------------------
         // Children
-        // --------------------------------------------------
-
         this.childEntries.forEach(
             entry => {
 
@@ -627,11 +548,7 @@ update() {
         );
     }
 
-
-    // ==================================================
     // DESTROY
-    // ==================================================
-
     destroy() {
 
         this.container?.destroy();

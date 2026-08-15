@@ -98,6 +98,27 @@ export default class StageProgressManager {
         );
     }
 
+    // Returns an array of objective required items (from stageItems)
+    getReqItems(id) {
+        // NOTE: this.objectives = stageObjectives
+        const thisItem = this.objectives.find(i => i.id === id);
+
+        let result = [];
+        
+        const reqItems = thisItem?.requirements?.items;
+        
+        if (reqItems) {
+            reqItems.forEach(item => {
+                const [[reqId, required]] = Object.entries(item);
+                //console.log(`ID: ${reqId}, Value: ${required}`);
+                const matchedId = this.stageItems.find(i => i.id === reqId);
+                result.push(matchedId);
+            });
+        }
+
+        return result;
+    }
+
     getItem(id) {
         return this.stageItems.find(
             item => item.id === id
@@ -237,8 +258,9 @@ export default class StageProgressManager {
     
         return childrenMet;
     }
-    
+
     getObjectiveStatus(id) {
+    
         const objective =
             this.getObjective(id);
     
@@ -254,16 +276,10 @@ export default class StageProgressManager {
             return 'locked';
         }
     
-        // Parent objectives require ALL children
-        // to be completed before becoming active.
-        if (objective.type === 'parent') {
-            if (!this.areAllChildrenComplete(id)) {
-                return 'unlocked';
-            }
-            return 'active';
-        }
-    
-        // Normal objective requirements
+        // All objective requirements must be met.
+        // For parents this includes:
+        // - item requirements
+        // - all child objectives
         if (!this.areObjectiveRequirementsMet(objective)) {
             return 'unlocked';
         }
@@ -301,149 +317,148 @@ STATUS: COMPLETED
 // --------------------------------------------------
 // OBJECTIVE TRACKING
 // --------------------------------------------------
-
-isObjectiveTracked(id) {
-    return this.tracked[id] === true;
-}
-
-setObjectiveTracked(id, tracked = true) {
-    const objective =
-        this.getObjective(id);
-
-    if (!objective) {
-        return false;
+    
+    isObjectiveTracked(id) {
+        return this.tracked[id] === true;
     }
-
-    this._setTracked(id, tracked);
-
-    this.sync();
-
-    this.events.emit(
-        'updated',
-        {
-            type: 'objective-track',
-            id,
-            tracked
+    
+    setObjectiveTracked(id, tracked = true) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return false;
         }
-    );
-
-    return tracked;
-}
-
-_setTracked(id, tracked) {
-    if (tracked) {
-        this.tracked[id] = true;
-        this.objectiveTrackingCounter++;
-
-        const state = this.getObjectiveState(id);
-        state.trackingOrder = this.objectiveTrackingCounter;
-        this.objectiveState[id] = state;
-    } else {
-        delete this.tracked[id];
-        const state = this.getObjectiveState(id);
-        delete state.trackingOrder;
-    }
-}
-
-getTrackingOrder(id) {
-    return (
-        this.getObjectiveState(id)
-            .trackingOrder
-        ?? 0
-    );
-}
-
-getTrackedObjectives(options = {}) {
-    const objectives =
-        this.getCurrentObjectives()
-            .filter(objective => {
-
-                // Must be tracked
-                if (!this.isObjectiveTracked(objective.id)) {
-                    return false;
-                }
-
-                // Tracker only shows objectives still in progress
-                if (this.isObjectiveComplete(objective.id)) {
-                    return false;
-                }
-
-                return true;
-            });
-
-    if (!options.newestFirst) {
-        return objectives;
-    }
-
-    // The property order of `tracked` represents
-    // the order objectives were most recently tracked.
-    const trackedOrder =
-        Object.keys(this.tracked);
-
-    const orderIndex =
-        new Map(
-            trackedOrder.map(
-                (id, index) =>
-                    [id, index]
-            )
+    
+        this._setTracked(id, tracked);
+    
+        this.sync();
+    
+        this.events.emit(
+            'updated',
+            {
+                type: 'objective-track',
+                id,
+                tracked
+            }
         );
-
-    return objectives.sort(
-        (a, b) => {
-
-            // Parents always go to the bottom.
-            if (
-                a.type === 'parent' &&
-                b.type !== 'parent'
-            ) {
-                return 1;
-            }
-
-            if (
-                a.type !== 'parent' &&
-                b.type === 'parent'
-            ) {
-                return -1;
-            }
-
-            // Otherwise newest tracked objective first.
-            return (
-                orderIndex.get(b.id) -
-                orderIndex.get(a.id)
+    
+        return tracked;
+    }
+    
+    _setTracked(id, tracked) {
+        if (tracked) {
+            this.tracked[id] = true;
+            this.objectiveTrackingCounter++;
+    
+            const state = this.getObjectiveState(id);
+            state.trackingOrder = this.objectiveTrackingCounter;
+            this.objectiveState[id] = state;
+        } else {
+            delete this.tracked[id];
+            const state = this.getObjectiveState(id);
+            delete state.trackingOrder;
+        }
+    }
+    
+    getTrackingOrder(id) {
+        return (
+            this.getObjectiveState(id)
+                .trackingOrder
+            ?? 0
+        );
+    }
+    
+    getTrackedObjectives(options = {}) {
+        const objectives =
+            this.getCurrentObjectives()
+                .filter(objective => {
+    
+                    // Must be tracked
+                    if (!this.isObjectiveTracked(objective.id)) {
+                        return false;
+                    }
+    
+                    // Tracker only shows objectives still in progress
+                    if (this.isObjectiveComplete(objective.id)) {
+                        return false;
+                    }
+    
+                    return true;
+                });
+    
+        if (!options.newestFirst) {
+            return objectives;
+        }
+    
+        // The property order of `tracked` represents
+        // the order objectives were most recently tracked.
+        const trackedOrder =
+            Object.keys(this.tracked);
+    
+        const orderIndex =
+            new Map(
+                trackedOrder.map(
+                    (id, index) =>
+                        [id, index]
+                )
             );
-        }
-    );
-}
-
-initializeObjectiveTracking() {
-    const stage =
-        this.getCurrentStageId();
-
-    const startingObjective =
-        this.objectives.find(
-            objective =>
-                objective.stage === stage &&
-                objective.startsUnlocked === true &&
-                !this.isObjectiveComplete(objective.id)
+    
+        return objectives.sort(
+            (a, b) => {
+    
+                // Parents always go to the bottom.
+                if (
+                    a.type === 'parent' &&
+                    b.type !== 'parent'
+                ) {
+                    return 1;
+                }
+    
+                if (
+                    a.type !== 'parent' &&
+                    b.type === 'parent'
+                ) {
+                    return -1;
+                }
+    
+                // Otherwise newest tracked objective first.
+                return (
+                    orderIndex.get(b.id) -
+                    orderIndex.get(a.id)
+                );
+            }
         );
-
-    if (!startingObjective) {
-        return;
     }
-
-    if (
-        this.isObjectiveTracked(
-            startingObjective.id
-        )
-    ) {
-        return;
+    
+    initializeObjectiveTracking() {
+        const stage =
+            this.getCurrentStageId();
+    
+        const startingObjective =
+            this.objectives.find(
+                objective =>
+                    objective.stage === stage &&
+                    objective.startsUnlocked === true &&
+                    !this.isObjectiveComplete(objective.id)
+            );
+    
+        if (!startingObjective) {
+            return;
+        }
+    
+        if (
+            this.isObjectiveTracked(
+                startingObjective.id
+            )
+        ) {
+            return;
+        }
+    
+        this.tracked[startingObjective.id] = true;
+    
+        this.sync();
     }
-
-    this.tracked[startingObjective.id] = true;
-
-    this.sync();
-}
-
 // --------------------------------------------------
 // END ... OBJECTIVE TRACKING
 // --------------------------------------------------
@@ -480,68 +495,110 @@ initializeObjectiveTracking() {
         return requirements;
     }
 
-// NEW -- WIP integrate into StageCard
-getObjectiveProgressData(id) {
-    const objective =
-        this.getObjective(id);
-
-    if (!objective) {
-        return {
-            completed: 0,
-            total: 0,
-            percent: 0,
-            ready: false
-        };
-    }
-
-    // Parent objective
-    if (objective.type === 'parent') {
-
-        const children =
-            objective.children ?? [];
-
-        const completed =
-            children.filter(
-                childId =>
-                    this.isObjectiveComplete(childId)
-            ).length;
-
+// NEW -- WIP integrate into StageCard?
+    getObjectiveProgressData(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return {
+                completed: 0,
+                total: 0,
+                percent: 0,
+                ready: false
+            };
+        }
+    
+        // Parent objective
+        if (objective.type === 'parent') {
+    
+            const children =
+                objective.children ?? [];
+    
+            const childrenCompleted =
+                children.filter(
+                    childId =>
+                        this.isObjectiveComplete(childId)
+                ).length;
+    
+            const childrenTotal =
+                children.length;
+    
+    
+            // Parent's own item requirements
+            const requirements =
+                this.getObjectiveRequirements(id);
+    
+            const requirementsCompleted =
+                requirements.filter(
+                    requirement =>
+                        requirement.complete
+                ).length;
+    
+            const requirementsTotal =
+                requirements.length;
+    
+    
+            const completed =
+                childrenCompleted +
+                requirementsCompleted;
+    
+            const total =
+                childrenTotal +
+                requirementsTotal;
+    
+    
+            const percent =
+                total > 0
+                    ? completed / total
+                    : 0;
+    
+    
+            const childrenReady =
+                childrenCompleted === childrenTotal;
+    
+            const requirementsReady =
+                requirements.every(
+                    requirement =>
+                        requirement.complete
+                );
+    
+    
+            return {
+                completed,
+                total,
+                percent,
+    
+                ready:
+                    childrenTotal > 0 &&
+                    childrenReady &&
+                    requirementsReady,
+    
+                // Useful if the UI wants separate displays later
+                childrenCompleted,
+                childrenTotal,
+    
+                requirementsCompleted,
+                requirementsTotal
+            };
+        }
+    
+        // Normal objective
+        const requirements =
+            this.getObjectiveRequirements(id);
+    
         const total =
-            children.length;
-
-        const percent =
-            total > 0
-                ? completed / total
-                : 0;
-
-        return {
-            completed,
-            total,
-            percent,
-            ready:
-                total > 0 &&
-                completed === total
-        };
-    }
-
-    // Normal objective
-    const requirements =
-        this.getObjectiveRequirements(id);
-
-    const total =
-        requirements.length;
-
-    // No requirements means the objective
-    // is immediately ready.
-    if (total === 0) {
-        return {
-            completed: 0,
-            total: 0,
-            percent: 1,
-            ready: true
-        };
-    }
-
+            requirements.length;
+    
+        if (total === 0) {
+            return {
+                completed: 0,
+                total: 0,
+                percent: 1,
+                ready: true
+            };
+        }
+    
     /*
      * Calculate progress based on each
      * requirement independently.
@@ -553,43 +610,43 @@ getObjectiveProgressData(id) {
      *
      * Overall = 75%
      */
-
-    const percent =
-        requirements.reduce(
-            (sum, requirement) => {
-
-                const requirementPercent =
-                    Math.min(
-                        1,
-                        requirement.amount /
-                        requirement.required
-                    );
-
-                return sum + requirementPercent;
-
-            },
-            0
-        ) / total;
-
-    const completed =
-        requirements.filter(
-            requirement =>
-                requirement.complete
-        ).length;
-
-    const ready =
-        requirements.every(
-            requirement =>
-                requirement.complete
-        );
-
-    return {
-        completed,
-        total,
-        percent,
-        ready
-    };
-}
+    
+        const percent =
+            requirements.reduce(
+                (sum, requirement) => {
+    
+                    const requirementPercent =
+                        Math.min(
+                            1,
+                            requirement.amount /
+                            requirement.required
+                        );
+    
+                    return sum + requirementPercent;
+    
+                },
+                0
+            ) / total;
+    
+        const completed =
+            requirements.filter(
+                requirement =>
+                    requirement.complete
+            ).length;
+    
+        const ready =
+            requirements.every(
+                requirement =>
+                    requirement.complete
+            );
+    
+        return {
+            completed,
+            total,
+            percent,
+            ready
+        };
+    }
 
     getParentProgress(id) {
         const objective =

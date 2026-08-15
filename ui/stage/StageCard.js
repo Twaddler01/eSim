@@ -1,5 +1,3 @@
-import { stageItems } from '../../data/stageData.js';
-
 export default class StageCard {
 
     constructor(scene, options = {}) {
@@ -34,6 +32,7 @@ this.nextMax = options.nextMax ?? null;
         this.upgradable = options.gather?.upgrade?.enabled === true;
         this.tab = options.tab ?? 'gather';
         this.type = options.type ?? null;
+        this.reqItems = options.reqItems ?? {};
 
         this.children = options.children ?? [];
         this.getChildComplete = options.getChildComplete ?? (() => false);
@@ -663,12 +662,9 @@ this.nextMax = options.nextMax ?? null;
     
                 const ready =
                     amount >= requirement.required;
-    
-                const reqItem =
-                    stageItems.find(
-                        item => item.id === requirement.id
-                    );
-    
+
+                const reqItem = this.reqItems.find(i => i.id === requirement.id);
+
                 const title =
                     reqItem?.title ?? requirement.id;
     
@@ -956,12 +952,9 @@ this.nextMax = options.nextMax ?? null;
     
         this.requirementTexts.forEach(
             requirement => {
-    
-                const reqItem =
-                    stageItems.find(
-                        item => item.id === requirement.id
-                    );
-    
+
+                const reqItem = this.reqItems.find(i => i.id === requirement.id);
+
                 const title =
                     reqItem?.title ?? requirement.id;
 

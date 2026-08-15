@@ -94,65 +94,65 @@ export default class StageDiscoveryTracker {
         this.refresh();
     }
     
-        refresh() {
-            const objectives =
-                this.stageProgress
-                    .getTrackedObjectives({
-                        newestFirst: true
-                    });
-        
-            this.clearObjectives();
+    refresh() {
+        const objectives =
+            this.stageProgress
+                .getTrackedObjectives({
+                    newestFirst: true
+                });
     
-            if (objectives.length === 0) {
-                this.showEmptyState();
-                return;
-            }
-        
-            let y = 10;
-        
-            objectives.forEach(
-                objective => {
-        
-                    const card =
-                        new TrackerCard(
-                            this.scene,
-                            {
-                                x: this.x + 10,
-                                y,
-                                width: this.width - 20,
-        
-                                objective,
-        
-                                stageProgress:
-                                    this.stageProgress,
-        
-                                onUntrack:
-                                    () => {
-                                        this.stageProgress
-                                            .setObjectiveTracked(
-                                                objective.id,
-                                                false
-                                            );
-                                    }
-                            }
-                        );
-        
-                    this.scrollBox.content.add(
-                        card.container
-                    );
-        
-                    this.objectives.push(card);
-        
-                    y +=
-                        card.height +
-                        10;
-                }
-            );
-        
-            this.scrollBox.setContentHeight(
-                y + 10
-            );
+        this.clearObjectives();
+
+        if (objectives.length === 0) {
+            this.showEmptyState();
+            return;
         }
+    
+        let y = 10;
+    
+        objectives.forEach(
+            objective => {
+    
+                const card =
+                    new TrackerCard(
+                        this.scene,
+                        {
+                            x: this.x + 10,
+                            y,
+                            width: this.width - 20,
+    
+                            objective,
+    
+                            stageProgress:
+                                this.stageProgress,
+    
+                            onUntrack:
+                                () => {
+                                    this.stageProgress
+                                        .setObjectiveTracked(
+                                            objective.id,
+                                            false
+                                        );
+                                }
+                        }
+                    );
+    
+                this.scrollBox.content.add(
+                    card.container
+                );
+    
+                this.objectives.push(card);
+    
+                y +=
+                    card.height +
+                    10;
+            }
+        );
+    
+        this.scrollBox.setContentHeight(
+            y + 10
+        );
+    }
     
     clearObjectives() {
         this.objectives.forEach(
