@@ -30,8 +30,13 @@ export default class StageProgressManager {
         this.unlocked =
             gameData.stageProgress?.unlocked ?? {};
 
+        // For discover tab only
         this.objectiveCompletionCounter =
             gameData.stageProgress?.objectiveCompletionCounter ?? 0;
+
+        // For tracker only
+        this.objectiveTrackingCounter =
+            gameData.stageProgress?.objectiveTrackingCounter ?? 0;
 
         // Observable changes
         this.events =
@@ -309,11 +314,7 @@ setObjectiveTracked(id, tracked = true) {
         return false;
     }
 
-    if (tracked) {
-        this.tracked[id] = true;
-    } else {
-        delete this.tracked[id];
-    }
+    this._setTracked(id, tracked);
 
     this.sync();
 
@@ -329,50 +330,118 @@ setObjectiveTracked(id, tracked = true) {
     return tracked;
 }
 
-getTrackedObjectives() {
-    return this.getCurrentObjectives()
-        .filter(objective => {
+_setTracked(id, tracked) {
+    if (tracked) {
+        this.tracked[id] = true;
+        this.objectiveTrackingCounter++;
 
-            // Must be tracked
-            if (!this.isObjectiveTracked(objective.id)) {
-                return false;
+        const state = this.getObjectiveState(id);
+        state.trackingOrder = this.objectiveTrackingCounter;
+        this.objectiveState[id] = state;
+    } else {
+        delete this.tracked[id];
+        const state = this.getObjectiveState(id);
+        delete state.trackingOrder;
+    }
+}
+
+getTrackingOrder(id) {
+    return (
+        this.getObjectiveState(id)
+            .trackingOrder
+        ?? 0
+    );
+}
+
+getTrackedObjectives(options = {}) {
+    const objectives =
+        this.getCurrentObjectives()
+            .filter(objective => {
+
+                // Must be tracked
+                if (!this.isObjectiveTracked(objective.id)) {
+                    return false;
+                }
+
+                // Tracker only shows objectives still in progress
+                if (this.isObjectiveComplete(objective.id)) {
+                    return false;
+                }
+
+                return true;
+            });
+
+    if (!options.newestFirst) {
+        return objectives;
+    }
+
+    // The property order of `tracked` represents
+    // the order objectives were most recently tracked.
+    const trackedOrder =
+        Object.keys(this.tracked);
+
+    const orderIndex =
+        new Map(
+            trackedOrder.map(
+                (id, index) =>
+                    [id, index]
+            )
+        );
+
+    return objectives.sort(
+        (a, b) => {
+
+            // Parents always go to the bottom.
+            if (
+                a.type === 'parent' &&
+                b.type !== 'parent'
+            ) {
+                return 1;
             }
 
-            // Tracker only shows objectives still in progress
-            if (this.isObjectiveComplete(objective.id)) {
-                return false;
+            if (
+                a.type !== 'parent' &&
+                b.type === 'parent'
+            ) {
+                return -1;
             }
 
-            return true;
-        });
+            // Otherwise newest tracked objective first.
+            return (
+                orderIndex.get(b.id) -
+                orderIndex.get(a.id)
+            );
+        }
+    );
 }
 
 initializeObjectiveTracking() {
     const stage =
         this.getCurrentStageId();
 
-    const stageObjectives =
-        this.objectives.filter(
-            objective =>
-                objective.stage === stage
-        );
-    
     const startingObjective =
         this.objectives.find(
             objective =>
-                objective.startsUnlocked === true
+                objective.stage === stage &&
+                objective.startsUnlocked === true &&
+                !this.isObjectiveComplete(objective.id)
         );
 
+    if (!startingObjective) {
+        return;
+    }
+
     if (
-        startingObjective &&
-        !this.isObjectiveTracked(
+        this.isObjectiveTracked(
             startingObjective.id
         )
     ) {
-        this.tracked[startingObjective.id] = true;
-
-        this.sync();
+        return;
     }
+
+    this.tracked[startingObjective.id] = true;
+
+    this.sync();
 }
 
 // --------------------------------------------------
@@ -410,6 +479,117 @@ initializeObjectiveTracking() {
     
         return requirements;
     }
+
+// NEW -- WIP integrate into StageCard
+getObjectiveProgressData(id) {
+    const objective =
+        this.getObjective(id);
+
+    if (!objective) {
+        return {
+            completed: 0,
+            total: 0,
+            percent: 0,
+            ready: false
+        };
+    }
+
+    // Parent objective
+    if (objective.type === 'parent') {
+
+        const children =
+            objective.children ?? [];
+
+        const completed =
+            children.filter(
+                childId =>
+                    this.isObjectiveComplete(childId)
+            ).length;
+
+        const total =
+            children.length;
+
+        const percent =
+            total > 0
+                ? completed / total
+                : 0;
+
+        return {
+            completed,
+            total,
+            percent,
+            ready:
+                total > 0 &&
+                completed === total
+        };
+    }
+
+    // Normal objective
+    const requirements =
+        this.getObjectiveRequirements(id);
+
+    const total =
+        requirements.length;
+
+    // No requirements means the objective
+    // is immediately ready.
+    if (total === 0) {
+        return {
+            completed: 0,
+            total: 0,
+            percent: 1,
+            ready: true
+        };
+    }
+
+    /*
+     * Calculate progress based on each
+     * requirement independently.
+     *
+     * Example:
+     *
+     * Wood 5 / 10 = 50%
+     * Stone 10 / 10 = 100%
+     *
+     * Overall = 75%
+     */
+
+    const percent =
+        requirements.reduce(
+            (sum, requirement) => {
+
+                const requirementPercent =
+                    Math.min(
+                        1,
+                        requirement.amount /
+                        requirement.required
+                    );
+
+                return sum + requirementPercent;
+
+            },
+            0
+        ) / total;
+
+    const completed =
+        requirements.filter(
+            requirement =>
+                requirement.complete
+        ).length;
+
+    const ready =
+        requirements.every(
+            requirement =>
+                requirement.complete
+        );
+
+    return {
+        completed,
+        total,
+        percent,
+        ready
+    };
+}
 
     getParentProgress(id) {
         const objective =
@@ -474,7 +654,10 @@ initializeObjectiveTracking() {
             this.getObjectiveState(id);
     
         state.completed = true;
-    
+        
+        delete this.tracked[id];
+        delete state.trackingOrder;
+        
         this.objectiveCompletionCounter++;
         
         state.completedOrder =
@@ -573,8 +756,8 @@ initializeObjectiveTracking() {
         this.objectiveState[id] =
             state;
         
-        // Automatically track new objectives
-        this.tracked[id] = true;
+        // Automatically track newly unlocked objective
+        this._setTracked(id, true);
     
         this.sync();
     
@@ -660,7 +843,7 @@ initializeObjectiveTracking() {
             result.push(objective);
             used.add(objective.id);
         });
-    
+
         // -----------------------------------------
         // 3. COMPLETED — MOST RECENT FIRST
         // -----------------------------------------
@@ -701,7 +884,8 @@ initializeObjectiveTracking() {
             objectives: this.objectiveState,
             unlocked: this.unlocked,
             tracked: this.tracked,
-            objectiveCompletionCounter: this.objectiveCompletionCounter
+            objectiveCompletionCounter: this.objectiveCompletionCounter,
+            objectiveTrackingCounter: this.objectiveTrackingCounter
         };
     }
 

@@ -90,7 +90,6 @@ export const stageObjectives = [
         title: 'DAYS OF CREATION',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Complete all six days of Creation.',
         requirements: {}, // Other requirements still possible, only items for now, objective requirements will rely on other unlocks.objective
         unlocks: {
@@ -106,7 +105,6 @@ export const stageObjectives = [
         title: 'THE BEGINNING',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         startsUnlocked: true,
         objectiveText: 'Learn About: THE BEGINNING',
         description: '"In the beginning, God created...."',
@@ -125,7 +123,6 @@ export const stageObjectives = [
         title: 'CREATION DAY 1',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Day 1 description....',
         requirements: {
             items: [ { darkness: 10 } ], // multiple allowed
@@ -146,7 +143,6 @@ export const stageObjectives = [
         title: 'CREATION DAY 2',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Day 2 description....',
         requirements: {
 // testing water
@@ -167,7 +163,6 @@ export const stageObjectives = [
         title: 'CREATION DAY 3',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Day 3 description....',
         requirements: {
             items: [ { water: 10 } ], // multiple allowed
@@ -187,7 +182,6 @@ export const stageObjectives = [
         title: 'CREATION DAY 4',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Day 4 description....',
         requirements: {
             items: [ { carbon: 10 } ], // multiple allowed
@@ -207,7 +201,6 @@ export const stageObjectives = [
         title: 'CREATION DAY 5',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Day 5 description....',
         requirements: {
             items: [ { hydrogen: 10 } ], // multiple allowed
@@ -227,7 +220,6 @@ export const stageObjectives = [
         title: 'CREATION DAY 6',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Day 6 description....',
         requirements: {
             items: [ { helium: 10 } ], // multiple allowed
@@ -245,7 +237,6 @@ export const stageObjectives = [
         title: 'CREATION DAY 7',
         stage: 'creation',
         tab: 'discover',
-        tracked: true,
         description: 'Day 7 description....',
         requirements: {
             items: [ { oxygen: 10 } ], // multiple allowed

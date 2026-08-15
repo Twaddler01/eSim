@@ -17,15 +17,15 @@ export default class StageDiscoveryTracker {
         this.width = options.width ?? 300;
         this.height = options.height ?? 200;
 
-        //this.depth =
-            //this.scene.depths?.tracker ?? 10;
+        this.depth =
+            this.scene.depths?.tracker ?? 10;
 
         this.removeProgressListener =
             listenToEvent(
                 this.stageProgress,
                 'updated',
-                () => {
-                    this.refresh();
+                event => {
+                    this.handleProgressUpdate(event);
                 }
             );
 
@@ -58,105 +58,141 @@ export default class StageDiscoveryTracker {
             );
     }
 
-    refresh() {
-    
-        const objectives =
+    handleProgressUpdate(event) {
+        const currentObjectives =
             this.stageProgress
-                .getTrackedObjectives();
+                .getTrackedObjectives({
+                    newestFirst: true
+            });
+
+        const currentIds =
+            currentObjectives.map(
+                objective => objective.id
+            );
     
-        this.clearObjectives();
+        const displayedIds =
+            this.objectives.map(
+                card => card.objective.id
+            );
     
-        if (objectives.length === 0) {
-            this.showEmptyState();
+        const sameObjectives =
+            currentIds.length === displayedIds.length &&
+            currentIds.every(
+                (id, index) =>
+                    id === displayedIds[index]
+            );
     
+        // Same cards -> only update their contents
+        if (sameObjectives) {
+            this.objectives.forEach(
+                card => card.update()
+            );
             return;
         }
     
-        let y = 10;
+        // Different cards, including 0 cards -> rebuild
+        this.refresh();
+    }
     
-        objectives.forEach(
-            objective => {
+        refresh() {
+            const objectives =
+                this.stageProgress
+                    .getTrackedObjectives({
+                        newestFirst: true
+                    });
+        
+            this.clearObjectives();
     
-                const card =
-                    new TrackerCard(
-                        this.scene,
-                        {
-                            x: this.x + 10,
-                            y,
-                            width: this.width - 20,
-    
-                            objective,
-    
-                            stageProgress:
-                                this.stageProgress,
-    
-                            onUntrack:
-                                () => {
-                                    this.stageProgress
-                                        .setObjectiveTracked(
-                                            objective.id,
-                                            false
-                                        );
-                                }
-                        }
-                    );
-    
-                this.scrollBox.content.add(
-                    card.container
-                );
-    
-                this.objectives.push(card);
-    
-                y +=
-                    card.height +
-                    10;
+            if (objectives.length === 0) {
+                this.showEmptyState();
+                return;
             }
+        
+            let y = 10;
+        
+            objectives.forEach(
+                objective => {
+        
+                    const card =
+                        new TrackerCard(
+                            this.scene,
+                            {
+                                x: this.x + 10,
+                                y,
+                                width: this.width - 20,
+        
+                                objective,
+        
+                                stageProgress:
+                                    this.stageProgress,
+        
+                                onUntrack:
+                                    () => {
+                                        this.stageProgress
+                                            .setObjectiveTracked(
+                                                objective.id,
+                                                false
+                                            );
+                                    }
+                            }
+                        );
+        
+                    this.scrollBox.content.add(
+                        card.container
+                    );
+        
+                    this.objectives.push(card);
+        
+                    y +=
+                        card.height +
+                        10;
+                }
+            );
+        
+            this.scrollBox.setContentHeight(
+                y + 10
+            );
+        }
+    
+    clearObjectives() {
+        this.objectives.forEach(
+            card => card.destroy?.()
+        );
+    
+        this.objectives = [];
+    
+        this.emptyText?.destroy();
+        this.emptyText = null;
+    
+        this.scrollBox.scrollToTop();
+    }
+    
+    showEmptyState() {
+        this.emptyText =
+            addText(
+                this.scene,
+                this.x + 10,
+                this.y + 10,
+                'No objectives are currently being tracked.\n\n' +
+                'Visit DISCOVER tab to follow an objective.',
+                {
+                    fontSize: '16px',
+                    color: '#ffffff',
+                    wordWrap: {
+                        width: this.width - 20
+                    },
+                    align: 'center'
+                }
+            );
+    
+        this.scrollBox.content.add(
+            this.emptyText
         );
     
         this.scrollBox.setContentHeight(
-            y + 10
+            this.emptyText.height + 20
         );
     }
-
-clearObjectives() {
-    this.objectives.forEach(
-        card => card.destroy?.()
-    );
-
-    this.objectives = [];
-
-    this.emptyText?.destroy();
-    this.emptyText = null;
-
-    this.scrollBox.scrollToTop();
-}
-
-showEmptyState() {
-    this.emptyText =
-        addText(
-            this.scene,
-            10,
-            10,
-            'No objectives are currently being tracked.\n\n' +
-            'Visit DISCOVER tab to follow an objective.',
-            {
-                fontSize: '16px',
-                color: '#ffffff',
-                wordWrap: {
-                    width: this.width - 20
-                },
-                align: 'center'
-            }
-        );
-
-    this.scrollBox.content.add(
-        this.emptyText
-    );
-
-    this.scrollBox.setContentHeight(
-        this.emptyText.height + 20
-    );
-}
 
     destroy() {
         this.removeProgressListener?.();
@@ -168,6 +204,8 @@ showEmptyState() {
     
         this.background?.destroy();
         this.scrollBox?.destroy();
+        
+        this.emptyText?.destroy();
     
         this.background = null;
         this.scrollBox = null;
