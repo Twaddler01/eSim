@@ -23,6 +23,10 @@ export default class StageProgressManager {
         this.objectiveState =
             gameData.stageProgress?.objectives ?? {};
 
+        // Stores tracked objectives
+        this.tracked =
+            gameData.stageProgress?.tracked ?? {};
+
         this.unlocked =
             gameData.stageProgress?.unlocked ?? {};
 
@@ -32,6 +36,9 @@ export default class StageProgressManager {
         // Observable changes
         this.events =
             new Phaser.Events.EventEmitter();
+        
+        // Add initial tracked objective (startsUnlocked)
+        this.initializeObjectiveTracking();
     }
 
 
@@ -84,6 +91,12 @@ export default class StageProgressManager {
             id,
             this.get(id) - amount
         );
+    }
+
+    getItem(id) {
+        return this.stageItems.find(
+            item => item.id === id
+        ) ?? null;
     }
 
     // Gather upgrade levels
@@ -280,14 +293,124 @@ CREATION DAY 1
 STATUS: COMPLETED
 */
 
-    getTrackedObjectives() {
-        return this.getCurrentObjectives()
-            .filter(
-                objective =>
-                    objective.tracked
-            );
+// --------------------------------------------------
+// OBJECTIVE TRACKING
+// --------------------------------------------------
+
+isObjectiveTracked(id) {
+    return this.tracked[id] === true;
+}
+
+setObjectiveTracked(id, tracked = true) {
+    const objective =
+        this.getObjective(id);
+
+    if (!objective) {
+        return false;
     }
+
+    if (tracked) {
+        this.tracked[id] = true;
+    } else {
+        delete this.tracked[id];
+    }
+
+    this.sync();
+
+    this.events.emit(
+        'updated',
+        {
+            type: 'objective-track',
+            id,
+            tracked
+        }
+    );
+
+    return tracked;
+}
+
+getTrackedObjectives() {
+    return this.getCurrentObjectives()
+        .filter(objective => {
+
+            // Must be tracked
+            if (!this.isObjectiveTracked(objective.id)) {
+                return false;
+            }
+
+            // Tracker only shows objectives still in progress
+            if (this.isObjectiveComplete(objective.id)) {
+                return false;
+            }
+
+            return true;
+        });
+}
+
+initializeObjectiveTracking() {
+    const stage =
+        this.getCurrentStageId();
+
+    const stageObjectives =
+        this.objectives.filter(
+            objective =>
+                objective.stage === stage
+        );
     
+    const startingObjective =
+        this.objectives.find(
+            objective =>
+                objective.startsUnlocked === true
+        );
+
+    if (
+        startingObjective &&
+        !this.isObjectiveTracked(
+            startingObjective.id
+        )
+    ) {
+        this.tracked[startingObjective.id] = true;
+
+        this.sync();
+    }
+}
+
+// --------------------------------------------------
+// END ... OBJECTIVE TRACKING
+// --------------------------------------------------
+
+// NEW -- WIP integrate into StageCard
+    getObjectiveRequirements(id) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return [];
+        }
+    
+        const requirements = [];
+    
+        const itemRequirements =
+            objective.requirements?.items ?? [];
+    
+        itemRequirements.forEach(requirement => {
+    
+            Object.entries(requirement)
+                .forEach(([itemId, required]) => {
+    
+                    requirements.push({
+                        id: itemId,
+                        required,
+                        amount: this.get(itemId),
+                        complete:
+                            this.get(itemId) >= required
+                    });
+                });
+        });
+    
+        return requirements;
+    }
+
     getParentProgress(id) {
         const objective =
             this.getObjective(id);
@@ -449,6 +572,9 @@ STATUS: COMPLETED
     
         this.objectiveState[id] =
             state;
+        
+        // Automatically track new objectives
+        this.tracked[id] = true;
     
         this.sync();
     
