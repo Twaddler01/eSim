@@ -7,8 +7,8 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Make card refreshes update live (instead of rebuilding) for any cards that are added to, modified, or removed from the currently viewed tab.
 - Clean up new discover tab layout and its StageCard relationship.
-- Tracker work is done for now.
 
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
@@ -21,6 +21,7 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
+- Tracker work is done for now.
 - Tracker was temporarily on hold until Discover tab was fully updated with improved structure.
 - Updated README.md to specifically indicate last readme update date.
 - Objectives completed in discover tab will now move to an "archived state" to be displayed differently and will no longer receive amount updates. 
