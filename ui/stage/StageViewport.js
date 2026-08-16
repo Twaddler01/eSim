@@ -109,6 +109,7 @@ export default class StageViewport {
         return card;
     }
 
+/* OLD
     updateCard(id, data) {
     
         const card =
@@ -153,7 +154,143 @@ export default class StageViewport {
             this.relayoutCards();
         }
     }
+*/
+    syncCards(cardData = []) {
+        const desiredIds =
+            new Set(
+                cardData.map(data => data.id)
+            );
+    
+        // -----------------------------------------
+        // 1. Remove cards no longer needed
+        // -----------------------------------------
+    
+        this.cards.forEach((card, id) => {
+    
+            if (!desiredIds.has(id)) {
+                card.destroy?.();
+                this.cards.delete(id);
+            }
+        });
+    
+        // -----------------------------------------
+        // 2. Add / update cards
+        // -----------------------------------------
+    
+        cardData.forEach(data => {
+    
+            const existing =
+                this.cards.get(data.id);
+    
+            if (existing) {
+    
+                this.updateCardData(
+                    existing,
+                    data
+                );
+    
+            } else {
+    
+                this.addCard(data);
+            }
+        });
+    
+        // -----------------------------------------
+        // 3. Rebuild display order
+        // -----------------------------------------
+    
+        const orderedCards =
+            new Map();
+    
+        cardData.forEach(data => {
+    
+            const card =
+                this.cards.get(data.id);
+    
+            if (card) {
+                orderedCards.set(
+                    data.id,
+                    card
+                );
+            }
+        });
+    
+        this.cards = orderedCards;
+    
+        // -----------------------------------------
+        // 4. Reposition
+        // -----------------------------------------
+    
+        this.relayoutCards();
+    }
 
+    // syncCards helper
+    updateCardData(card, data) {
+    
+        if (data.amount !== undefined) {
+            card.setAmount(data.amount);
+        }
+    
+        if (data.max !== undefined) {
+            card.setMax(data.max);
+        }
+    
+        if (data.percent !== undefined) {
+            card.percent = data.percent;
+            card.updateProgress();
+        }
+    
+        if (data.availability !== undefined) {
+            card.availability =
+                data.availability;
+    
+            card.updateAvailability();
+        }
+    
+        if (data.upgradeStats !== undefined) {
+    
+            card.upgradeStats =
+                data.upgradeStats;
+    
+            card.updateUpgrades();
+    
+            const heightChanged =
+                card.refreshHeight();
+    
+            if (heightChanged) {
+                this.relayoutCards();
+            }
+        }
+    
+        // Parent objective
+        if (data.getChildComplete) {
+            card.getChildComplete =
+                data.getChildComplete;
+    
+            card.updateChildObjectives();
+        }
+    
+        card.updateRequirements(
+            card.getAmount
+        );
+    }
+
+    updateCard(id, data) {
+    
+        const card =
+            this.cards.get(id);
+    
+        if (!card) {
+            return;
+        }
+    
+        this.updateCardData(
+            card,
+            data
+        );
+    }
+
+// ????
     relayoutCards() {
     
         const padding = 15;
@@ -176,7 +313,6 @@ export default class StageViewport {
 
     // Update multiple existing cards
     updateCards(updates) {
-    
         updates.forEach(data => {
             this.updateCard(
                 data.id,

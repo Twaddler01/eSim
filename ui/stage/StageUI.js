@@ -51,7 +51,7 @@ export default class StageUI {
                 this.stageProgress,
                 'updated',
                 update => {
-                    this.updateAffectedCards(update.id);
+                    this.updateAffectedCards(update);
                 }
             );
         
@@ -424,6 +424,105 @@ export default class StageUI {
         return 'active';
     }
 
+// Get cards (for tab initialization)
+getCurrentTabCardData() {
+    let cards =
+        stageItems.filter(
+            item =>
+                item.tab === this.currentTab
+        );
+
+    // OBJECTIVES
+    if (this.currentTab === 'discover') {
+
+        const objectives =
+            this.stageProgress
+                .getSortedCurrentObjectives();
+
+        const objectiveCards =
+            objectives.map(
+                objective =>
+                    this.getObjectiveCardData(
+                        objective
+                    )
+            );
+
+        cards = [
+            ...objectiveCards,
+            ...cards
+        ];
+    }
+
+    return cards.map(item => ({
+
+        ...item,
+
+        amount:
+            item.discovery
+                ? null
+                : this.stageProgress.get(item.id),
+
+        max:
+            item.discovery
+                ? null
+                : getItemMax(
+                    item,
+                    this.stageProgress
+                ),
+
+        nextMax:
+            item.gather
+                ? getItemMax(
+                    item,
+                    this.stageProgress,
+                    'next'
+                )
+                : null,
+
+        upgradeStats:
+            this.getUpgrades(item),
+
+        availability:
+            this.getAvailability(item),
+
+        getAmount:
+            id =>
+                this.stageProgress.get(id),
+
+        canAction:
+            () =>
+                this.getCardCanAction(item),
+
+        onAction:
+            () =>
+                this.handleCardAction(item)
+
+    }));
+}
+
+// DIFFERENT TAB REFRESH
+// Destroy old tab and build new tab
+refreshCurrentTab() {
+    const cardData =
+        this.getCurrentTabCardData();
+
+    this.viewport.showCards(
+        cardData
+    );
+}
+
+// SAME TAB REFRESH
+// Keep the existing cards and reconcile them with the new state
+updateCurrentTab() {
+    const cardData =
+        this.getCurrentTabCardData();
+
+    this.viewport.syncCards(
+        cardData
+    );
+}
+
+/* OLD
     // Build cards for current tab
     refreshCurrentTab() {
     
@@ -490,7 +589,7 @@ export default class StageUI {
             displayCards
         );
     }
-
+*/
     // Helpers for refreshCurrentTab()
     getObjectiveCardData(objective) {
         const card = {
@@ -586,7 +685,29 @@ export default class StageUI {
     
         this.refreshCurrentTab();
     }
+
+    updateAffectedCards(update) {
+        // Objective changes can add/remove/reorder
+        // cards and change parent progress.
+        if (
+            update.type === 'objective-unlock' ||
+            update.type === 'objective-complete'
+        ) {
+            this.updateCurrentTab();
+            return;
+        }
     
+        // Amount changes can change requirements,
+        // availability, progress, etc.
+        if (
+            update.type === 'amount' ||
+            update.type === 'gather-upgrade'
+        ) {
+            this.updateCurrentTab();
+            return;
+        }
+    }
+/* OLD
     // Update only affected cards
     updateAffectedCards(id) {
     // Objective changes can alter several cards,
@@ -663,6 +784,7 @@ export default class StageUI {
             }
         });
     }
+*/
 
     getObjectiveComplete(id) {
         return this.stageProgress.isObjectiveComplete(id);
