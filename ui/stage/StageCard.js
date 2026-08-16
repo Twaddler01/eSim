@@ -22,6 +22,9 @@ export default class StageCard {
         this.title = options.title ?? 'Item';
         this.description = options.description ?? '';
 
+        // Function values
+        this.upgradeStats = options.upgradeStats ?? null;
+
         // ALL elements (tab container)
         this.elements = [];
         
@@ -130,8 +133,56 @@ export default class StageCard {
 
         //console.log('Creating gather card');
 
-        // amount
-        // upgrades
+        // Gain label -- uses this.upgradeStats
+        const defaultGatherGain = 1;
+        this.gatherUI.gainLabel =
+            this.addElement(
+                addText(this.scene,
+                    this.x + 15,
+                    this.y + 37, // +25
+                    'Gather Qty: +' + defaultGatherGain,
+                    {
+                        fontSize: '12px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+        
+        // Progress (based on max)
+        const barWidth = this.width - 20;
+        const barHeight = 10;
+        this.gatherUI.progressBackground =
+            this.addElement(
+                this.scene.add.rectangle(
+                    this.x + 15,
+                    this.y + 67, // 30
+                    barWidth,
+                    barHeight,
+                    0x222222
+                )
+                .setOrigin(0)
+            );
+
+        this.gatherUI.progressFill =
+            this.addElement(
+                this.scene.add.rectangle(
+                    this.x + 15,
+                    this.y + 67, // 30
+                    barWidth, // temp 0
+                    barHeight,
+                    0x44aa44
+                )
+                .setOrigin(0)
+            );
+
+        // Upgrade area
+        const upgradeAvailable = true;
+        if (upgradeAvailable) {
+            
+        }
+        
+        // upgrades -- possibly a box area?
         // gather button
     }
 
