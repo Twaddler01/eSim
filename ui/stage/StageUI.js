@@ -112,6 +112,9 @@ export default class StageUI {
         const viewportHeight =
             viewportBottom - viewportY;
 
+        // Initial tab
+        this.currentTab = 'gather';
+
         this.viewport =
             new StageViewport(
                 this.scene,
@@ -122,7 +125,8 @@ export default class StageUI {
                         this.width -
                         margin * 2,
                     height:
-                        viewportHeight
+                        viewportHeight,
+                    tab: this.tab
                 }
             );
 
@@ -151,8 +155,6 @@ export default class StageUI {
                 }
             );
 
-        // Initial tab
-        this.currentTab = 'gather';
         this.refreshCurrentTab();
     }
 

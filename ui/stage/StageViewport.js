@@ -90,7 +90,6 @@ export default class StageViewport {
 
                     x,
                     y,
-
                     width: cardWidth,
 
                     container: this.container

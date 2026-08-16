@@ -1,1089 +1,220 @@
+/* CARD SOURCE
+    let cards =
+        stageItems.filter(
+            item =>
+                item.tab === this.currentTab
+        );
+*/
 export default class StageCard {
 
     constructor(scene, options = {}) {
         this.scene = scene;
-    
-        this.container = options.container ?? scene.add.container();
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
-        this.width = options.width ?? 300;
-        this.objective = options.objective ?? false;
-
+        this.width = options.width ?? 930;
+        this.height = options.height ?? 200;
+        this.container = options.container;
         this.depth = this.scene.depths?.cards ?? 0;
 
-        // Item data
+        // Data
         this.id = options.id ?? null;
-        this.title = options.title ?? 'Item';
-        this.amount = options.amount ?? 0;
-        this.description = options.description ?? '';
-        this.objectiveText = options.objectiveText ?? null;
-
-        // null = no maximum
-        this.max = options.max ?? null;
-        // for parent obj
-        this.percent = options.percent ?? 0;
-// WIP
-this.nextMax = options.nextMax ?? null;
-        this.upgradeStats = options.upgradeStats ?? null;
-        this.availability = options.availability ?? 'locked';
-        this.requirements = options.requirements ?? {};
-        this.produces = options.produces ?? {};
-        this.actionLabel = options.actionLabel ?? 'ACTION';
-        this.upgradable = options.gather?.upgrade?.enabled === true;
         this.tab = options.tab ?? 'gather';
-        this.type = options.type ?? null;
-        this.reqItems = options.reqItems ?? {};
+        this.title = options.title ?? 'Item';
+        this.description = options.description ?? '';
 
-        this.children = options.children ?? [];
-        this.getChildComplete = options.getChildComplete ?? (() => false);
-        this.isArchived = false;
-    
-        // Callbacks
-        this.onAction = options.onAction ?? null;
-        this.canAction = options.canAction ?? (() => true);
-        this.getAmount = options.getAmount ?? (() => 0);
-
-        this.upgradeGatherRow = [];
-        this.upgradeMaxRow = [];
+        // ALL elements (tab container)
+        this.elements = [];
         
-        this.childObjectiveTexts = [];
-        this.requirementTexts = [];
-        this.upgradeTexts = [];
-        this.reqLabel = null;
-
-        this.height = options.height ?? this.getCardHeight(options);
+        // Source for ALL cards
+        this.ui = {};
+        // Specialized UI cards by type
+        this.gatherUI = {};
+        this.createUI = {};
+        this.discoverUI = {};
 
         this.create();
+        this.update(options);
+    }
+
+    // ELEMENT HELPERS
+    addElement(element) {
+        this.elements.push(element);
+        this.container.add(element);
+        return element;
     }
 
     // CREATE
     create() {
-        // Background
-        this.background =
-            this.scene.add.rectangle(
-                this.x,
-                this.y,
-                this.width,
-                this.height,
-                0x000055
-            )
-            .setOrigin(0)
-            .setStrokeStyle(
-                1,
-                0x000000
-            );
+        // ui
+        this.createBackground();
+        this.createStatusOverlay();
+        this.createTitle();
 
-        // Locked overlay
-        this.lockOverlay =
-            this.scene.add.rectangle(
-                this.x,
-                this.y,
-                this.width,
-                this.height,
-                0x000000,
-                0.55
-            )
-            .setOrigin(0);
-            
-        // Availability message
-        this.availabilityText =
-            addText(this.scene,
-                this.x + this.width / 2,
-                this.y + this.height / 2,
-                '',
-                {
-                    fontSize: '18px',
-                    color: '#ffffff'
-                }
-            )
-            .setOrigin(0.5);
-
-        // Title
-        this.titleText =
-            addText(this.scene,
-                this.x + 15,
-                this.y + 12,
-                this.title,
-                {
-                    fontSize: '22px',
-                    color: '#ffffff'
-                }
-            );
-
-        this.descriptionText =
-            addText(this.scene,
-                this.x + 15,
-                this.y + 48,
-                this.description,
-                {
-                    fontSize: '16px',
-                    color: '#cccccc',
-                    wordWrap: {
-                        width: this.width - 30
-                    }
-                }
-            );
-
-        // Amount
-        this.amountText =
-            addText(this.scene,
-                this.x + 15,
-                this.y + 48,
-                '',
-                {
-                    fontSize: '16px',
-                    color: '#ffffff'
-                }
-            );
-        this.amountText.setVisible(!this.description);
-
-        // Display requirements depending on specific conditions
-        let reqLabelText = ''; // Default gather
-        if (this.tab === 'discover' && this.type === 'parent') {
-            reqLabelText = 'Complete the following objectives:'
-        }
-        if (this.tab === 'create' || (this.tab === 'discover' && this.type !== 'parent')) {
-            reqLabelText = 'Requires:';
-        }
-
-        this.reqLabel =
-            addText(
-                this.scene,
-                this.x + 15,
-                this.y + 73,
-                reqLabelText,
-                {
-                    fontSize: '16px',
-                    color: '#ffffff'
-                }
-            )
-            .setOrigin(0);
-
-        let contentBottom = this.y + 73;
-        
-        contentBottom = this.createObjectiveRequirements(this.y + 73);
-        
-        // Optional special objective text
-        if (this.objectiveText) {
-            this.objectiveTextDisplay =
-                addText(
-                    this.scene,
-                    this.x + 15,
-                    contentBottom,
-                    this.objectiveText,
-                    {
-                        fontSize: '16px',
-                        color: '#66ff66'
-                    }
-                );
-                contentBottom += this.objectiveTextDisplay.height + 5;
-        }
-
-        if (this.objective && this.children.length) {
-            contentBottom =
-                this.createChildObjectiveLayout(
-                    contentBottom
-                );
-        }
-
-        // Progress bar
-        const barX = this.x + 15;
-        const barY = contentBottom - 5;
-        const barWidth = this.width - 30;
-        const barHeight = 12;
-
-        this.progressBackground =
-            this.scene.add.rectangle(
-                barX,
-                barY,
-                barWidth,
-                barHeight,
-                0x222222
-            )
-            .setOrigin(0);
-
-        this.progressFill =
-            this.scene.add.rectangle(
-                barX,
-                barY,
-                0,
-                barHeight,
-                0x44aa44
-            )
-            .setOrigin(0);
-
-        if (this.upgradable) {
-            // Upgrade display
-            this.createUpgradeLayout(
-                barX,
-                barY + 20
-            );
-        }
-
-        // Action button
-        const buttonWidth = 120;
-        const buttonHeight = 30;
-
-        const buttonX =
-            this.x +
-            this.width / 2 -
-            buttonWidth / 2;
-
-        const buttonY =
-            this.y +
-            this.height -
-            buttonHeight -
-            10;
-
-        this.actionButton =
-            this.scene.add.rectangle(
-                buttonX,
-                buttonY,
-                buttonWidth,
-                buttonHeight,
-                0x333333
-            )
-            .setOrigin(0)
-            .setStrokeStyle(
-                1,
-                0xffffff
-            )
-            .setInteractive();
-
-        this.actionButton.setDepth(
-            this.depth
-        );
-
-        this.actionText =
-            addText(this.scene,
-                buttonX + buttonWidth / 2,
-                buttonY + buttonHeight / 2,
-                this.actionLabel,
-                {
-                    fontSize: '16px',
-                    color: '#ffffff'
-                }
-            )
-            .setOrigin(0.5);
-
-        // Button event
-        this._actionHandler = () => {
-            if (!this.canAction()) {
-                return;
-            }
-
-            this.onAction?.();
-        };
-
-        this.actionButton.on(
-            'pointerdown',
-            this._actionHandler
-        );
-
-        // Container
-        this.container.add([
-            this.background,
-            this.titleText,
-            this.descriptionText,
-            this.amountText,
-            ...(this.reqLabel
-                ? [this.reqLabel]
-                : []),
-            ...this.childObjectiveTexts.map(
-                requirement =>
-                    requirement.text
-            ),
-            ...this.requirementTexts.map(
-                requirement =>
-                    requirement.text
-            ),
-            ...this.upgradeTexts,
-            ...(this.objectiveTextDisplay
-                ? [this.objectiveTextDisplay]
-                : []),
-            this.progressBackground,
-            this.progressFill,
-            this.actionButton,
-            this.actionText,
-            this.lockOverlay,
-            this.availabilityText
-        ]);
-
-        // Initial display
-        this.update({
-            amount: this.amount,
-            availability: this.availability
-        });
-    }
-
-    getUpgradeDisplayHeight() {
-        let upgradeY = 40;
-        if (!this.upgradeStats) {
-            return upgradeY;
-        }
-        
-        const gatherActive = this.upgradeStats.rateIncrease > 0;
-        const maxActive = this.upgradeStats.maxIncrease > 0;
-        if (gatherActive || maxActive) {
-            upgradeY += 30;
-        }
-
-        if (gatherActive) {
-            upgradeY += 22;
-        }
-    
-        if (maxActive) {
-            upgradeY += 22 
-        }
-        
-        return upgradeY;
-    }
-
-    // CARD HEIGHT
-    getCardHeight(options) {
-        if (options.startsUnlocked) return 180;
-        switch (options.tab) {
-            case 'create': {
-                const requirementCount =
-                    Object.keys(
-                        options.requirements ?? {}
-                    ).length;
-                return 190 + requirementCount * 22;
-            }
-
-            case 'discover': {
-                const childCount =
-                    options.children?.length ?? 0;
-            
-                const itemRequirementCount =
-                    (options.requirements?.items ?? [])
-                        .reduce(
-                            (total, requirement) =>
-                                total +
-                                Object.keys(requirement).length,
-                            0
-                        );
-            
-                if (options.children?.length > 0 || itemRequirementCount > 0) {
-                    // Starting point for the requirements section.
-                    let contentHeight = 73;
-                
-                    // "Complete Objectives:" / "Requirements:" label
-                    contentHeight += 25;
-                
-                    // Child objectives
-                    if (childCount > 0) {
-                        contentHeight += childCount * 22;
-                    }
-                
-                    // Item requirements
-                    if (itemRequirementCount > 0) {
-                        contentHeight += itemRequirementCount * 22;
-                    }
-                
-                    // Space below requirements + progress bar
-                    contentHeight += 17;
-                
-                    // Bottom padding / button area
-                    contentHeight += 50;
-                
-                    return contentHeight;
-                }
-            }
+        switch (this.tab) {
             case 'gather':
-                return 140 + this.getUpgradeDisplayHeight();
-            default:
-                return 180;
+                this.createGather();
+                break;
+            case 'create':
+                this.createCreate();
+                break;
+            case 'discover':
+                this.createDiscover();
+                break;
         }
     }
 
-    // CURRENT UPGRADES -- For createUpgradeLayout()
-    updateUpgrades() {
-        if (!this.upgradeStats) {
-            return;
-        }
-    
-        const gatherActive =
-            this.upgradeStats.rateIncrease > 0;
-    
-        const maxActive =
-            this.upgradeStats.maxIncrease > 0;
-    
-        // Title
-        this.upgradeLabelTitle.setVisible(
-            gatherActive || maxActive
-        );
-    
-        // Individual rows
-        this.upgradeGatherRow.forEach(
-            text => text.setVisible(gatherActive)
-        );
-    
-        this.upgradeMaxRow.forEach(
-            text => text.setVisible(maxActive)
-        );
-    
-        // Values
-        this.upgradeGatherText.setText(
-            `${Math.round(
-                this.upgradeStats.rateIncrease * 10
-            ) / 10}`
-        );
-    
-        this.upgradeMaxText.setText(
-            `${this.upgradeStats.maxIncrease}`
-        );
+    createBackground() {
+
+        this.ui.background =
+            this.addElement(
+                this.scene.add.rectangle(
+                    this.x,
+                    this.y,
+                    this.width,
+                    this.height,
+                    0x000055
+                )
+                .setOrigin(0)
+                .setStrokeStyle(1, 0x000000)
+            );
     }
 
-    // PARENT LAYOUT
-    createChildObjectiveLayout(startY) {
-    
-        let y = startY;
-    
-        if (!this.children.length) {
-            return y;
-        }
-    
-        this.children.forEach(child => {
-            const text =
+    createStatusOverlay() {
+        // Locked overlay
+        this.ui.lockOverlay =
+            this.addElement(
+                this.scene.add.rectangle(
+                    this.x,
+                    this.y,
+                    this.width,
+                    this.height,
+                    0x000000,
+                    0.55
+                )
+                .setOrigin(0)
+            );
+                
+        // Availability message
+        this.ui.availabilityText =
+                this.addElement(
+                    addText(this.scene,
+                        this.x + this.width / 2,
+                        this.y + this.height / 2,
+                        'LOCKED',
+                        {
+                            fontSize: '18px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0.5)
+            );
+    }
+
+    createTitle() {
+        this.ui.title =
+            this.addElement(
                 addText(
                     this.scene,
                     this.x + 15,
-                    y,
-                    '',
+                    this.y + 12,
+                    this.title,
                     {
-                        fontSize: '16px',
+                        fontSize: '22px',
                         color: '#ffffff'
                     }
-                );
-    
-            this.childObjectiveTexts.push({
-                id: child.id ?? child,
-                title: child.title ?? child.id,
-                text
-            });
-    
-            y += 22;
-        });
-    
-        return y + 10;
-    }
-    
-    updateChildObjectives() {
-        if (!this.childObjectiveTexts) {
-            return;
-        }
-
-        // Completed objective = archived display.
-        if (this.isArchived) {
-            return;
-        }
-
-        this.childObjectiveTexts.forEach(child => {
-    
-            const complete =
-                this.getChildComplete?.(child.id) ?? false;
-    
-            child.text
-                .setText(
-                    `${child.title}: ${complete ? '✓' : '✕'}`
                 )
-                .setColor(
-                    complete
-                        ? '#66ff66'
-                        : '#ff6666'
-                );
-        });
-    }
-
-    // UPGRADE LAYOUT
-    createUpgradeLayout(startX, startY) {
-        let currentY = startY;
-        this.upgradeLabelTitle =
-            addText(this.scene,
-                startX,
-                currentY,
-                'ACTIVE UPGRADES',
-                {
-                    fontSize: '16px',
-                    color: '#ffffff'
-                }
-            )
-            .setOrigin(0);
-
-        currentY += 30;
-        this.upgradeAmountLabel =
-            addText(this.scene,
-                startX + 5,
-                currentY,
-                'GATHER increase: +',
-                {
-                    fontSize: '16px',
-                    color: '#66ff66'
-                }
-            )
-            .setOrigin(0);
-        
-        this.upgradeGatherText =
-            addText(this.scene,
-                startX + 5 + 145,
-                currentY,
-                '0',
-                {
-                    fontSize: '16px',
-                    color: '#66ff66'
-                }
-            )
-            .setOrigin(0);
-        
-        currentY += 22;
-        this.upgradeMaxLabel =
-            addText(this.scene,
-                startX + 5,
-                currentY,
-                'MAX increase: +',
-                {
-                    fontSize: '16px',
-                    color: '#66ff66'
-                }
-            )
-            .setOrigin(0);
-        
-        this.upgradeMaxText =
-            addText(this.scene,
-                startX + 5 + 120,
-                currentY,
-                '0',
-                {
-                    fontSize: '16px',
-                    color: '#66ff66'
-                }
-            )
-            .setOrigin(0);
-
-        this.upgradeGatherRow = [
-            this.upgradeAmountLabel,
-            this.upgradeGatherText
-        ];
-        
-        this.upgradeMaxRow = [
-            this.upgradeMaxLabel,
-            this.upgradeMaxText
-        ];
-
-        this.upgradeTexts = [
-            this.upgradeLabelTitle,
-            ...this.upgradeGatherRow,
-            ...this.upgradeMaxRow
-        ];
-    }
-
-    // CREATE REQUIREMENTS FOR OBJECTIVES
-    createObjectiveRequirements(startY) {
-        let y = startY + 25;
-
-        // Normal objective requirements
-        const itemRequirements =
-            this.requirements?.items ?? [];
-            
-        if (itemRequirements.length) {
-            itemRequirements.forEach(requirement => {
-    
-                Object.entries(requirement)
-                    .forEach(([id, required]) => {
-    
-                        const text =
-                            addText(
-                                this.scene,
-                                this.x + 15,
-                                y,
-                                '',
-                                {
-                                    fontSize: '16px',
-                                    color: '#ffffff'
-                                }
-                            );
-    
-                        this.requirementTexts.push({
-                            id,
-                            required,
-                            text
-                        });
-    
-                        y += 22;
-                    });
-            });
-        }
-        return y;
-    }
-
-    // UPDATE EVERYTHING
-    update(data = {}) {
-        if (data.amount !== undefined) {
-            this.setAmount(
-                data.amount
             );
-        }
-
-        if (data.upgradeStats !== undefined) {
-            this.upgradeStats = data.upgradeStats;
-        }
-
-        if (data.availability !== undefined) {
-            this.availability =
-                data.availability;
-        }
-        
-        // Update child objectives
-        this.updateChildObjectives();;
-
-        // Update requirement display
-        this.updateRequirements(this.getAmount);
-
-        // Refresh upgrade display
-        this.updateUpgrades();
-        
-        // Update button / overlay
-        this.updateAvailability();
     }
 
-    // REQUIREMENTS
-    updateRequirements(getAmount) {
-        // Completed objectives no longer track live amounts.
-        if (this.isArchived) {
-            return;
-        }
-    
-        this.requirementTexts.forEach(
-            requirement => {
-    
-                const amount =
-                    getAmount(requirement.id);
-    
-                const ready =
-                    amount >= requirement.required;
+    createGather() {
 
-                const reqItem = this.reqItems.find(i => i.id === requirement.id);
+        //console.log('Creating gather card');
 
-                const title =
-                    reqItem?.title ?? requirement.id;
-    
-                requirement.text.setText(
-                    `${title}: ${Math.floor(amount)} / ${requirement.required} ${ready ? '✓' : '✕'}`
-                );
-    
-                requirement.text.setColor(
-                    ready
-                        ? '#66ff66'
-                        : '#ff6666'
-                );
-            }
-        );
+        // amount
+        // upgrades
+        // gather button
     }
 
-    // AVAILABILITY
-    updateAvailability() {
-    
-        const state = this.availability;
-    
-        // Reset
-        this.lockOverlay.setVisible(false);
-        this.availabilityText.setVisible(false);
-    
-        // ACTIVE
-        if (state === 'active') {
-    
-            this.actionButton
-                .setFillStyle(0x333333)
-                .setStrokeStyle(1, 0xffffff);
-    
-            this.actionText
-                .setText(this.actionLabel)
-                .setColor('#ffffff');
-    
-            return;
-        }
-    
-        // UNLOCKED
-        if (state === 'unlocked') {
-    
-            this.availabilityText
-                .setText('REQUIREMENTS NOT MET')
-                .setVisible(true)
-                .setColor('#ff6666');
-    
-            this.actionButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-    
-            this.actionText
-                .setText('LOCKED')
-                .setColor('#777777');
-    
-            return;
-        }
-    
-        // COMPLETED
-        if (state === 'completed') {
+    createCreate() {
 
-            this.setupCompletedDisplay();
+        //console.log('Creating create card');
 
-            this.lockOverlay
-            .setVisible(true)
-            .setAlpha(0.55);
-            
-            this.actionButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-    
-            this.actionText
-                .setText('COMPLETED')
-                .setColor('#66ff66');
-    
-            return;
-        }
-    
-        // MAXED
-        if (state === 'maxed') {
-        
-            this.actionButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-        
-            this.actionText
-                .setText('MAXED')
-                .setColor('#777777');
-        
-            return;
-        }
-    
-        // LOCKED
-        this.lockOverlay
-            .setVisible(true)
-            .setAlpha(0.55);
-    
-        this.availabilityText
-            .setText('LOCKED')
-            .setVisible(true);
-    
-        this.actionButton
-            .setFillStyle(0x222222)
-            .setStrokeStyle(1, 0x555555);
-    
-        this.actionText
-            .setText('LOCKED')
-            .setColor('#777777');
+        // requirements
+        // produces
+        // create button
     }
 
-    // PROGRESS
-    updateProgress() {
-        // No maximum = no progress bar
-        if (this.max == null || this.max <= 0) {
-            if (this.progressBackground) this.progressBackground.setVisible(false);
-            if (this.progressFill) this.progressFill.setVisible(false);
-            return;
-        }
+    createDiscover() {
 
-        if (this.progressBackground) this.progressBackground.setVisible(true);
-        if (this.progressFill) this.progressFill.setVisible(true);
+        //console.log('Creating discover card');
 
-        let percent =
-            Phaser.Math.Clamp(this.amount / this.max, 0, 1);
-        
-        if (this.type === 'parent') {
-            percent = this.percent;
-        }
-
-        this.progressFill.width =
-            this.progressBackground.width *
-            percent;
+        // objective / discovery information
     }
 
-    // SET AMOUNT
-    setAmount(amount) {
-        this.amount =
-            Math.max(0, amount ?? 0);
+    // UPDATE
+    update(data = {}) {
 
-        if (this.max != null) {
-            this.amountText.setText(`${Math.floor(this.amount)} / ${this.max}`);
+        switch (this.tab) {
 
-        } else {
-            this.amountText.setText(`${Math.floor(this.amount)}`);
+            case 'gather':
+                this.updateGather(data);
+                break;
+
+            case 'create':
+                this.updateCreate(data);
+                break;
+
+            case 'discover':
+                this.updateDiscover(data);
+                break;
         }
-
-        this.updateProgress();
     }
 
-//// FOR CLASS: StageViewport
-    // SET MAX
-    setMax(max) {
-        this.max = max;
-        
-        const maxText = this.max !== null ? ` / ${this.max}` : '';
-    
-        this.amountText.setText(
-            `${Math.floor(this.amount)}${maxText}`
-        );
-    
-        this.updateProgress();
+    updateGather(data) {
+
+        //console.log('Updating gather card');
     }
 
-    // REPOSITION CARDS
-    refreshHeight() {
-    
-        if (this.tab !== 'gather') {
-            return false;
-        }
-    
-        const newHeight =
-            140 +
-            this.getUpgradeDisplayHeight();
-    
-        if (newHeight === this.height) {
-            return false;
-        }
-    
-        this.height = newHeight;
-    
-        this.background.setSize(
-            this.width,
-            this.height
-        );
-    
-        this.lockOverlay.setSize(
-            this.width,
-            this.height
-        );
-    
-        this.availabilityText.setPosition(
-            this.x + this.width / 2,
-            this.y + this.height / 2
-        );
-    
-        const buttonWidth = 120;
-        const buttonHeight = 30;
-    
-        const buttonX =
-            this.x +
-            this.width / 2 -
-            buttonWidth / 2;
-    
-        const buttonY =
-            this.y +
-            this.height -
-            buttonHeight -
-            10;
-    
-        this.actionButton.setPosition(
-            buttonX,
-            buttonY
-        );
-    
-        this.actionText.setPosition(
-            buttonX + buttonWidth / 2,
-            buttonY + buttonHeight / 2
-        );
-    
-        return true;
+    updateCreate(data) {
+
+        //console.log('Updating create card');
     }
-    
+
+    updateDiscover(data) {
+
+        //console.log('Updating discover card');
+    }
+
+    // POSITION
     setY(y) {
-    
+
         const delta =
             y - this.y;
-    
+
         if (delta === 0) {
             return;
         }
-    
+
         this.y = y;
-    
-        this.background.y += delta;
-        this.lockOverlay.y += delta;
-    
-        this.titleText.y += delta;
-        this.descriptionText.y += delta;
-        this.amountText.y += delta;
-    
-        this.reqLabel?.setY(
-            this.reqLabel.y + delta
-        );
-    
-        this.objectiveTextDisplay?.setY(
-            this.objectiveTextDisplay.y + delta
-        );
-    
-        this.availabilityText.y += delta;
-    
-        this.childObjectiveTexts.forEach(
-            child => {
-                child.text.y += delta;
+
+        this.elements.forEach(
+            element => {
+                element.y += delta;
             }
         );
-    
-        this.requirementTexts.forEach(
-            requirement => {
-                requirement.text.y += delta;
-            }
-        );
-    
-        this.upgradeTexts.forEach(
-            text => {
-                text.y += delta;
-            }
-        );
-    
-        if (this.progressBackground) this.progressBackground.y += delta;
-        if (this.progressFill) this.progressFill.y += delta;
-    
-        if (this.actionButton) this.actionButton.y += delta;
-        if (this.actionText) this.actionText.y += delta;
     }
 
-    setupCompletedDisplay() {
-        // Already archived — don't do anything again.
-        if (this.isArchived) {
-            return;
-        }
-    
-        // ------------------------------------------
-        // Freeze amounts with required
-        // ------------------------------------------
-    
-        this.requirementTexts.forEach(
-            requirement => {
-
-                const reqItem = this.reqItems.find(i => i.id === requirement.id);
-
-                const title =
-                    reqItem?.title ?? requirement.id;
-
-                requirement.text.setText(
-                    `${title}: ${Math.floor(requirement.required)} / ${requirement.required} ✓`
-                );
-    
-                requirement.text.setColor(
-                    '#ffffff'
-                );
-            }
-        );
-    
-        // ------------------------------------------
-        // Freeze child objectives
-        // ------------------------------------------
-    
-        this.childObjectiveTexts.forEach(
-            child => {
-    
-                child.text
-                    .setText(
-                        `${child.title}: ✓`
-                    )
-                    .setColor('#ffffff');
-            }
-        );
-    
-        // ------------------------------------------
-        // Freeze custom objective text
-        // ------------------------------------------
-    
-        this.objectiveTextDisplay
-            ?.setColor('#ffffff');
-    
-        // ------------------------------------------
-        // Mark archived
-        // ------------------------------------------
-    
-        this.isArchived = true;
-    
-        // ------------------------------------------
-        // Progress bar no longer needed
-        // ------------------------------------------
-    
-        this.progressBackground?.destroy();
-        this.progressFill?.destroy();
-    
-        this.progressBackground = null;
-        this.progressFill = null;
-    }
-    
     // DESTROY
     destroy() {
-        // Button listener
-        if (this.actionButton && this._actionHandler) {
+        this.elements.forEach(
+            element => element.destroy()
+        );
 
-            this.actionButton.off(
-                'pointerdown',
-                this._actionHandler
-            );
-        }
-
-        this.childObjectiveTexts
-            .forEach(
-                requirement =>
-                    requirement.text.destroy()
-            );
-
-        // Requirements
-        this.requirementTexts
-            .forEach(
-                requirement =>
-                    requirement.text.destroy()
-            );
-
-        this.requirementTexts = [];
-
-        // Upgrades
-        this.upgradeTexts
-            .forEach(
-                upgrade =>
-                    upgrade.destroy()
-            );
-
-        this.upgradeTexts = [];
-        this.upgradeGatherRow = [];
-        this.upgradeMaxRow = [];
-        
-        // Optional requirements label
-        this.reqLabel?.destroy();
-        this.reqLabel = null;
-        
-        // Optional objective text
-        this.objectiveTextDisplay?.destroy();
-        this.objectiveTextDisplay = null;
-        
-        // Main elements
-        this.background?.destroy();
-        this.descriptionText?.destroy();
-        this.titleText?.destroy();
-        this.amountText?.destroy();
-
-        // Progress
-        this.progressBackground?.destroy();
-        this.progressFill?.destroy();
-
-        // Availability
-        this.lockOverlay?.destroy();
-        this.availabilityText?.destroy();
-
-        // Action
-        this.actionButton?.destroy();
-        this.actionText?.destroy();
-
-        // Clear references
-        this.background = null;
-        this.titleText = null;
-        this.amountText = null;
-
-        this.progressBackground = null;
-        this.progressFill = null;
-
-        this.lockOverlay = null;
-        this.availabilityText = null;
-
-        this.actionButton = null;
-        this.actionText = null;
-
-        this.container = null;
+        // Reset ui
+        this.elements = [];
+        this.ui = [];
+        this.gatherUI = [];
+        this.createUI = [];
+        this.discoverUI = [];
     }
 }
