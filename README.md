@@ -25,7 +25,7 @@
 # Completed Updates
 09-18-2026
 - Updated Tracker to display each objective unlocks (items/new objectives). 
-Old
+    Old
 - Tracker work is done for now.
 - Tracker was temporarily on hold until Discover tab was fully updated with improved structure.
 - Updated README.md to specifically indicate last readme update date.
