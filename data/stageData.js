@@ -44,23 +44,41 @@ export const stageItems = [
     { stage: 'creation', id: 'iron', title: 'IRON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
     { stage: 'creation', id: 'nitrogen', title: 'NITROGEN', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
     { stage: 'creation', id: 'neon', title: 'NEON', tab: 'gather', category: 'element', unlocked: false, max: 100, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'the_void', title: 'THE VOID', tab: 'gather', category: 'element', unlocked: false, max: 1, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'dark_matter', title: 'DARK MATTER', tab: 'gather', category: 'element', unlocked: false, max: 200, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'dark_energy', title: 'DARK ENERGY', tab: 'gather', category: 'element', unlocked: false, max: 200, actionLabel: 'GATHER' },
+    // Created items only WIP
+    //{ created: true, stage: 'creation', id: 'c_water_molecule', title: 'WATER MOLECULE', tab: 'gather', category: "element", max: 10, actionLabel: 'GATHER' },
+    //{ created: true, stage: 'creation', id: 'c_black_hole', title: 'BLACK HOLE', tab: 'gather', category: "element", max: 10, actionLabel: 'GATHER' },
 
-// Creation
-    { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', tab: 'create', category: 'molecule', unlocked: true,
+// Creates
+    { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', drsxription: 'Seems useful.', tab: 'create', category: "created",
         requirements: {
-            water: 5
+            water: 5,
+            hydrogen: 10
         },
         produces: {
             water_molecule: 1
         }, actionLabel: 'CREATE'
     },
-    { stage: 'creation', id: 'water_molecule2', title: 'Water Molecule dx2', tab: 'create', category: 'molecule', unlocked: true,
+    { stage: 'creation', id: 'water_molecule2', title: 'Water Molecule dx2', description: 'A "different" liquid.', tab: 'create', category: "created",
         requirements: {
             water: 15,
-            carbon: 1
+            carbon: 1,
+            water_molecule: 5
         },
         produces: {
-            water_molecule2: 4
+            water_molecule: 4
+        }, actionLabel: 'CREATE'
+    },
+    { stage: 'creation', id: 'black_hole', title: 'Black Hole', description: 'The potential for something.', tab: 'create', category: "created",
+        requirements: {
+            dark_matter: 100,
+            the_void: 1
+        },
+        produces: {
+            black_hole: 1,
+            dark_energy: 100
         }, actionLabel: 'CREATE'
     }
 ];

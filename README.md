@@ -8,7 +8,7 @@
 
 # Work In Progress
 - Reworking StageCard class ->
-    - StageCard-gather section: updated.
+    - StageCard-gather section: updated. Needs a level bonus status?
     - StageCard-create section: Working on next, discover section after.
 - Make card refreshes update live (instead of rebuilding) for any cards that are added to, modified, or removed from the currently viewed tab.
 
@@ -23,6 +23,9 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
+09-18-2026
+- Updated Tracker to display each objective unlocks (items/new objectives). 
+Old
 - Tracker work is done for now.
 - Tracker was temporarily on hold until Discover tab was fully updated with improved structure.
 - Updated README.md to specifically indicate last readme update date.

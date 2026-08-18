@@ -125,6 +125,8 @@ export default class StageDiscoveryTracker {
     
                             stageProgress:
                                 this.stageProgress,
+                            
+                            unlocksItems: this.stageProgress.objectiveUnlockList(objective),
     
                             onUntrack:
                                 () => {

@@ -32,7 +32,9 @@ export default class StageCard {
         this.id = options.id ?? null;
         this.title = options.title ?? 'Item';
         this.description = options.description ?? '';
-        this.actionLabel = options.actionLabel ?? 'ACTION'
+        this.actionLabel = options.actionLabel ?? 'ACTION';
+        this.createRequirements = options.createRequirements ?? null;
+        this.tab = options.tab ?? 'gather';
 
         // Function values
         this.upgradeStats = options.upgradeStats ?? null;
@@ -128,7 +130,7 @@ export default class StageCard {
                     0.55
                 )
                 .setOrigin(0)
-                .setVisible(true)
+                //.setVisible(true)
             );
                 
         // Availability message
@@ -144,7 +146,7 @@ export default class StageCard {
                         }
                     )
                 .setOrigin(0.5)
-                .setVisible(true)
+                //.setVisible(true)
             );
     }
 
@@ -167,6 +169,9 @@ export default class StageCard {
     createGather() {
         //console.log('Creating gather card');
 
+        // Main width left of upgrade bar
+        this.ui.background.width = this.gatherLeftPanelWidth;
+
         // Gain label -- uses this.upgradeStats
         let currentGatherRate = 1;
         if (this.upgradeStats.hasRateUpgrade) currentGatherRate = this.upgradeStats.currentGatherRate;
@@ -183,9 +188,6 @@ export default class StageCard {
                 )
             .setOrigin(0)
         );
-        
-        // Main width left of upgrade bar
-        this.ui.background.width = this.gatherLeftPanelWidth;
         
         // Progress (based on max)
         const padding = 15;
@@ -381,21 +383,120 @@ export default class StageCard {
                     this.updateUpgrades?.();
                 }
             );
-
             
-            // use updateAvailability() ??
+            //
             
 
         }
-        
-        this.updateProgress();
-        this.updateAvailability();
-        this.updateUpgradeAvailability();
     }
 
     createCreate() {
-
         //console.log('Creating create card');
+        const yOffset = this.height / 2 - 50;
+        this.ui.title.y = yOffset;
+        
+        let currentCreateRate = 1;
+        
+        this.createUI.rateLabel =
+            this.addElement(
+                addText(this.scene,
+                    15,
+                    yOffset + 30,
+                    'Create: +' + currentCreateRate,
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+
+        this.createUI.descriptionText =
+            this.addElement(
+                addText(this.scene,
+                    15,
+                    yOffset + 55,
+                    this.description,
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+
+        this.offsetY = yOffset; // WIP If requirements list gets too long
+        this.createUI.requiresTitle =
+            this.addElement(
+                addText(this.scene,
+                    this.width / 3 + 15,
+                    yOffset, // Same y as title
+                    'REQUIRES:',
+                    {
+                        fontSize: '24px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+
+        let currentY = yOffset + 35;
+        this.createRequirements.req.forEach(require => {
+            this.createUI.requiresLabel =
+                this.addElement(
+                    addText(this.scene,
+                        this.width / 3 + 25,
+                        currentY,
+                        require.title + ': ' + '0' + ' / ' + require.amt,
+                        {
+                            fontSize: '18px',
+                            color: '#ff6666'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            
+            currentY += 24;
+        });
+        
+        // Create button
+        this.createUI.createButton =
+            this.addElement(
+                this.scene.add.rectangle(
+                    this.width - 200,
+                    this.height / 2 - 15,
+                    120,
+                    30,
+                    0x222222
+                )
+                .setOrigin(0)
+                .setStrokeStyle(1, 0x555555)
+                .setInteractive()
+            );
+        
+        this.createUI.createButtonText =
+            this.addElement(
+                addText(this.scene,
+                    (this.width - 200) + 22,
+                    this.height / 2 - 11,
+                    this.actionLabel,
+                    {
+                        fontSize: '20px',
+                        color: '#777777'
+                    }
+                )
+            .setOrigin(0)
+        );
+
+        //if (this.createRequirements) console.log(this.createRequirements);
+
+// for helper
+/*
+ready
+? '#66ff66'
+: '#ff6666'
+*/
+
 
         // requirements
         // produces
@@ -407,6 +508,8 @@ export default class StageCard {
         //console.log('Creating discover card');
 
         // objective / discovery information
+        
+        //this.updateAvailability();
     }
 
     // UPDATE CARDS
@@ -425,6 +528,10 @@ export default class StageCard {
 
         if ('availability' in data) {
             this.availability = data.availability;
+        }
+        
+        if ('createRequirements' in data) {
+            this.createRequirements = data.createRequirements;
         }
     
         if ('canUpgrade' in data) {
@@ -486,6 +593,10 @@ export default class StageCard {
 
     updateGather(data) {
         //console.log('Updating gather card');
+        
+        // Center availabilityText with gatherLeftPanelWidth
+        if (this.ui.availabilityText) this.ui.availabilityText.x = this.gatherLeftPanelWidth / 2;
+
         this.updateProgress();
         this.updateAvailability();
         this.updateUpgradeAvailability();
@@ -494,8 +605,12 @@ export default class StageCard {
     }
 
     updateCreate(data) {
-
         //console.log('Updating create card');
+
+// TEST
+this.ui.lockOverlay?.setVisible(false);
+this.ui.availabilityText?.setVisible(false);
+
     }
 
     updateDiscover(data) {
@@ -528,12 +643,12 @@ export default class StageCard {
 
     // AVAILABILITY
     updateAvailability() {
-        const state = this.availability;
-    
+        let state = this.availability;
+
         // Reset
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);
-    
+
         // ACTIVE
         if (state === 'active') {
     

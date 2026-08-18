@@ -46,6 +46,31 @@ export default class StageProgressManager {
         this.initializeObjectiveTracking();
     }
 
+    getCreateRequirements(item) {
+        const requirements = item.requirements;
+        if (!requirements || requirements === undefined) return;
+        const reqItems = [];
+        Object.entries(requirements).forEach(([req, val]) => {
+            const title = this.getItemTitle(req);
+            if (title) {
+                reqItems.push({
+                    id: req,
+                    title: title,
+                    amt: val
+                });
+            }
+        });
+        
+        return {
+            id: item.id,
+            req: reqItems
+        };
+    }
+
+    getCreateItems() {
+        return this.stageItems.filter(item => item.tab === 'create');
+    }
+
     getGatherUpgradeStats(id, item) {
         const upgrade =
             item.gather?.upgrade;
@@ -262,6 +287,12 @@ export default class StageProgressManager {
             item => item.id === id
         ) ?? null;
     }
+    
+    getItemTitle(id) {
+        const item = this.stageItems.find(i => i.id === id);
+        if (item) return item.title ?? item.id;
+        return null;
+    }
 
     // Gather upgrade levels
     getGatherLevel(id) {
@@ -455,7 +486,41 @@ STATUS: COMPLETED
 // --------------------------------------------------
 // OBJECTIVE TRACKING
 // --------------------------------------------------
+
+    objectiveUnlockList(item) {
+        const itemUnlocked = item.unlocks?.items ?? [];
+        const objectivesUnlocked = item.unlocks?.objectives ?? [];
+        const items = [];
+        const objectives = [];
     
+        for (const unlockId of itemUnlocked) {
+            const itemData =
+                this.stageItems.find(
+                    i => i.id === unlockId
+                );
+    
+            if (itemData) {
+                items.push(itemData.title);
+            }
+        }
+    
+        for (const unlockId of objectivesUnlocked) {
+            const objData =
+                this.objectives.find(
+                    i => i.id === unlockId
+                );
+    
+            if (objData) {
+                objectives.push(objData.title);
+            }
+        }
+    
+        return {
+            items,
+            objectives
+        };
+    }
+
     isObjectiveTracked(id) {
         return this.tracked[id] === true;
     }

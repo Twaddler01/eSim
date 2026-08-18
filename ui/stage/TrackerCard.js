@@ -13,6 +13,8 @@ export default class TrackerCard {
         this.stageProgress = options.stageProgress ?? null;
 
         this.onUntrack = options.onUntrack ?? null;
+        
+        this.unlocksItems = options.unlocksItems ?? null;
 
         this.height = 0;
 
@@ -138,7 +140,73 @@ export default class TrackerCard {
         
         currentY =
             progressY +
-            34;
+            34 + 17;
+
+        // Unlocks Objectives
+        if (this.unlocksItems.objectives.length > 0) {
+            this.unlocksObjTextTitle =
+                addText(
+                    this.scene,
+                    10,
+                    currentY,
+                    'Unlocks Objectives:',
+                    {
+                        fontSize: '15px',
+                        color: '#66ff99'
+                    }
+                )
+                .setOrigin(0);
+        
+            currentY += this.unlocksObjTextTitle.height + 5;
+        
+            this.unlocksObjText =
+                addText(
+                    this.scene,
+                    15,
+                    currentY,
+                    this.unlocksItems.objectives.map(obj => `- ${obj}`).join('\n'),
+                    {
+                        fontSize: '15px',
+                        color: '#ffffff'
+                    }
+                )
+                .setOrigin(0);
+        
+            currentY += this.unlocksObjText.height + 10;
+        }
+        
+        // Unlocks items
+        if (this.unlocksItems.items.length > 0) {
+            this.unlocksItemsTextTitle =
+                addText(
+                    this.scene,
+                    10,
+                    currentY,
+                    'Unlocks Items:',
+                    {
+                        fontSize: '15px',
+                        color: '#66ff99'
+                    }
+                )
+                .setOrigin(0);
+        
+            currentY += this.unlocksItemsTextTitle.height + 5;
+        
+            this.unlocksItemsText =
+                addText(
+                    this.scene,
+                    15,
+                    currentY,
+                    this.unlocksItems.items.map(item => `- ${item}`).join('\n'),
+                    {
+                        fontSize: '15px',
+                        color: '#ffffff'
+                    }
+                )
+                .setOrigin(0);
+        
+            currentY += this.unlocksItemsText.height + 10;
+        }
         
         // Complete button
         this.completeButton =
@@ -191,7 +259,6 @@ export default class TrackerCard {
             this.height
         );
 
-        // ADD CONTENT
         const children = [
             this.background,
             this.titleText,
@@ -200,39 +267,21 @@ export default class TrackerCard {
             this.progressFill,
             this.progressText,
             this.completeButton,
-            this.completeButtonText
-        ];
-
-        if (this.objectiveTextDisplay) {
-            children.push(
-                this.objectiveTextDisplay
-            );
-        }
-
-
-        if (this.progressTextOverall) {
-            children.push(
-                this.progressTextOverall
-            );
-        }
-
-
-        children.push(
+            this.completeButtonText,
+            this.unlocksItemsTextTitle,
+            this.unlocksObjTextTitle,
+            this.unlocksItemsText,
+            this.unlocksObjText,
+            this.objectiveTextDisplay,
+            this.progressTextOverall,
             ...this.requirements.map(
-                requirement =>
-                    requirement.text
-            )
-        );
-
-
-        children.push(
+                requirement => requirement.text
+            ),
             ...this.childEntries.map(
-                entry =>
-                    entry.text
+                entry => entry.text
             )
-        );
-
-
+        ].filter(Boolean);
+        
         this.container.add(children);
     }
 

@@ -73,6 +73,7 @@ export default class StageInventory {
     // Category colors
     getCategoryColor(category) {
         const colors = {
+            created: '#66ff99',
             element: '#66ccff',
             molecule: '#66ff99',
             compound: '#ffcc66',
