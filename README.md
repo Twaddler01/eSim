@@ -7,7 +7,8 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Reworking StageCard class.
+- Reworking StageCard class --
+    - StageCard: Gather section updated.
 - Make card refreshes update live (instead of rebuilding) for any cards that are added to, modified, or removed from the currently viewed tab.
 
 # Future Updates / Ideas
