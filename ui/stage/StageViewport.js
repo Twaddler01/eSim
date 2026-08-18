@@ -76,37 +76,50 @@ export default class StageViewport {
 
     // Add card
     addCard(options = {}) {
-
+    
         const padding = 15;
-        const cardWidth = this.width - padding * 2;
+    
+        const cardWidth =
+            this.width - padding * 2;
+    
         const x = padding;
-        const y = this.contentHeight + padding;
-
+    
+        const y =
+            this.contentHeight + padding;
+    
         const card =
             new StageCard(
                 this.scene,
                 {
                     ...options,
-
+    
                     x,
                     y,
+    
                     width: cardWidth,
-
-                    container: this.container
+    
+                    parentContainer: this.container
                 }
             );
-
-        // Keep cards in the Map by their ID.
+    
         this.cards.set(options.id, card);
-
+    
         this.contentHeight =
-            y +
-            card.height;
-
+            y + card.height;
+    
         this.updateScrollLimits();
-
+    
         return card;
     }
+
+/*
+console.log(
+    'ADDING:' +
+    options.id + ' / ' +
+    options.title + 
+    'Map size:' +
+    this.cards.size
+);*/
 
 /* OLD
     updateCard(id, data) {
@@ -225,49 +238,14 @@ export default class StageViewport {
 
     // syncCards helper
     updateCardData(card, data) {
-    
-        if (data.amount !== undefined) {
-            card.setAmount(data.amount);
-        }
-    
-        if (data.max !== undefined) {
-            card.setMax(data.max);
-        }
-    
-        if (data.percent !== undefined) {
-            card.percent = data.percent;
-            card.updateProgress();
-        }
-    
-        if (data.availability !== undefined) {
-            card.availability =
-                data.availability;
-    
-            card.updateAvailability();
-        }
-    
-        if (data.upgradeStats !== undefined) {
-    
-            card.upgradeStats =
-                data.upgradeStats;
-    
-            card.updateUpgrades();
-    
-            const heightChanged =
-                card.refreshHeight();
-    
-            if (heightChanged) {
-                this.relayoutCards();
-            }
-        }
-    
-        // Parent objective
         if (data.getChildComplete) {
             card.getChildComplete =
                 data.getChildComplete;
     
             card.updateChildObjectives();
         }
+    
+        card.update(data);
     
         card.updateRequirements(
             card.getAmount
@@ -289,7 +267,6 @@ export default class StageViewport {
         );
     }
 
-// ????
     relayoutCards() {
     
         const padding = 15;
@@ -304,8 +281,7 @@ export default class StageViewport {
                 padding;
         });
     
-        this.contentHeight =
-            currentY;
+        this.contentHeight = currentY;
     
         this.updateScrollLimits();
     }

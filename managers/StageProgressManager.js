@@ -46,6 +46,144 @@ export default class StageProgressManager {
         this.initializeObjectiveTracking();
     }
 
+    getGatherUpgradeStats(id, item) {
+        const upgrade =
+            item.gather?.upgrade;
+    
+        const rateIncrease =
+            upgrade?.rateIncrease ?? 0;
+    
+        const maxIncrease =
+            upgrade?.maxIncrease ?? 0;
+    
+        const level =
+            this.getGatherLevel(id);
+    
+        const baseMax =
+            item.max ?? null;
+    
+        const currentMax =
+            baseMax == null
+                ? null
+                : baseMax + level * maxIncrease;
+    
+        const currentGatherRate =
+            1 + level * rateIncrease;
+    
+        const hasRateUpgrade =
+            rateIncrease > 0;
+    
+        const hasMaxUpgrade =
+            maxIncrease > 0;
+    
+        const hasUpgrade =
+            this.hasGatherUpgrade(item);
+    
+        const cost =
+            currentMax != null
+                ? Math.ceil(currentMax * 0.9)
+                : null;
+    
+        return {
+            id,
+            level,
+    
+            hasUpgrade,
+            hasRateUpgrade,
+            hasMaxUpgrade,
+    
+            base_max: baseMax,
+            current_max: currentMax,
+    
+            rateIncrease,
+            maxIncrease,
+    
+            currentGatherRate,
+    
+            cost
+        };
+    }
+
+    hasGatherUpgrade(item) {
+        const upgrade =
+            item.gather?.upgrade;
+    
+        if (!upgrade) {
+            return false;
+        }
+    
+        // Explicitly disabled
+        if (upgrade.enabled === false) {
+            return false;
+        }
+    
+        const hasRate =
+            (upgrade.rateIncrease ?? 0) > 0;
+    
+        const hasMax =
+            (upgrade.maxIncrease ?? 0) > 0;
+    
+        // enabled:true OR legacy/missing enabled
+        // with an actual upgrade value.
+        return (
+            upgrade.enabled === true ||
+            hasRate ||
+            hasMax
+        );
+    }
+
+    gatherUpgradeAvailable(item) {
+        if (!this.hasGatherUpgrade(item)) {
+            return false;
+        }
+    
+        const stats =
+            this.getGatherUpgradeStats(
+                item.id,
+                item
+            );
+    
+        const current =
+            this.get(item.id);
+
+        // If there is a rate upgrade, make sure
+        // another rate level would still be useful.
+        const rateIsUseful =
+            !stats.hasRateUpgrade ||
+            stats.currentGatherRate < stats.current_max;
+    
+        // If this is max-only, this remains true.
+        // If this is rate-only, it prevents useless
+        // rate upgrades after reaching the max.
+        if (!rateIsUseful) {
+            return false;
+        }
+
+        return current >= stats.cost;
+    }
+
+    upgradeGather(item) {
+        if (!this.gatherUpgradeAvailable(item)) {
+            return false;
+        }
+    
+        const stats =
+            this.getGatherUpgradeStats(item.id, item);
+    
+        // Pay the cost
+        this.add(
+            item.id,
+            -stats.cost
+        );
+    
+        // Increase level
+        this.addGatherLevel(
+            item.id,
+            1
+        );
+    
+        return true;
+    }
 
     // --------------------------------------------------
     // Get all values
@@ -744,7 +882,7 @@ STATUS: COMPLETED
                 id
             }
         );
-    
+
         return true;
     }
     
@@ -953,30 +1091,6 @@ STATUS: COMPLETED
 
     off(event, handler) {
         this.events.off(event, handler);
-    }
-
-    getGatherUpgradeStats(id, item) {
-        const upgrade =
-            item.gather?.upgrade;
-    
-        if (!upgrade?.enabled) {
-            return null;
-        }
-    
-        const level =
-            this.getGatherLevel(id);
-    
-        const rateIncrease =
-            upgrade.rateIncrease ?? 0;
-    
-        const maxIncrease =
-            upgrade.maxIncrease ?? 0;
-
-        return {
-            level,
-            rateIncrease: level * rateIncrease, // gatherIncrease
-            maxIncrease: level * maxIncrease
-        };
     }
 
     getCurrentStage() {

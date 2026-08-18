@@ -1,45 +1,34 @@
-export function getItemMax(item, stageProgress, mode) {
+export function getItemMax(item, stageProgress, extra) {
+    const baseMax =
+        item.max;
 
-    const baseMax = item.max;
-    
-    // No max = unlimited
     if (baseMax == null) {
         return null;
     }
 
     const upgrade =
         item.gather?.upgrade;
-        
-    if (!upgrade?.enabled || !upgrade.maxIncrease) {
+
+    if (
+        !upgrade ||
+        upgrade.enabled === false ||
+        (upgrade.maxIncrease ?? 0) <= 0
+    ) {
         return baseMax;
     }
-    
+
     const level =
         stageProgress.getGatherLevel(item.id);
 
-    // Gets next level max
-    if (mode === 'next') {
-        return baseMax + (level + 1) * upgrade.maxIncrease;
-    }
-    
-    if (mode === 'stats') {
-        return {
-            maxIncrease: upgrade.maxIncrease,
-            rateIncrease: upgrade.rateIncrease,
-    
-            currentMax:
-                baseMax +
-                level * upgrade.maxIncrease,
-    
-            nextMax:
-                baseMax +
-                (level + 1) * upgrade.maxIncrease
-        };
-    }
+    const effectiveLevel =
+        extra === 'next'
+            ? level + 1
+            : level;
 
     return (
         baseMax +
-        level * upgrade.maxIncrease
+        effectiveLevel *
+        upgrade.maxIncrease
     );
 }
 

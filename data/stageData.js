@@ -13,11 +13,14 @@ export const stageItems = [
         gather: {
             upgrade: {
                 enabled: true,
-                rateIncrease: 0.2 // caps before max
+                rateIncrease: 0.2, // caps before max
+                /*cost: [
+                    { water: max * 0.9 }, // see StageProgressManager => getGatherUpgradeStats()
+                ],*/
             }
         },
     },
-    { stage: 'creation', id: 'carbon', title: 'CARBON', tab: 'gather', category: 'element', unlocked: false, max: 20, actionLabel: 'GATHER',
+    { stage: 'creation', id: 'carbon', title: 'CARBON', tab: 'gather', category: 'element', unlocked: false, max: 50, actionLabel: 'GATHER',
         gather: {
             upgrade: {
                 enabled: true,

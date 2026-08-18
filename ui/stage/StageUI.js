@@ -154,6 +154,9 @@ export default class StageUI {
                     height: this.headerHeight - this.headerTitleHeight - 1
                 }
             );
+// TEST
+//this.stageProgress.unlock('darkness');
+//console.log(this.stageProgress.getUnlocked('darkness'));
 
         this.refreshCurrentTab();
     }
@@ -231,36 +234,34 @@ export default class StageUI {
         this.refreshCurrentTab();
     }
 
+    // this.gather
     gather(item) {
         const current =
             this.stageProgress.get(item.id);
-
-        const max =
-            getItemMax(item, this.stageProgress);
     
-        // Inventory is full.
-        // Don't add anything, but still allow upgrade logic.
-        if (current >= max) {
-            this.checkGatherUpgrade(item);
-            return;
-        }
+        const upgradeStats =
+            this.getUpgrades(item);
+    
+        const max =
+            upgradeStats.current_max;
     
         const gatherAmount =
             this.getGatherAmount(item);
     
         const newAmount =
-            Math.min(
-                current + gatherAmount,
-                max
-            );
+            max == null
+                ? current + gatherAmount
+                : Math.min(
+                    current + gatherAmount,
+                    max
+                );
     
         this.stageProgress.set(
             item.id,
             newAmount
         );
-    
-        // Check whether this gather filled the inventory.
-        this.checkGatherUpgrade(item);
+        
+        this.stageProgress.gatherUpgradeAvailable(item);
     }
 
     getGatherLevel(item) {
@@ -273,66 +274,20 @@ export default class StageUI {
         const upgrade =
             item.gather?.upgrade;
     
-        if (!upgrade?.enabled || !upgrade.rateIncrease) {
+        if (
+            !upgrade ||
+            upgrade.enabled === false ||
+            (upgrade.rateIncrease ?? 0) <= 0
+        ) {
             return baseAmount;
         }
     
         const level =
             this.getGatherLevel(item);
-
+    
         return (
             baseAmount +
             level * upgrade.rateIncrease
-        );
-    }
-
-    checkGatherUpgrade(item) {
-        const upgrade =
-            item.gather?.upgrade;
-    
-        if (!upgrade?.enabled) {
-            return;
-        }
-    
-        const current =
-            this.stageProgress.get(item.id);
-    
-        const max =
-            getItemMax(item, this.stageProgress);
-    
-        if (current < max) {
-            return;
-        }
-    
-        const rateIncrease =
-            upgrade.rateIncrease ?? 0;
-    
-        const level =
-            this.getGatherLevel(item);
-    
-        const currentGatherRate =
-            1 +
-            level * rateIncrease;
-    
-        // Rate has reached the maximum useful amount.
-        // Do NOT purchase another rate upgrade.
-        if (
-            rateIncrease > 0 &&
-            currentGatherRate >= max
-        ) {
-            return;
-        }
-    
-        // Reset amount
-        this.stageProgress.set(
-            item.id,
-            0
-        );
-    
-        // Increase upgrade level
-        this.stageProgress.addGatherLevel(
-            item.id,
-            1
         );
     }
 
@@ -391,7 +346,7 @@ export default class StageUI {
         const unlocked =
             item.startsUnlocked ||
             this.stageProgress.getUnlocked(item.id);
-        
+
         if (!unlocked) {
             return 'locked';
         }
@@ -422,176 +377,116 @@ export default class StageUI {
         if (!requirementsMet) {
             return 'insufficient';
         }
-    
+
         return 'active';
     }
 
-// Get cards (for tab initialization)
-getCurrentTabCardData() {
-    let cards =
-        stageItems.filter(
-            item =>
-                item.tab === this.currentTab
-        );
-
-    // OBJECTIVES
-    if (this.currentTab === 'discover') {
-
-        const objectives =
-            this.stageProgress
-                .getSortedCurrentObjectives();
-
-        const objectiveCards =
-            objectives.map(
-                objective =>
-                    this.getObjectiveCardData(
-                        objective
-                    )
-            );
-
-        cards = [
-            ...objectiveCards,
-            ...cards
-        ];
-    }
-
-    return cards.map(item => ({
-
-        ...item,
-
-        amount:
-            item.discovery
-                ? null
-                : this.stageProgress.get(item.id),
-
-        max:
-            item.discovery
-                ? null
-                : getItemMax(
-                    item,
-                    this.stageProgress
-                ),
-
-        nextMax:
-            item.gather
-                ? getItemMax(
-                    item,
-                    this.stageProgress,
-                    'next'
-                )
-                : null,
-
-        upgradeStats:
-            this.getUpgrades(item),
-
-        availability:
-            this.getAvailability(item),
-
-        getAmount:
-            id =>
-                this.stageProgress.get(id),
-
-        canAction:
-            () =>
-                this.getCardCanAction(item),
-
-        onAction:
-            () =>
-                this.handleCardAction(item)
-
-    }));
-}
-
-// DIFFERENT TAB REFRESH
-// Destroy old tab and build new tab
-refreshCurrentTab() {
-    const cardData =
-        this.getCurrentTabCardData();
-
-    this.viewport.showCards(
-        cardData
-    );
-}
-
-// SAME TAB REFRESH
-// Keep the existing cards and reconcile them with the new state
-updateCurrentTab() {
-    const cardData =
-        this.getCurrentTabCardData();
-
-    this.viewport.syncCards(
-        cardData
-    );
-}
-
-/* OLD
-    // Build cards for current tab
-    refreshCurrentTab() {
-    
+    // Get cards (for tab initialization)
+    getCurrentTabCardData() {
         let cards =
             stageItems.filter(
                 item =>
                     item.tab === this.currentTab
             );
-            
+    
         // OBJECTIVES
         if (this.currentTab === 'discover') {
     
-            //const objectives = this.stageProgress.getCurrentObjectives();
             const objectives =
-                this.stageProgress.getSortedCurrentObjectives();
-            
+                this.stageProgress
+                    .getSortedCurrentObjectives();
+    
             const objectiveCards =
                 objectives.map(
                     objective =>
-                        this.getObjectiveCardData(objective)
+                        this.getObjectiveCardData(
+                            objective
+                        )
                 );
-
+    
             cards = [
                 ...objectiveCards,
                 ...cards
             ];
         }
     
-        // --------------------------------------------------
-        // Build display cards
-        // --------------------------------------------------
-
-        const displayCards = cards.map(item => ({
-        
+        return cards.map(item => ({
+    
             ...item,
-            
+    
             amount:
-                item.discovery ? null : this.stageProgress.get(item.id),
-            
+                item.discovery
+                    ? null
+                    : this.stageProgress.get(item.id),
+    
             max:
-                item.discovery ? null : getItemMax(item, this.stageProgress),
-            
+                item.discovery
+                    ? null
+                    : getItemMax(
+                        item,
+                        this.stageProgress
+                    ),
+    
             nextMax:
-                item.gather ? getItemMax(item, this.stageProgress, 'next') : null,
-                
-            upgradeStats: this.getUpgrades(item),
-        
+                item.gather
+                    ? getItemMax(
+                        item,
+                        this.stageProgress,
+                        'next'
+                    )
+                    : null,
+    
+            upgradeStats:
+                this.getUpgrades(item),
+    
             availability:
                 this.getAvailability(item),
-        
-            getAmount: id => {
-                return this.stageProgress.get(id);
-            },
-        
-            canAction: () =>
-                this.getCardCanAction(item),
-
-            onAction: () =>
-                this.handleCardAction(item)
+    
+            getAmount:
+                id =>
+                    this.stageProgress.get(id),
+                    
+            canUpgrade:
+                () =>
+                    this.stageProgress.gatherUpgradeAvailable(item),
             
+            onUpgrade:
+                () =>
+                    this.stageProgress.upgradeGather(item),
+    
+            canAction:
+                () =>
+                    this.getCardCanAction(item),
+    
+            onAction:
+                () =>
+                    this.handleCardAction(item)
+    
         }));
+    }
 
+    // DIFFERENT TAB REFRESH
+    // Destroy old tab and build new tab
+    refreshCurrentTab() {
+        const cardData =
+            this.getCurrentTabCardData();
+    
         this.viewport.showCards(
-            displayCards
+            cardData
         );
     }
-*/
+
+    // SAME TAB REFRESH
+    // Keep the existing cards and reconcile them with the new state
+    updateCurrentTab() {
+        const cardData =
+            this.getCurrentTabCardData();
+    
+        this.viewport.syncCards(
+            cardData
+        );
+    }
+
     // Helpers for refreshCurrentTab()
     getObjectiveCardData(objective) {
         const card = {
@@ -651,7 +546,7 @@ updateCurrentTab() {
                 this.stageProgress.getObjectiveStatus(item.id) === 'active'
             );
         }
-    
+
         return this.getAvailability(item) === 'active';
     }
     
@@ -659,7 +554,6 @@ updateCurrentTab() {
         // Gather
         if (this.currentTab === 'gather') {
             this.gather(item);
-            return;
         }
     
         // Create
@@ -695,7 +589,7 @@ updateCurrentTab() {
             update.type === 'objective-unlock' ||
             update.type === 'objective-complete'
         ) {
-            this.updateCurrentTab();
+            this.refreshCurrentTab();
             return;
         }
     
@@ -709,84 +603,6 @@ updateCurrentTab() {
             return;
         }
     }
-/* OLD
-    // Update only affected cards
-    updateAffectedCards(id) {
-    // Objective changes can alter several cards,
-    // especially parent progress and newly unlocked objectives.
-        if (
-            id &&
-            this.stageProgress.getObjective(id)
-        ) {
-            this.refreshCurrentTab();
-            return;
-        }
-    
-        // Amount changes can affect requirements.
-        if (this.currentTab === 'discover') {
-    
-            this.refreshCurrentTab();
-            return;
-        }
-    
-        const cards =
-            stageItems.filter(
-                item =>
-                    item.tab === this.currentTab
-            );
-    
-        cards.forEach(item => {
-    
-            const affectsAmount =
-                item.id === id;
-    
-            const affectsRequirement =
-                Object.keys(
-                    item.requirements ?? {}
-                ).includes(id);
-    
-            const affectsUpgrade =
-                item.id === id &&
-                item.gather?.upgrade?.enabled;
-    
-            if (
-                affectsAmount ||
-                affectsRequirement ||
-                affectsUpgrade
-            ) {
-    
-                const isDiscovery =
-                    item.discovery === true;
-    
-                this.viewport.updateCard(
-                    item.id,
-                    {
-                        amount:
-                            isDiscovery
-                                ? null
-                                : this.stageProgress.get(item.id),
-    
-                        max:
-                            isDiscovery
-                                ? null
-                                : getItemMax(
-                                    item,
-                                    this.stageProgress
-                                ),
-    
-                        upgradeStats:
-                            item.gather?.upgrade?.enabled
-                                ? this.getUpgrades(item)
-                                : null,
-    
-                        availability:
-                            this.getAvailability(item)
-                    }
-                );
-            }
-        });
-    }
-*/
 
     getObjectiveComplete(id) {
         return this.stageProgress.isObjectiveComplete(id);
