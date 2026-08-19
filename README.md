@@ -7,10 +7,10 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Card updates meed to be debugged to confirm a clean and live add/remove.
 - Reworking StageCard class ->
     - StageCard-gather section: updated. Needs a level bonus status?
     - StageCard-create section: Working on create button action next, discover section after.
-- Make card refreshes update live (instead of rebuilding) for any cards that are added to, modified, or removed from the currently viewed tab.
 
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
@@ -28,6 +28,7 @@
 - Updated Tracker to display each objective unlocks (items/new objectives).
 
 Old
+- Card refreshes are now structured to update live (instead of rebuilding) for cards that are added to, modified, or removed from the currently viewed tab.
 - Tracker work is done for now.
 - Tracker was temporarily on hold until Discover tab was fully updated with improved structure.
 - Updated README.md to specifically indicate last readme update date.
