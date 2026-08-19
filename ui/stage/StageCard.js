@@ -1,4 +1,3 @@
-import { listenToEvent } from '../../utils/stageHelpers.js';
 
 /* CARD SOURCE
     let cards =
@@ -45,7 +44,7 @@ export default class StageCard {
         // WIP this.percent = options.percent ?? null;
 
         // Callbacks
-        this.getCreateRequirements = options.getCreateRequirements ?? (() => null);
+        this.getCreateData = options.getCreateData ?? (() => null);
         this.canUpgrade = options.canUpgrade ?? (() => false);
         this.onUpgrade = options.onUpgrade ?? null;
         this.canAction = options.canAction ?? (() => true);
@@ -396,27 +395,18 @@ export default class StageCard {
         const yOffset = this.height / 2 - 50;
         this.ui.title.y = yOffset;
         
-        let currentCreateRate = 1;
-        
-        this.createUI.rateLabel =
-            this.addElement(
-                addText(this.scene,
-                    15,
-                    yOffset + 30,
-                    'Create: +' + currentCreateRate,
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
+        const requirements = this.getCreateData();
+        const allReqMetButtonColor_stro = requirements.allReqMet ? 0x66aa66 : 0x555555;
+        const allReqMetButtonColor_fill = requirements.allReqMet ? 0x335533 : 0x222222;
+        const allReqMetTextColor = requirements.allReqMet ? '#ffffff' : '#555555';
 
+        let currentY = yOffset + 35;
+        
         this.createUI.descriptionText =
             this.addElement(
                 addText(this.scene,
                     15,
-                    yOffset + 55,
+                    currentY,
                     this.description,
                     {
                         fontSize: '16px',
@@ -425,6 +415,30 @@ export default class StageCard {
                 )
             .setOrigin(0)
         );
+        currentY += this.createUI.descriptionText.height + 5;
+
+
+        this.createUI.producesLabels = [];
+        requirements.produces.forEach(pro => {
+            const text =
+                this.addElement(
+                    addText(this.scene,
+                        15,
+                        currentY,
+                        '- Create: +' + pro.producesCnt + ' ' + pro.title,
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            
+            this.createUI.producesLabels.push(text);
+            
+            currentY += text.height + 5;
+            
+        });
 
         this.offsetY = yOffset; // WIP If requirements list gets too long
         this.createUI.requiresTitle =
@@ -441,17 +455,14 @@ export default class StageCard {
             .setOrigin(0)
         );
         
-        let currentY = yOffset + 35;
+        //let currentY = yOffset + 35;
+        // Store text for updates
         this.createUI.requiresLabels = [];
  
-        const requirements = this.getCreateRequirements();
-        const allReqMetButtonColor_stro = requirements.allReqMet ? 0x66aa66 : 0x555555;
-        const allReqMetButtonColor_fill = requirements.allReqMet ? 0x335533 : 0x222222;
-        const allReqMetTextColor = requirements.allReqMet ? '#ffffff' : '#555555';
-
+        currentY = yOffset + 35;
         requirements.req.forEach(require => {
             const reqMetColor = require.reqMet ? '#66ff66' : '#ff6666';
-            this.createUI.requiresLabel =
+            const text =
                 this.addElement(
                     addText(this.scene,
                         this.width / 3 + 25,
@@ -465,6 +476,7 @@ export default class StageCard {
                 .setOrigin(0)
             );
             
+            this.createUI.requiresLabels.push(text);
             currentY += 24;
         });
         
@@ -496,6 +508,12 @@ export default class StageCard {
                 )
             .setOrigin(0)
         );
+        
+        // Click action
+        this.createUI.createButton.on(
+            'pointerdown',
+            this._actionHandler
+        );
 
 
 // for helper
@@ -503,41 +521,14 @@ export default class StageCard {
 ready
 ? '#66ff66'
 : '#xff6666'
-
-        if (upgradeAvailable) {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x335533)
-                .setStrokeStyle(1, 0x66aa66);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#ffffff');
-    
-        } else {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#777777');
-        }
-
 */
-
-
-        // requirements
-        // produces
-        // create button
     }
 
     createDiscover() {
-
         //console.log('Creating discover card');
 
+        // probably no live updates except card additions/sorting
         // objective / discovery information
-        
-        //this.updateAvailability();
     }
 
     // UPDATE CARDS
@@ -620,7 +611,6 @@ ready
         
         // Center availabilityText with gatherLeftPanelWidth
         if (this.ui.availabilityText) this.ui.availabilityText.x = this.gatherLeftPanelWidth / 2;
-
         this.updateProgress();
         this.updateAvailability();
         this.updateUpgradeAvailability();
@@ -630,10 +620,6 @@ ready
 
     updateCreate(data) {
         //console.log('Updating create card');
-
-// TEST
-//this.ui.lockOverlay?.setVisible(false);
-//this.ui.availabilityText?.setVisible(false);
 
         this.updateCreateRequirements();
         this.updateAvailability();
@@ -669,22 +655,17 @@ ready
 
     // Create update helprr
     updateCreateRequirements() {
-        const requirements =
-            this.getCreateRequirements();
+        const data =
+            this.getCreateData();
     
-        if (!requirements) {
+        if (!data) {
             return;
         }
     
-        this.createRequirements =
-            requirements;
-    
-        requirements.req.forEach(
+        data.req.forEach(
             (require, index) => {
-    
                 const text =
                     this.createUI.requiresLabels[index];
-    
                 if (!text) {
                     return;
                 }
@@ -700,10 +681,23 @@ ready
                 );
             }
         );
+        
+        // Update rates WIP -- dynsmic in the future?
+        /*data.produces.forEach(
+            (prod, index) => {
+                const text =
+                    this.createUI.producesLabels[index];
+                if (!text) {
+                    return;
+                }
     
+                text.setText('- Create: +' + prod.producesCnt + ' ' + prod.title);
+            }
+        );*/
+
         // Update CREATE button
         const ready =
-            requirements.allReqMet;
+            data.allReqMet;
     
         this.createUI.createButton
             ?.setFillStyle(
@@ -934,7 +928,6 @@ ready
 
     // DESTROY
     destroy() {
-        this.removeProgressListener?.();
         this.elements.forEach(
             element => element.destroy()
         );

@@ -1,71 +1,173 @@
-// OLD -- needs update
-//import { gameData } from './gameData.js';
+import { stageData, stageItems, stageObjectives } from '../../data/stageData.js';
 
-export default class DebugButton {
+export default class DebugButtons {
 
-    constructor(scene) {
+    constructor(scene, stageProgress) {
         this.scene = scene;
-        this.debugButtons(700, 10);
+        this.saveManager = this.scene.registry.get('saveManager');
+        
+        this.stageProgress = stageProgress;
+
+        this.container = scene.add.container();
+        // Place on top of everything
+        this.container.setDepth(1000);
+
+        this.x = 50;
+        this.y = 50;
+
+        this.buttonWidth = 180;
+        this.buttonHeight = 40;
+        this.spacing = 10;
+
+        this.create();
     }
 
-    debugButtons(debugX, debugY) {
-        const debugFn = {
-            debugUITitle(scene) {
-                const titleBg = scene.add.rectangle(0, 0, 180, 40, 0x333333).setOrigin(0);
-                const titleText = scene.add.text(10, titleBg.height / 2, 'DEBUG BUTTONS:', {
-                    fontSize: '20px',
-                    color: '#fff',
-                    fontStyle: 'bold',
-                }).setOrigin(0, 0.5);
-            
-                return scene.add.container(debugX, debugY, [titleBg, titleText]);
-            },
-        
-            debugUIButton(scene, label, onClick) {
-                const bg = scene.add.rectangle(0, 0, 180, 40, 0x333333)
-                    .setOrigin(0)
-                    .setInteractive({ useHandCursor: true })
-                    .on('pointerdown', () => {
-                        if (onClick) onClick();
-                    });
-                
-                const border = scene.add.graphics();
-                border.lineStyle(2, 0xffffff);
-                border.strokeRect(bg.x, bg.y, bg.width, bg.height);
-                
-                const text = scene.add.text(10, bg.height / 2, label, {
-                    fontSize: '20px',
-                    color: '#fff'
-                }).setOrigin(0, 0.5);
-                
-                debugY += 50;
-                return scene.add.container(debugX, debugY, [bg, border, text]);
-            }
-        };
-        
-        debugFn.debugUITitle(this.scene);
+    create() {
+        this.addTitle('DEBUG BUTTONS:');
 
-        debugFn.debugUIButton(this.scene, 'Clear Data', () => {
-            this.scene.saveManager.clear();            
+// BUTTONS
+this.addButton('Clear Data', () => {
+    this.saveManager.clear();
+});
+////
+this.addButton('Get All Unlocks', () => {
+    console.log(this.stageProgress.getAllUnlocked());
+});
+////
+this.addButton('getCreateData(item)', () => {
+    stageItems.filter(i => i.tab === 'create').forEach(item => {
+        console.log(this.stageProgress.getCreateData(item));
+    });
+});
+////
+
+////
+
+
+
+    }
+
+    addTitle(label) {
+        const bg = this.scene.add.rectangle(
+            0, 0,
+            this.buttonWidth,
+            this.buttonHeight,
+            0x333333
+        )
+        .setOrigin(0)
+        .setInteractive({ useHandCursor: true });
+    
+    
+        const text = this.scene.add.text(
+            10,
+            this.buttonHeight / 2,
+            label,
+            {
+                fontSize: '20px',
+                color: '#fff',
+                fontStyle: 'bold'
+            }
+        )
+        .setOrigin(0, 0.5);
+    
+    
+        const container = this.scene.add.container(
+            this.x,
+            this.y
+        );
+    
+        container.add([bg, text]);
+    
+        this.container.add(container);
+    
+        // =========================
+        // DRAG DEBUG PANEL
+        // =========================
+    
+        bg.on('pointerdown', (pointer) => {
+    
+            this.dragStartX = pointer.x;
+            this.dragStartY = pointer.y;
+    
+            this.panelStartX = this.container.x;
+            this.panelStartY = this.container.y;
+    
+            this.dragging = true;
         });
-        
-        debugFn.debugUIButton(this.scene, 'gameData.elapsedTime', () => {
-            console.log('gameData.elapsedTime');
-            console.log(this.scene.gameTimer.getSaveData());
+    
+    
+        this.scene.input.on('pointermove', (pointer) => {
+    
+            if (!this.dragging) return;
+    
+            const dx = pointer.x - this.dragStartX;
+            const dy = pointer.y - this.dragStartY;
+    
+            this.container.x = this.panelStartX + dx;
+            this.container.y = this.panelStartY + dy;
         });
-        
-        debugFn.debugUIButton(this.scene, 'objData', () => {
-            console.log(JSON.stringify(gameData.objData, null, 2));
+    
+    
+        this.scene.input.on('pointerup', () => {
+            this.dragging = false;
         });
-        
-        debugFn.debugUIButton(this.scene, 'debug save data', () => {
-            this.scene.saveManager.debug();
-        });   
-        
-        debugFn.debugUIButton(this.scene, 'Add message', () => {
-            this.scene.messageStatus.addMessage(
-                'You found a Stone Axe. Its durability is beginning to decrease. You found a Stone Axe. Its durability is beginning to decrease. You found a Stone Axe. Its durability is beginning to decrease.'
-            );
+    
+    
+        this.y += this.buttonHeight + this.spacing;
+    }
+
+    addButton(label, onClick) {
+
+        const bg = this.scene.add.rectangle(
+            0, 0,
+            this.buttonWidth,
+            this.buttonHeight,
+            0x333333
+        )
+        .setOrigin(0)
+        .setInteractive({ useHandCursor: true });
+
+        bg.on('pointerdown', () => {
+            onClick?.();
         });
+
+
+        const border = this.scene.add.graphics();
+
+        border.lineStyle(2, 0xffffff);
+        border.strokeRect(
+            0,
+            0,
+            this.buttonWidth,
+            this.buttonHeight
+        );
+
+
+        const text = this.scene.add.text(
+            10,
+            this.buttonHeight / 2,
+            label,
+            {
+                fontSize: '20px',
+                color: '#fff'
+            }
+        )
+        .setOrigin(0, 0.5);
+
+
+        const container = this.scene.add.container(
+            this.x,
+            this.y
+        );
+
+        container.add([
+            bg,
+            border,
+            text
+        ]);
+
+        this.container.add(container);
+
+        this.y += this.buttonHeight + this.spacing;
     }
 }

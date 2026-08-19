@@ -53,14 +53,14 @@ export default class StageProgressManager {
         if (Object.keys(requirements).length === 0) {
             return true;
         }
-    
+        
         // Every required item must be unlocked
         return Object.keys(requirements).every(
             id => this.getUnlocked(id)
         );
     }
 
-    getCreateRequirements(item) {
+    getCreateData(item) {
         const requirements = item.requirements;
         if (!requirements || requirements === undefined) return;
         const reqItems = [];
@@ -78,10 +78,24 @@ export default class StageProgressManager {
             }
         });
         
+        const producesItems = [];
+        // Get produce data
+        if (item.produces) {
+            Object.entries(item.produces).forEach(([pro, val]) => {
+                const title = this.getItemTitle(pro) ?? pro;
+                producesItems.push({
+                    id: pro,
+                    title: title,
+                    producesCnt: val
+                });
+            });
+        }
+        
         return {
             id: item.id,
             allReqMet: reqItems.every(requirement => requirement.reqMet),
-            req: reqItems
+            req: reqItems,
+            produces: producesItems
         };
     }
 
@@ -346,6 +360,10 @@ export default class StageProgressManager {
     }
 
     // UNLOCK
+    getAllUnlocked() {
+        return this.unlocked;
+    }
+    
     getUnlocked(id) {
         return this.unlocked[id] === true;
     }

@@ -6,7 +6,7 @@ export default class CreationScene extends Phaser.Scene {
 
     constructor() {
         super('CreationScene');
-        
+
         this.depths = {
             background: 0,
             viewport: 10,

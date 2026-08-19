@@ -236,4 +236,8 @@ export default class SaveManager {
             JSON.stringify(savedData, null, 2)
         );
     }
+    
+    test() {
+        console.log('SaveManager...');
+    }
 }

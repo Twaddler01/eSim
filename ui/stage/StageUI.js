@@ -6,6 +6,7 @@ import MessageStatus from './MessageStatus.js';
 import StageProgressManager from '../../managers/StageProgressManager.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
+import DebugButtons from '../../debug/DebugButtons.js';
 import StageDiscoveryTracker from './StageDiscoveryTracker.js';
 
 export default class StageUI {
@@ -37,7 +38,7 @@ export default class StageUI {
     // Create UI
     createUI() {
         this.stageProgress =
-            new StageProgressManager(gameData, stageData, stageItems, stageObjectives); // temp masterObjectives
+            new StageProgressManager(gameData, stageData, stageItems, stageObjectives);
 
         // Set current stage
         this.stageTitle = this.stageProgress.setStage('creation');
@@ -154,17 +155,13 @@ export default class StageUI {
                     height: this.headerHeight - this.headerTitleHeight - 1
                 }
             );
-// TEST
-//this.stageProgress.unlock('darkness');
-//console.log(this.stageProgress.getUnlocked('darkness'));
-
-// TEST
-const unlockTest = stageItems.filter(i => i.tab === 'create');
-unlockTest.forEach(item => {
-    this.stageProgress.unlock(item.id);
-});
 
         this.refreshCurrentTab();
+
+//// Debugging
+this.debugButtons = 
+    new DebugButtons(this.scene, this.stageProgress);
+////
     }
 
     // Header
@@ -292,9 +289,9 @@ unlockTest.forEach(item => {
                 id =>
                     this.stageProgress.get(id),
                     
-            getCreateRequirements: item.tab === 'create'
+            getCreateData: item.tab === 'create'
                 ? () =>
-                    this.stageProgress.getCreateRequirements(item) : null,
+                    this.stageProgress.getCreateData(item) : null,
                     
             canUpgrade:
                 () =>
@@ -399,7 +396,7 @@ unlockTest.forEach(item => {
         this.refreshCurrentTab();
     }
 
-    // this.gather
+    //ggg this.gather
     gather(item) {
         const current =
             this.stageProgress.get(item.id);
@@ -456,7 +453,7 @@ unlockTest.forEach(item => {
         );
     }
 
-    // Create
+    //ccc Create
     create(item) {
         const requirements =
             item.requirements ?? {};
@@ -470,7 +467,6 @@ unlockTest.forEach(item => {
 
                     return amount >= required;
                 });
-
 
         if (!canCreate) {
             return;
@@ -491,6 +487,11 @@ unlockTest.forEach(item => {
         // Produce
         Object.entries(item.produces ?? {})
             .forEach(([id, amount]) => {
+
+                // If produced item triggers requirements
+                if (!this.stageProgress.getUnlocked(id)) {
+                    this.stageProgress.unlock(id);
+                }
 
                 this.stageProgress.add(
                     id,

@@ -52,6 +52,15 @@ export const stageItems = [
     //{ created: true, stage: 'creation', id: 'c_black_hole', title: 'BLACK HOLE', tab: 'gather', category: "element", max: 10, actionLabel: 'GATHER' },
 
 // Creates
+    { stage: 'creation', id: 'air', title: 'Air', drsxription: 'Useful for life.', tab: 'create', category: "created",
+        requirements: {
+            water: 1,
+            light: 1
+        },
+        produces: {
+            air: 1
+        }, actionLabel: 'CREATE'
+    },
     { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', drsxription: 'Seems useful.', tab: 'create', category: "created",
         requirements: {
             water: 5,
