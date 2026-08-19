@@ -9,7 +9,7 @@
 # Work In Progress
 - Reworking StageCard class ->
     - StageCard-gather section: updated. Needs a level bonus status?
-    - StageCard-create section: Working on next, discover section after.
+    - StageCard-create section: Working on create button action next, discover section after.
 - Make card refreshes update live (instead of rebuilding) for any cards that are added to, modified, or removed from the currently viewed tab.
 
 # Future Updates / Ideas
@@ -24,6 +24,7 @@
 
 # Completed Updates
 09-18-2026
+- Create tab has been updated, still needs the click action.
 - Updated Tracker to display each objective unlocks (items/new objectives).
 
 Old

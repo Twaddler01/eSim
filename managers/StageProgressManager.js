@@ -46,23 +46,41 @@ export default class StageProgressManager {
         this.initializeObjectiveTracking();
     }
 
+    isCreateItemUnlocked(item) {
+        const requirements = item.requirements ?? {};
+    
+        // No requirements = unlocked
+        if (Object.keys(requirements).length === 0) {
+            return true;
+        }
+    
+        // Every required item must be unlocked
+        return Object.keys(requirements).every(
+            id => this.getUnlocked(id)
+        );
+    }
+
     getCreateRequirements(item) {
         const requirements = item.requirements;
         if (!requirements || requirements === undefined) return;
         const reqItems = [];
         Object.entries(requirements).forEach(([req, val]) => {
+            const currentCnt = this.get(req);
             const title = this.getItemTitle(req);
             if (title) {
                 reqItems.push({
                     id: req,
                     title: title,
-                    amt: val
+                    req: val,
+                    cnt: currentCnt,
+                    reqMet: currentCnt >= val
                 });
             }
         });
         
         return {
             id: item.id,
+            allReqMet: reqItems.every(requirement => requirement.reqMet),
             req: reqItems
         };
     }
@@ -492,7 +510,7 @@ STATUS: COMPLETED
         const objectivesUnlocked = item.unlocks?.objectives ?? [];
         const items = [];
         const objectives = [];
-    
+
         for (const unlockId of itemUnlocked) {
             const itemData =
                 this.stageItems.find(

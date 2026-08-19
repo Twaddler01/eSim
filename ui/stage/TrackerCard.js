@@ -174,7 +174,7 @@ export default class TrackerCard {
         
             currentY += this.unlocksObjText.height + 10;
         }
-        
+
         // Unlocks items
         if (this.unlocksItems.items.length > 0) {
             this.unlocksItemsTextTitle =

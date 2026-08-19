@@ -1,3 +1,5 @@
+import { listenToEvent } from '../../utils/stageHelpers.js';
+
 /* CARD SOURCE
     let cards =
         stageItems.filter(
@@ -33,7 +35,6 @@ export default class StageCard {
         this.title = options.title ?? 'Item';
         this.description = options.description ?? '';
         this.actionLabel = options.actionLabel ?? 'ACTION';
-        this.createRequirements = options.createRequirements ?? null;
         this.tab = options.tab ?? 'gather';
 
         // Function values
@@ -44,6 +45,7 @@ export default class StageCard {
         // WIP this.percent = options.percent ?? null;
 
         // Callbacks
+        this.getCreateRequirements = options.getCreateRequirements ?? (() => null);
         this.canUpgrade = options.canUpgrade ?? (() => false);
         this.onUpgrade = options.onUpgrade ?? null;
         this.canAction = options.canAction ?? (() => true);
@@ -102,7 +104,6 @@ export default class StageCard {
     }
 
     createBackground() {
-
         this.ui.background =
             this.addElement(
                 this.scene.add.rectangle(
@@ -439,18 +440,26 @@ export default class StageCard {
                 )
             .setOrigin(0)
         );
-
+        
         let currentY = yOffset + 35;
-        this.createRequirements.req.forEach(require => {
+        this.createUI.requiresLabels = [];
+ 
+        const requirements = this.getCreateRequirements();
+        const allReqMetButtonColor_stro = requirements.allReqMet ? 0x66aa66 : 0x555555;
+        const allReqMetButtonColor_fill = requirements.allReqMet ? 0x335533 : 0x222222;
+        const allReqMetTextColor = requirements.allReqMet ? '#ffffff' : '#555555';
+
+        requirements.req.forEach(require => {
+            const reqMetColor = require.reqMet ? '#66ff66' : '#ff6666';
             this.createUI.requiresLabel =
                 this.addElement(
                     addText(this.scene,
                         this.width / 3 + 25,
                         currentY,
-                        require.title + ': ' + '0' + ' / ' + require.amt,
+                        require.title + ': ' + require.cnt + ' / ' + require.req,
                         {
                             fontSize: '18px',
-                            color: '#ff6666'
+                            color: reqMetColor
                         }
                     )
                 .setOrigin(0)
@@ -467,10 +476,10 @@ export default class StageCard {
                     this.height / 2 - 15,
                     120,
                     30,
-                    0x222222
+                    allReqMetButtonColor_fill
                 )
                 .setOrigin(0)
-                .setStrokeStyle(1, 0x555555)
+                .setStrokeStyle(1, allReqMetButtonColor_stro)
                 .setInteractive()
             );
         
@@ -482,19 +491,38 @@ export default class StageCard {
                     this.actionLabel,
                     {
                         fontSize: '20px',
-                        color: '#777777'
+                        color: allReqMetTextColor
                     }
                 )
             .setOrigin(0)
         );
 
-        //if (this.createRequirements) console.log(this.createRequirements);
 
 // for helper
 /*
 ready
 ? '#66ff66'
-: '#ff6666'
+: '#xff6666'
+
+        if (upgradeAvailable) {
+    
+            this.gatherUI.upgradeButton
+                .setFillStyle(0x335533)
+                .setStrokeStyle(1, 0x66aa66);
+    
+            this.gatherUI.upgradeButtonText
+                ?.setColor('#ffffff');
+    
+        } else {
+    
+            this.gatherUI.upgradeButton
+                .setFillStyle(0x222222)
+                .setStrokeStyle(1, 0x555555);
+    
+            this.gatherUI.upgradeButtonText
+                ?.setColor('#777777');
+        }
+
 */
 
 
@@ -528,10 +556,6 @@ ready
 
         if ('availability' in data) {
             this.availability = data.availability;
-        }
-        
-        if ('createRequirements' in data) {
-            this.createRequirements = data.createRequirements;
         }
     
         if ('canUpgrade' in data) {
@@ -608,9 +632,11 @@ ready
         //console.log('Updating create card');
 
 // TEST
-this.ui.lockOverlay?.setVisible(false);
-this.ui.availabilityText?.setVisible(false);
+//this.ui.lockOverlay?.setVisible(false);
+//this.ui.availabilityText?.setVisible(false);
 
+        this.updateCreateRequirements();
+        this.updateAvailability();
     }
 
     updateDiscover(data) {
@@ -641,6 +667,65 @@ this.ui.availabilityText?.setVisible(false);
         );
     }
 
+    // Create update helprr
+    updateCreateRequirements() {
+        const requirements =
+            this.getCreateRequirements();
+    
+        if (!requirements) {
+            return;
+        }
+    
+        this.createRequirements =
+            requirements;
+    
+        requirements.req.forEach(
+            (require, index) => {
+    
+                const text =
+                    this.createUI.requiresLabels[index];
+    
+                if (!text) {
+                    return;
+                }
+    
+                text.setText(
+                    `${require.title}: ${require.cnt} / ${require.req}`
+                );
+    
+                text.setColor(
+                    require.reqMet
+                        ? '#66ff66'
+                        : '#ff6666'
+                );
+            }
+        );
+    
+        // Update CREATE button
+        const ready =
+            requirements.allReqMet;
+    
+        this.createUI.createButton
+            ?.setFillStyle(
+                ready
+                    ? 0x335533
+                    : 0x222222
+            )
+            .setStrokeStyle(
+                1,
+                ready
+                    ? 0x66aa66
+                    : 0x555555
+            );
+    
+        this.createUI.createButtonText
+            ?.setColor(
+                ready
+                    ? '#ffffff'
+                    : '#555555'
+            );
+    }
+
     // AVAILABILITY
     updateAvailability() {
         let state = this.availability;
@@ -651,43 +736,53 @@ this.ui.availabilityText?.setVisible(false);
 
         // ACTIVE
         if (state === 'active') {
-    
-            this.gatherUI.gatherButton?.setFillStyle(0x333333)
+            // Gather
+            this.gatherUI.gatherButton
+                ?.setFillStyle(0x333333)
                 .setStrokeStyle(1, 0xffffff);
-    
-            this.gatherUI.gatherButtonText?.setText(this.actionLabel)
+            this.gatherUI.gatherButtonText
+                ?.setText(this.actionLabel)
                 .setColor('#ffffff');
+            // Create
+            this.createUI.createButton
+                ?.setFillStyle(0x335533)
+                .setStrokeStyle(1, 0x66aa66);
+            this.createUI.createButtonText
+                ?.setColor('#ffffff');
     
             return;
         }
     
         // UNLOCKED
         if (state === 'unlocked') {
-    
-            this.ui.availabilityText?.setText('REQUIREMENTS NOT MET')
-                .setVisible(true)
-                .setColor('#ff6666');
-    
+            // Gather
             this.gatherUI.gatherButton?.setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
-    
             this.gatherUI.gatherButtonText?.setText('LOCKED')
                 .setColor('#777777');
-    
+            // Create
+            this.createUI.createButton
+                ?.setFillStyle(0x222222)
+                .setStrokeStyle(1, 0x555555);
+            this.createUI.createButtonText
+                ?.setColor('#777777');
+            // Discover
+            if (this.tab === 'discover') {
+                this.ui.availabilityText?.setText('REQUIREMENTS NOT MET')
+                    .setVisible(true)
+                    .setColor('#ff6666');
+            }
+
             return;
         }
     
         // COMPLETED
         if (state === 'completed') {
-
             this.setupCompletedDisplay();
-
             this.ui.lockOverlay?.setVisible(true)
             .setAlpha(0.55);
-            
             this.gatherUI.gatherButton?.setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
-    
             this.gatherUI.gatherButtonText?.setText('COMPLETED')
                 .setColor('#66ff66');
     
@@ -696,10 +791,9 @@ this.ui.availabilityText?.setVisible(false);
     
         // MAXED
         if (state === 'maxed') {
-        
+            // Gather only
             this.gatherUI.gatherButton?.setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x555555);
-        
             this.gatherUI.gatherButtonText?.setText('MAXED')
                 .setColor('#777777');
         
@@ -709,16 +803,19 @@ this.ui.availabilityText?.setVisible(false);
         // LOCKED
         this.ui.lockOverlay?.setVisible(true)
             .setAlpha(0.55);
-    
         this.ui.availabilityText?.setText('LOCKED')
             .setVisible(true);
-    
+        // Gather
         this.gatherUI.gatherButton?.setFillStyle(0x222222)
             .setStrokeStyle(1, 0x555555);
-    
         this.gatherUI.gatherButtonText?.setText('LOCKED')
             .setColor('#777777');
-
+        // Create
+        this.createUI.createButton
+            ?.setFillStyle(0x222222)
+            .setStrokeStyle(1, 0x555555);
+        this.createUI.createButtonText
+            ?.setColor('#777777');
     }
 
     updateUpgradeAvailability() {
@@ -742,7 +839,7 @@ this.ui.availabilityText?.setVisible(false);
     
             this.gatherUI.upgradeButton
                 .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x444444);
+                .setStrokeStyle(1, 0x555555);
     
             this.gatherUI.upgradeButtonText
                 ?.setColor('#777777');
@@ -837,6 +934,7 @@ this.ui.availabilityText?.setVisible(false);
 
     // DESTROY
     destroy() {
+        this.removeProgressListener?.();
         this.elements.forEach(
             element => element.destroy()
         );

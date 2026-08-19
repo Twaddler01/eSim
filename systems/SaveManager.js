@@ -147,6 +147,7 @@ export default class SaveManager {
                     ...this.rootData.stageProgress,
                     ...savedData.stageProgress
                 };
+                //jprint(savedData.stageProgress);
             }
 
             console.log('[SaveManager] Loaded saved state');

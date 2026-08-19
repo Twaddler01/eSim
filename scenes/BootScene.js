@@ -14,7 +14,6 @@ export default class BootScene extends Phaser.Scene {
             5000
         );
         
-        // Make it available to other scenes
         this.registry.set(
             'saveManager',
             saveManager

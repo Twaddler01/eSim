@@ -292,7 +292,9 @@ unlockTest.forEach(item => {
                 id =>
                     this.stageProgress.get(id),
                     
-            createRequirements: item.tab === 'create' ? this.stageProgress.getCreateRequirements(item) : null,
+            getCreateRequirements: item.tab === 'create'
+                ? () =>
+                    this.stageProgress.getCreateRequirements(item) : null,
                     
             canUpgrade:
                 () =>
@@ -497,15 +499,35 @@ unlockTest.forEach(item => {
             });
     }
 
-    // Availability
+    // Availability -- needs move to 
     getAvailability(item) {
-    // Objectives
+        // Objectives
         if (item.objective) {
             return this.stageProgress.getObjectiveStatus(
                 item.id
             );
         }
 
+        // CREATE ITEMS
+        if (item.tab === 'create') {
+            if (!this.stageProgress.isCreateItemUnlocked(item)) {
+                return 'locked';
+            }
+    
+            const requirementsMet =
+                Object.entries(item.requirements ?? {})
+                    .every(([id, required]) => {
+                        return this.stageProgress.get(id) >= required;
+                    });
+    
+            if (!requirementsMet) {
+                return 'unlocked';
+            }
+    
+            return 'active';
+        }
+
+        // GATHER ITEM
         const unlocked =
             item.startsUnlocked ||
             this.stageProgress.getUnlocked(item.id);

@@ -8,8 +8,9 @@ if (DEBUG) {
 }
 
 // ==================================================
+// GLOBAL GAME HELPERS
+// ==================================================
 
-// GLOBAL GAME OBJECT HELPERS
 const DEFAULT_FONT_FAMILY = 'Arial';
 window.addText = function (scene, x, y, text, style = {}) {
     return scene.add.text(
@@ -22,6 +23,76 @@ window.addText = function (scene, x, y, text, style = {}) {
         }
     );
 };
+
+/*
+window.jp = (item) => {
+    console.log(JSON.stringify(item, null,  2));
+}
+*/
+
+window.jp = (...args) => {
+
+    if (args.length !== 1) {
+        console.log(...args);
+        return;
+    }
+
+    const item = args[0];
+
+    // Array of Object.entries()
+    if (
+        Array.isArray(item) &&
+        item.every(
+            entry =>
+                Array.isArray(entry) &&
+                entry.length === 2
+        )
+    ) {
+        console.table(
+            Object.fromEntries(item)
+        );
+        return;
+    }
+
+    // Regular arrays
+    if (Array.isArray(item)) {
+        console.log(
+            JSON.stringify(item, null, 2)
+        );
+        return;
+    }
+
+    // Objects
+    if (
+        item !== null &&
+        typeof item === 'object'
+    ) {
+        try {
+            console.log(
+                JSON.stringify(item, null, 2)
+            );
+        } catch {
+            console.log(item);
+        }
+        return;
+    }
+
+    console.log(item);
+};
+
+/*
+OTHER USEFUL CONSOLE FUBCTIONS:
+console.dir(object);     // Interactive object inspection
+console.table(array);    // Excellent for arrays/objects
+console.group('Name');   // Start a collapsible group
+console.groupEnd();      // End group
+console.warn('Warning'); // Yellow warning
+console.error('Error');  // Error
+console.time('test');    // Start timer
+console.timeEnd('test'); // End timer + elapsed time
+console.count('name');   // Count how many times something runs
+console.trace();         // Show the call stack
+*/
 
 // PHASER START
 const MAX_WIDTH = 1280; // Max width for mobile portrait
