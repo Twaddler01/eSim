@@ -51,8 +51,8 @@ export default class StageProgressManager {
     // Availability
     getAvailability(item) {
         // Objectives
-        if (item.objective) {
-            return this.getObjectiveStatus(
+        if (item.tab === 'discover') {
+            return this.isObjectiveActive(
                 item.id
             );
         }
@@ -383,7 +383,137 @@ export default class StageProgressManager {
 //ddd functions for DISCOVER
 //--------------------------------
 
-//
+// Gets all data for StageCard
+getObjectiveData() {
+    const returnData = [];
+    this.objectives.forEach(obj => {
+
+        //if (!this.isObjectiveComplete(obj.id)) return;
+
+        // Only include these types
+        if (obj.type !== 'objective' &&
+            obj.type !== 'child' &&
+            obj.type !== 'parent') {
+            return;
+        }
+
+        const data = {
+            tab: 'discover',
+            id: obj.id,
+            title: obj.title,
+            objectiveText: obj.objectiveText,
+            description: obj.description,
+
+            required: {
+                items: [],
+                objectives: [],
+                children: []
+            },
+
+            unlocked: {
+                items: [],
+                objectives: [],
+                children: []
+            }
+        };
+
+        // ==========================================
+        // REQUIRED
+        // ==========================================
+
+        if (obj.requirements?.items) {
+            data.required.items =
+                this.fetchObjData(obj.requirements.items);
+        }
+
+        if (obj.requirements?.objectives) {
+            data.required.objectives =
+                this.fetchObjData(obj.requirements.objectives);
+        }
+
+        // Parent children
+        if (obj.children) {
+            data.required.children =
+                this.fetchObjData(obj.children);
+        }
+
+        // ==========================================
+        // UNLOCKED
+        // ==========================================
+
+        if (obj.unlocks?.items) {
+            data.unlocked.items =
+                this.fetchObjData(obj.unlocks.items);
+        }
+
+        if (obj.unlocks?.objectives) {
+            data.unlocked.objectives =
+                this.fetchObjData(obj.unlocks.objectives);
+        }
+
+        if (obj.unlocks?.children) {
+            data.unlocked.children =
+                this.fetchObjData(obj.unlocks.children);
+        }
+
+        returnData.push(data);
+    });
+
+    return returnData;
+}
+
+    // Helper ^
+    fetchObjData(data) {
+        if (!Array.isArray(data)) return [];
+        return data.flatMap(item => {
+            // ID only
+            if (typeof item === 'string') {
+                return {
+                    id: item,
+                    title: this.getTitle(item)
+                };
+            }
+            // ID + amount
+            if (item && typeof item === 'object') {
+                return Object.entries(item).map(([id, amt]) => ({
+                    id,
+                    title: this.getTitle(id),
+                    amt
+                }));
+            }
+            return [];
+        });
+    }
+
+    // States for DISCOVER TAB (getAvailability)
+    isObjectiveActive(id) {
+        const state =
+            this.getObjectiveState(id);
+
+        const isStartsUnlocked = () => {
+            const obj = this.getObjective(id);
+            if (obj.startsUnlocked) {
+                return obj.id;
+            }
+            return false;
+        };
+        const startsUnlocked = isStartsUnlocked();
+        const activeFirst = startsUnlocked && state.completed !== true;
+
+        let defaultReturn = 'locked';
+        if (
+            (state.unlocked === true && state.completed !== true) || 
+            activeFirst
+        ) {
+            return 'active'; // In Progress
+        }
+        
+        if (state.completed === true) {
+            return 'completed';
+        }
+
+        return defaultReturn;
+    }
 
 //--------------------------------
 //obj getObjectiveCardData => functions for OBJECTIVES
@@ -410,8 +540,35 @@ export default class StageProgressManager {
         return result;
     }
 
-    getObjectiveStatus(id) {
+    // Tracking
+    getCurrentObjectives() {
+        const stage =
+            this.getCurrentStageId();
     
+        const result =
+            this.objectives.filter(objective => {
+                const sameStage =
+                    objective.stage === stage;
+    
+                const unlocked =
+                    this.isObjectiveUnlocked(
+                        objective.id
+                    );
+                const complete =
+                    this.isObjectiveComplete(
+                        objective.id
+                    );
+    
+                return (
+                    sameStage &&
+                    (unlocked || complete)
+                );
+            });
+    
+        return result;
+    }
+
+    getObjectiveStatus(id) {
         const objective =
             this.getObjective(id);
     
@@ -422,7 +579,7 @@ export default class StageProgressManager {
         if (this.isObjectiveComplete(id)) {
             return 'completed';
         }
-    
+        
         if (!this.isObjectiveUnlocked(id)) {
             return 'locked';
         }
@@ -502,6 +659,7 @@ STATUS: COMPLETED
         };
     }
 
+    // For parent objectives only
     isObjectiveComplete(id) {
         return this.getObjectiveState(id).completed === true;
     }
@@ -838,33 +996,6 @@ STATUS: COMPLETED
         });
     }
     
-    getCurrentObjectives() {
-        const stage =
-            this.getCurrentStageId();
-    
-        const result =
-            this.objectives.filter(objective => {
-                const sameStage =
-                    objective.stage === stage;
-    
-                const unlocked =
-                    this.isObjectiveUnlocked(
-                        objective.id
-                    );
-                const complete =
-                    this.isObjectiveComplete(
-                        objective.id
-                    );
-    
-                return (
-                    sameStage &&
-                    (unlocked || complete)
-                );
-            });
-    
-        return result;
-    }
-    
     unlockObjective(id) {
         const objective =
             this.getObjective(id);
@@ -916,7 +1047,7 @@ STATUS: COMPLETED
         );
     }
 
-    getSortedCurrentObjectives() {
+    /*getSortedCurrentObjectives() {
         const objectives =
             this.getCurrentObjectives();
     
@@ -994,7 +1125,7 @@ STATUS: COMPLETED
         });
     
         return result;
-    }
+    }*/
     
     getCompletionOrder(id) {
         return (
@@ -1245,6 +1376,15 @@ STATUS: COMPLETED
         const item = this.stageItems.find(i => i.id === id);
         if (item) return item.title ?? item.id;
         return null;
+    }
+
+    // Gwt any title matching id
+    getTitle(id) {
+        const stage = this.stageItems.find(i => i.id === id);
+        if (stage) return stage.title;
+        const objective = this.objectives.find(i => i.id === id);
+        if (objective) return objective.title;
+        return id;
     }
 
     // UNLOCK

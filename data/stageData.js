@@ -9,7 +9,7 @@ export const stageItems = [
 // Resources
     { stage: 'creation', id: 'darkness', title: 'DARKNESS', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER' },
     { stage: 'creation', id: 'light', title: 'LIGHT', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: false, max: 50, actionLabel: 'GATHER',
+    { stage: 'creation', id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: false, max: 15, actionLabel: 'GATHER',
         gather: {
             upgrade: {
                 enabled: true,
@@ -20,7 +20,7 @@ export const stageItems = [
             }
         },
     },
-    { stage: 'creation', id: 'carbon', title: 'CARBON', tab: 'gather', category: 'element', unlocked: false, max: 50, actionLabel: 'GATHER',
+    { stage: 'creation', id: 'carbon', title: 'CARBON', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER',
         gather: {
             upgrade: {
                 enabled: true,
@@ -29,11 +29,12 @@ export const stageItems = [
             }
         },
     },
-    { stage: 'creation', id: 'hydrogen', title: 'HYDROGEN', tab: 'gather', category: 'element', unlocked: false, max: 20, actionLabel: 'GATHER',
+    { stage: 'creation', id: 'hydrogen', title: 'HYDROGEN', tab: 'gather', category: 'element', unlocked: false, max: 15, actionLabel: 'GATHER',
         gather: {
             upgrade: {
                 enabled: true,
                 maxIncrease: 200,
+                rateIncrease: 3
             }
         },
     },

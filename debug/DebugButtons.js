@@ -40,10 +40,12 @@ this.addButton('getCreateData(item)', () => {
     });
 });
 ////
-
+this.addButton('getObjectiveData', () => {
+    jp(this.stageProgress.getObjectiveData());
+});
 ////
 
-
+////
 
     }
 

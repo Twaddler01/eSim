@@ -90,10 +90,7 @@ export default class StageCard {
                 break;
         }
         
-        // Overlay not used for discoveries
-        if (this.tab !== 'discover') {
-            this.createStatusOverlay();
-        }
+        this.createStatusOverlay();
     }
 
     createBackground() {
@@ -143,21 +140,15 @@ export default class StageCard {
     }
 
     createTitle() {
-        // DISCOVER TAB ONLY
-        const fontSize = this.tab === 'discover' ? '40px' : '22px';
-        const titleX = this.tab === 'discover' ? 28 : 15;
-        const titleY = this.tab === 'discover' ? 25 : 12;
-        
-        
         this.ui.title =
             this.addElement(
                 addText(
                     this.scene,
-                    titleX,
-                    titleY,
+                    15,
+                    12,
                     this.title,
                     {
-                        fontSize: fontSize,
+                        fontSize: '22px',
                         color: '#ffffff'
                     }
                 )
@@ -679,8 +670,16 @@ export default class StageCard {
 
     createDiscover() {
         // (Title already setup)
-        
+
+        // Active only
+        if (this.tab === 'discover') {
+            
+        }
+
         // completed only
+        // start with this.stageProgress.getObjectiveStatus(id) === 'completed' 
+        
+
         
         // WIP
         // probably no live updates except card additions/sorting
@@ -688,8 +687,7 @@ export default class StageCard {
     }
 
     updateDiscover(data) {
-
-        //console.log('Updating discover card');
+        this.updateAvailability();
     }
 
 //--------------------------------
@@ -794,7 +792,12 @@ export default class StageCard {
                 .setStrokeStyle(1, 0x66aa66);
             this.createUI.createButtonText
                 ?.setColor('#ffffff');
-    
+            // Discover
+            if (this.tab === 'discover') {
+                this.ui.availabilityText?.setVisible(true)
+                    .setText('[ IN PROGRESS ]');
+            }
+            
             return;
         }
     
@@ -811,26 +814,17 @@ export default class StageCard {
                 .setStrokeStyle(1, 0x555555);
             this.createUI.createButtonText
                 ?.setColor('#777777');
-            // Discover
-            if (this.tab === 'discover') {
-                this.ui.availabilityText?.setText('REQUIREMENTS NOT MET')
-                    .setVisible(true)
-                    .setColor('#ff6666');
-            }
 
             return;
         }
     
         // COMPLETED
         if (state === 'completed') {
-            this.setupCompletedDisplay();
-            this.ui.lockOverlay?.setVisible(true)
-            .setAlpha(0.55);
-            this.gatherUI.gatherButton?.setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-            this.gatherUI.gatherButtonText?.setText('COMPLETED')
-                .setColor('#66ff66');
-    
+            // Discover
+            if (this.tab === 'discover') {
+                this.ui.availabilityText?.setVisible(true)
+                    .setText('COMPLETED');
+            }
             return;
         }
     

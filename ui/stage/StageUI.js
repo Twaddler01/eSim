@@ -276,11 +276,12 @@ this.debugButtons =
     
         // OBJECTIVES
         if (this.currentTab === 'discover') {
-    
+            
+            // Modified array structure 
             const objectiveCards =
                 this.stageProgress
-                    .getSortedCurrentObjectives();
-
+                    .getObjectiveData();
+            
             cards = [
                 ...objectiveCards,
                 ...cards
@@ -322,7 +323,7 @@ this.debugButtons =
             getCreateData: item.tab === 'create'
                 ? () =>
                     this.stageProgress.getCreateData(item) : null,
-                    
+
             canUpgrade:
                 () =>
                     this.stageProgress.gatherUpgradeAvailable(item),
