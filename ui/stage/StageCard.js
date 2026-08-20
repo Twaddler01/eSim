@@ -90,8 +90,10 @@ export default class StageCard {
                 break;
         }
         
-        this.createStatusOverlay();
-
+        // Overlay not used for discoveries
+        if (this.tab !== 'discover') {
+            this.createStatusOverlay();
+        }
     }
 
     createBackground() {
@@ -141,15 +143,21 @@ export default class StageCard {
     }
 
     createTitle() {
+        // DISCOVER TAB ONLY
+        const fontSize = this.tab === 'discover' ? '40px' : '22px';
+        const titleX = this.tab === 'discover' ? 28 : 15;
+        const titleY = this.tab === 'discover' ? 25 : 12;
+        
+        
         this.ui.title =
             this.addElement(
                 addText(
                     this.scene,
-                    15,
-                    12,
+                    titleX,
+                    titleY,
                     this.title,
                     {
-                        fontSize: '22px',
+                        fontSize: fontSize,
                         color: '#ffffff'
                     }
                 )
@@ -670,7 +678,10 @@ export default class StageCard {
 //--------------------------------
 
     createDiscover() {
-
+        // (Title already setup)
+        
+        // completed only
+        
         // WIP
         // probably no live updates except card additions/sorting
         // objective / discovery information

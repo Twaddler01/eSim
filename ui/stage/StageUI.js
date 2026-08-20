@@ -261,6 +261,9 @@ this.debugButtons =
         // Changing tabs DOES rebuild the cards.
         this.refreshCurrentTab();
     }
+    
+//--------------------------------
+//--------------------------------
 //--------------------------------
 
     // Get cards (for tab initialization)
@@ -274,18 +277,10 @@ this.debugButtons =
         // OBJECTIVES
         if (this.currentTab === 'discover') {
     
-            const objectives =
+            const objectiveCards =
                 this.stageProgress
                     .getSortedCurrentObjectives();
-    
-            const objectiveCards =
-                objectives.map(
-                    objective =>
-                        this.getObjectiveCardData(
-                            objective
-                        )
-                );
-    
+
             cards = [
                 ...objectiveCards,
                 ...cards
@@ -347,55 +342,6 @@ this.debugButtons =
         }));
     }
 
-    // Helpers for getCurrentTabCardData()
-    getObjectiveCardData(objective) {
-        const card = {
-            ...objective,
-    
-            objective: true,
-            // For stageItems data (title)
-            reqItems: this.stageProgress.getReqItems(objective.id),
-            
-            // WIP later??
-            //unlocksItems: this.stageProgress.objectiveUnlockList(objective),
-
-            amount: null,
-            max: null,
-            
-            tab: this.stageProgress.getTabId(objective.id),
-    
-            availability:
-                this.stageProgress.getObjectiveStatus(
-                    objective.id
-                )
-        };
-
-        if (objective.type === 'parent') {
-            const progress =
-                this.stageProgress.getParentProgress(
-                    objective.id
-                );
-    
-            card.amount = progress.completed;
-            card.max = progress.total;
-            card.percent = progress.percent;
-    
-            card.children =
-                (objective.children ?? [])
-                    .map(childId =>
-                        stageObjectives.find(
-                            child => child.id === childId
-                        )
-                    )
-                    .filter(Boolean);
-    
-            card.getChildComplete =
-                childId =>
-                    this.stageProgress.isObjectiveComplete(childId);
-        }
-        return card;
-    }
- 
     // DIFFERENT TAB REFRESH
     // Destroy old tab and build new tab
     refreshCurrentTab() {
@@ -494,12 +440,6 @@ this.debugButtons =
     }
 
     getCardCanAction(item) {
-        if (item.objective) {
-            return (
-                this.stageProgress.getObjectiveStatus(item.id) === 'active'
-            );
-        }
-
         return this.stageProgress.getAvailability(item) === 'active';
     }
     
@@ -514,25 +454,6 @@ this.debugButtons =
             this.create(item);
             return;
         }
-    
-        // Objectives
-        if (this.currentTab === 'discover') {
-            if (item.objective) {
-                this.completeObjective(item.id);
-                return;
-            }
-        }
-    }
-    
-    completeObjective(id) {
-        const success =
-            this.stageProgress.completeObjective(id);
-    
-        if (!success) {
-            return;
-        }
-    
-        this.refreshCurrentTab();
     }
 
     // Destroy
