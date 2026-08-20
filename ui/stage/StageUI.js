@@ -224,6 +224,45 @@ this.debugButtons =
         );
     }
 
+//--------------------------------
+// Listener updates
+//--------------------------------
+    updateAffectedCards(update) {
+        // Objective changes can add/remove/reorder
+        // cards and change parent progress.
+        if (
+            update.type === 'objective-unlock' ||
+            update.type === 'objective-complete'
+        ) {
+            this.refreshCurrentTab();
+            return;
+        }
+    
+        // Amount changes can change requirements,
+        // availability, progress, etc.
+        if (
+            update.type === 'amount' ||
+            update.type === 'gather-upgrade'
+        ) {
+            this.updateCurrentTab();
+            return;
+        }
+    }
+
+    // Change tab
+    changeTab(id) {
+
+        if (this.currentTab === id) {
+            return;
+        }
+
+        this.currentTab = id;
+
+        // Changing tabs DOES rebuild the cards.
+        this.refreshCurrentTab();
+    }
+//--------------------------------
+
     // Get cards (for tab initialization)
     getCurrentTabCardData() {
         let cards =
@@ -280,15 +319,11 @@ this.debugButtons =
                     : null,
     
             upgradeStats:
-                this.getUpgrades(item),
+                this.stageProgress.getGatherUpgradeStats(item.id, item),
     
             availability:
-                this.getAvailability(item),
-    
-            getAmount:
-                id =>
-                    this.stageProgress.get(id),
-                    
+                this.stageProgress.getAvailability(item),
+
             getCreateData: item.tab === 'create'
                 ? () =>
                     this.stageProgress.getCreateData(item) : null,
@@ -310,28 +345,6 @@ this.debugButtons =
                     this.handleCardAction(item)
     
         }));
-    }
-
-    // DIFFERENT TAB REFRESH
-    // Destroy old tab and build new tab
-    refreshCurrentTab() {
-        const cardData =
-            this.getCurrentTabCardData();
-    
-        this.viewport.showCards(
-            cardData
-        );
-    }
-
-    // SAME TAB REFRESH
-    // Keep the existing cards and reconcile them with the new state
-    updateCurrentTab() {
-        const cardData =
-            this.getCurrentTabCardData();
-    
-        this.viewport.syncCards(
-            cardData
-        );
     }
 
     // Helpers for getCurrentTabCardData()
@@ -383,17 +396,26 @@ this.debugButtons =
         return card;
     }
  
-    // Change tab
-    changeTab(id) {
+    // DIFFERENT TAB REFRESH
+    // Destroy old tab and build new tab
+    refreshCurrentTab() {
+        const cardData =
+            this.getCurrentTabCardData();
+    
+        this.viewport.showCards(
+            cardData
+        );
+    }
 
-        if (this.currentTab === id) {
-            return;
-        }
-
-        this.currentTab = id;
-
-        // Changing tabs DOES rebuild the cards.
-        this.refreshCurrentTab();
+    // SAME TAB REFRESH
+    // Keep the existing cards and reconcile them with the new state
+    updateCurrentTab() {
+        const cardData =
+            this.getCurrentTabCardData();
+    
+        this.viewport.syncCards(
+            cardData
+        );
     }
 
     //ggg this.gather
@@ -402,13 +424,13 @@ this.debugButtons =
             this.stageProgress.get(item.id);
     
         const upgradeStats =
-            this.getUpgrades(item);
+            this.stageProgress.getGatherUpgradeStats(item.id, item);
     
         const max =
             upgradeStats.current_max;
     
         const gatherAmount =
-            this.getGatherAmount(item);
+            this.stageProgress.getGatherAmount(item);
     
         const newAmount =
             max == null
@@ -425,34 +447,7 @@ this.debugButtons =
         
         this.stageProgress.gatherUpgradeAvailable(item);
     }
-
-    getGatherLevel(item) {
-        return this.stageProgress.getGatherLevel(item.id);
-    }
     
-    getGatherAmount(item) {
-        const baseAmount = 1;
-    
-        const upgrade =
-            item.gather?.upgrade;
-    
-        if (
-            !upgrade ||
-            upgrade.enabled === false ||
-            (upgrade.rateIncrease ?? 0) <= 0
-        ) {
-            return baseAmount;
-        }
-    
-        const level =
-            this.getGatherLevel(item);
-    
-        return (
-            baseAmount +
-            level * upgrade.rateIncrease
-        );
-    }
-
     //ccc Create
     create(item) {
         const requirements =
@@ -472,7 +467,6 @@ this.debugButtons =
             return;
         }
 
-
         // Consume
         Object.entries(requirements)
             .forEach(([id, amount]) => {
@@ -482,7 +476,6 @@ this.debugButtons =
                     -amount
                 );
             });
-
 
         // Produce
         Object.entries(item.produces ?? {})
@@ -500,80 +493,6 @@ this.debugButtons =
             });
     }
 
-    // Availability -- needs move to 
-    getAvailability(item) {
-        // Objectives
-        if (item.objective) {
-            return this.stageProgress.getObjectiveStatus(
-                item.id
-            );
-        }
-
-        // CREATE ITEMS
-        if (item.tab === 'create') {
-            if (!this.stageProgress.isCreateItemUnlocked(item)) {
-                return 'locked';
-            }
-    
-            const requirementsMet =
-                Object.entries(item.requirements ?? {})
-                    .every(([id, required]) => {
-                        return this.stageProgress.get(id) >= required;
-                    });
-    
-            if (!requirementsMet) {
-                return 'unlocked';
-            }
-    
-            return 'active';
-        }
-
-        // GATHER ITEM
-        const unlocked =
-            item.startsUnlocked ||
-            this.stageProgress.getUnlocked(item.id);
-
-        if (!unlocked) {
-            return 'locked';
-        }
-
-        const amount =
-            this.stageProgress.get(item.id);
-    
-        const max =
-            getItemMax(item, this.stageProgress);
-    
-        if (
-            max != null &&
-            amount >= max
-        ) {
-            return 'maxed';
-        }
-    
-        const requirementsMet =
-            Object.entries(item.requirements ?? {})
-                .every(([id, required]) => {
-    
-                    const current =
-                        this.stageProgress.get(id);
-    
-                    return current >= required;
-                });
-    
-        if (!requirementsMet) {
-            return 'insufficient';
-        }
-
-        return 'active';
-    }
-
-    getUpgrades(item) {
-        return this.stageProgress.getGatherUpgradeStats(
-            item.id,
-            item
-        );
-    }
-    
     getCardCanAction(item) {
         if (item.objective) {
             return (
@@ -581,7 +500,7 @@ this.debugButtons =
             );
         }
 
-        return this.getAvailability(item) === 'active';
+        return this.stageProgress.getAvailability(item) === 'active';
     }
     
     handleCardAction(item) {
@@ -614,32 +533,6 @@ this.debugButtons =
         }
     
         this.refreshCurrentTab();
-    }
-
-    updateAffectedCards(update) {
-        // Objective changes can add/remove/reorder
-        // cards and change parent progress.
-        if (
-            update.type === 'objective-unlock' ||
-            update.type === 'objective-complete'
-        ) {
-            this.refreshCurrentTab();
-            return;
-        }
-    
-        // Amount changes can change requirements,
-        // availability, progress, etc.
-        if (
-            update.type === 'amount' ||
-            update.type === 'gather-upgrade'
-        ) {
-            this.updateCurrentTab();
-            return;
-        }
-    }
-
-    getObjectiveComplete(id) {
-        return this.stageProgress.isObjectiveComplete(id);
     }
 
     // Destroy

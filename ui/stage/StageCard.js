@@ -1,11 +1,4 @@
-
-/* CARD SOURCE
-    let cards =
-        stageItems.filter(
-            item =>
-                item.tab === this.currentTab
-        );
-*/
+// FOR GATHER, CREATE, DISCOVER TABS
 export default class StageCard {
 
     constructor(scene, options = {}) {
@@ -49,7 +42,6 @@ export default class StageCard {
         this.onUpgrade = options.onUpgrade ?? null;
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
-        this.getAmount = options.getAmount ?? (() => 0);
 
         // Button event handler
         this._actionHandler = () => {
@@ -130,7 +122,6 @@ export default class StageCard {
                     0.55
                 )
                 .setOrigin(0)
-                //.setVisible(true)
             );
                 
         // Availability message
@@ -146,7 +137,6 @@ export default class StageCard {
                         }
                     )
                 .setOrigin(0.5)
-                //.setVisible(true)
             );
     }
 
@@ -166,9 +156,11 @@ export default class StageCard {
             );
     }
 
-    createGather() {
-        //console.log('Creating gather card');
+//--------------------------------
+// GATHER TAB
+//--------------------------------
 
+    createGather() {
         // Main width left of upgrade bar
         this.ui.background.width = this.gatherLeftPanelWidth;
 
@@ -203,7 +195,6 @@ export default class StageCard {
                     0x222222
                 )
                 .setOrigin(0)
-                //.setVisible(false)
             );
         
         // Stored progress value
@@ -275,7 +266,7 @@ export default class StageCard {
             .setOrigin(0.5, 0)
         );
 
-        // Create upgrade area
+        // Create gather upgrade area
         this.gatherUI.upgradeBox =
             this.addElement(
                 this.scene.add.rectangle(
@@ -361,7 +352,7 @@ export default class StageCard {
                     addText(
                         this.scene,
                         this.width - this.upgradeBoxWidth / 2 + 15,
-                        this.height - 38,
+                        this.height - 30,
                         'UPGRADE',
                         {
                             fontSize: '16px',
@@ -380,15 +371,100 @@ export default class StageCard {
                     }
             
                     this.onUpgrade?.();
-                    this.updateUpgrades?.();
+                    this.updateGatherUpgrades?.();
                 }
             );
-            
-            //
-            
-
         }
     }
+
+    // PRIMARY GATHER UPDATE CALLS
+    updateGather(data) {
+        // Center availabilityText with gatherLeftPanelWidth
+        if (this.ui.availabilityText) this.ui.availabilityText.x = this.gatherLeftPanelWidth / 2;
+        this.updateGatherProgress();
+        this.updateAvailability(); // multi
+        this.updateGatherUpgradeAvailability();
+    }
+
+    // CURRENT UPGRADE updates
+    updateGatherUpgrades() {
+        if (!this.upgradeStats.hasUpgrade) {
+            return;
+        }
+    
+        // Max updates
+        if (this.max !== null) this.gatherUI.maxLabel.setText(`Max: ${this.upgradeStats.current_max}`);
+                
+        // Level update
+        this.gatherUI.upgradeText.setText(`Upgrade Level: ${this.upgradeStats.level}`);
+        
+        // Gather rate update
+        if (this.upgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${this.upgradeStats.currentGatherRate}`);
+    }
+
+    // GATHER PROGRESS updates
+    updateGatherProgress() {
+        if (
+            this.max == null ||
+            this.max <= 0
+        ) {
+            this.gatherUI.progressBackground
+                .setVisible(false);
+    
+            this.gatherUI.progressFill
+                .setVisible(false);
+    
+            return;
+        }
+    
+        this.gatherUI.progressBackground
+            .setVisible(true);
+    
+        this.gatherUI.progressFill
+            .setVisible(true);
+    
+        const percent =
+            Phaser.Math.Clamp(
+                this.amount / this.max,
+                0,
+                1
+            );
+    
+        this.gatherUI.progressFill.width  =
+            this.gatherBarWidth * percent;
+    }
+
+    updateGatherUpgradeAvailability() {
+        if (!this.gatherUI.upgradeButton) {
+            return;
+        }
+    
+        const upgradeAvailable =
+            this.canUpgrade();
+    
+        if (upgradeAvailable) {
+    
+            this.gatherUI.upgradeButton
+                .setFillStyle(0x335533)
+                .setStrokeStyle(1, 0x66aa66);
+    
+            this.gatherUI.upgradeButtonText
+                ?.setColor('#ffffff');
+    
+        } else {
+    
+            this.gatherUI.upgradeButton
+                .setFillStyle(0x222222)
+                .setStrokeStyle(1, 0x555555);
+    
+            this.gatherUI.upgradeButtonText
+                ?.setColor('#777777');
+        }
+    }
+
+//--------------------------------
+// CREATE TAB
+//--------------------------------
 
     createCreate() {
         //console.log('Creating create card');
@@ -514,146 +590,15 @@ export default class StageCard {
             'pointerdown',
             this._actionHandler
         );
-
-
-// for helper
-/*
-ready
-? '#66ff66'
-: '#xff6666'
-*/
     }
 
-    createDiscover() {
-        //console.log('Creating discover card');
-
-        // probably no live updates except card additions/sorting
-        // objective / discovery information
-    }
-
-    // UPDATE CARDS
-    update(data = {}) {
-        if ('amount' in data) {
-            this.amount = data.amount;
-        }
-    
-        if ('max' in data) {
-            this.max = data.max;
-        }
-
-        if ('percent' in data) {
-            this.percent = data.percent;
-        }
-
-        if ('availability' in data) {
-            this.availability = data.availability;
-        }
-    
-        if ('canUpgrade' in data) {
-            this.canUpgrade = data.canUpgrade;
-        }
-    
-        if ('upgradeStats' in data) {
-            this.upgradeStats = data.upgradeStats;
-        }
-    
-        switch (this.tab) {
-    
-            case 'gather':
-                this.updateGather(data);
-                break;
-    
-            case 'create':
-                this.updateCreate(data);
-                break;
-    
-            case 'discover':
-                this.updateDiscover(data);
-                break;
-        }
-    }
-
-    // PROGRESS
-    updateProgress() {
-    
-        if (
-            this.max == null ||
-            this.max <= 0
-        ) {
-            this.gatherUI.progressBackground
-                .setVisible(false);
-    
-            this.gatherUI.progressFill
-                .setVisible(false);
-    
-            return;
-        }
-    
-        this.gatherUI.progressBackground
-            .setVisible(true);
-    
-        this.gatherUI.progressFill
-            .setVisible(true);
-    
-        const percent =
-            Phaser.Math.Clamp(
-                this.amount / this.max,
-                0,
-                1
-            );
-    
-        this.gatherUI.progressFill.width  =
-            this.gatherBarWidth * percent;
-    }
-
-    updateGather(data) {
-        //console.log('Updating gather card');
-        
-        // Center availabilityText with gatherLeftPanelWidth
-        if (this.ui.availabilityText) this.ui.availabilityText.x = this.gatherLeftPanelWidth / 2;
-        this.updateProgress();
-        this.updateAvailability();
-        this.updateUpgradeAvailability();
-        
-        
-    }
-
+    // PRIMARY CREATE UPDATE CALLS
     updateCreate(data) {
-        //console.log('Updating create card');
-
         this.updateCreateRequirements();
         this.updateAvailability();
     }
 
-    updateDiscover(data) {
-
-        //console.log('Updating discover card');
-    }
-
-//// CARD FUNCTIONS FOR CLASS: StageViewport => updateCardData()
-//// WIP: Only needed  for card size changes
-
-    setAmount(amount) {
-        this.amount =
-            Math.max(0, amount ?? 0);
-
-        //this.amountText.setText(`${Math.floor(this.amount)}`);
-
-        this.updateProgress();
-    }
-
-    // SET MAX
-    setMax(max) {
-        this.max = max;
-        
-        const maxText = this.max !== null ? `${this.max}` : '';
-    
-        this.gatherUI.maxLabel.setText(
-            `Max: ${maxText}`
-        );
-    }
-
-    // Create update helprr
+    // Create live updates
     updateCreateRequirements() {
         const data =
             this.getCreateData();
@@ -719,6 +664,101 @@ ready
                     : '#555555'
             );
     }
+
+//--------------------------------
+// DISCOVER TAB
+//--------------------------------
+
+    createDiscover() {
+
+        // WIP
+        // probably no live updates except card additions/sorting
+        // objective / discovery information
+    }
+
+    updateDiscover(data) {
+
+        //console.log('Updating discover card');
+    }
+
+//--------------------------------
+// UPDATES FOR ALL CARDS [ StageViewport ]
+//--------------------------------
+
+    update(data = {}) {
+        if ('amount' in data) {
+            this.amount = data.amount;
+        }
+    
+        if ('max' in data) {
+            this.max = data.max;
+        }
+
+        if ('percent' in data) {
+            this.percent = data.percent;
+        }
+
+        if ('availability' in data) {
+            this.availability = data.availability;
+        }
+    
+        if ('canUpgrade' in data) {
+            this.canUpgrade = data.canUpgrade;
+        }
+    
+        if ('upgradeStats' in data) {
+            this.upgradeStats = data.upgradeStats;
+        }
+    
+        switch (this.tab) {
+    
+            case 'gather':
+                this.updateGather(data);
+                break;
+    
+            case 'create':
+                this.updateCreate(data);
+                break;
+    
+            case 'discover':
+                this.updateDiscover(data);
+                break;
+        }
+    }
+
+    setY(y) {
+        this.y = y;
+        this.container.y = y;
+    }
+
+    // Dynamic height WIP (OLD?)
+    refreshHeight(newHeight) {
+        if (this.height === newHeight) {
+            return false;
+        }
+    
+        this.height = newHeight;
+    
+        this.ui.background?.setSize(
+            this.width,
+            this.height
+        );
+    
+        this.ui.lockOverlay?.setSize(
+            this.width,
+            this.height
+        );
+    
+        this.ui.availabilityText?.setY(
+            this.height / 2
+        );
+    
+        return true;
+    }
+
+//--------------------------------
+// AVAILABILITY FUNCTIONS (MULTI)
+//--------------------------------
 
     // AVAILABILITY
     updateAvailability() {
@@ -812,130 +852,13 @@ ready
             ?.setColor('#777777');
     }
 
-    updateUpgradeAvailability() {
-        if (!this.gatherUI.upgradeButton) {
-            return;
-        }
-    
-        const upgradeAvailable =
-            this.canUpgrade();
-    
-        if (upgradeAvailable) {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x335533)
-                .setStrokeStyle(1, 0x66aa66);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#ffffff');
-    
-        } else {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#777777');
-        }
-    }
-
-    // CURRENT UPGRADE updates
-    updateUpgrades() {
-        if (!this.upgradeStats.hasUpgrade) {
-            return;
-        }
-    
-        // Max updates
-        if (this.max !== null) this.gatherUI.maxLabel.setText(`Max: ${this.upgradeStats.current_max}`);
-                
-        // Level update
-        this.gatherUI.upgradeText.setText(`Upgrade Level: ${this.upgradeStats.level}`);
-        
-        // Gather rate update
-        if (this.upgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${this.upgradeStats.currentGatherRate}`);
-        
-        
-        
-        
-    }
-
-    // REQUIREMENTS FOR OBJECTIVES
-    updateRequirements(getAmount) {
-        // Completed objectives no longer track live amounts.
-        /*if (this.isArchived) {
-            return;
-        }
-    
-        this.requirementTexts.forEach(
-            requirement => {
-    
-                const amount =
-                    getAmount(requirement.id);
-    
-                const ready =
-                    amount >= requirement.required;
-
-                const reqItem = this.reqItems.find(i => i.id === requirement.id);
-
-                const title =
-                    reqItem?.title ?? requirement.id;
-    
-                requirement.text.setText(
-                    `${title}: ${Math.floor(amount)} / ${requirement.required} ${ready ? '✓' : '✕'}`
-                );
-    
-                requirement.text.setColor(
-                    ready
-                        ? '#66ff66'
-                        : '#ff6666'
-                );
-            }
-        );*/
-    }
-
-    // VIEWPORT
-    setY(y) {
-        this.y = y;
-        this.container.y = y;
-    }
-
-    // Dynamic height
-    refreshHeight(newHeight) {
-    
-        if (this.height === newHeight) {
-            return false;
-        }
-    
-        this.height = newHeight;
-    
-        this.ui.background?.setSize(
-            this.width,
-            this.height
-        );
-    
-        this.ui.lockOverlay?.setSize(
-            this.width,
-            this.height
-        );
-    
-        this.ui.availabilityText?.setY(
-            this.height / 2
-        );
-    
-        return true;
-    }
-
     // DESTROY
     destroy() {
         this.elements.forEach(
             element => element.destroy()
         );
-    
         this.elements = [];
-    
         this.container?.destroy();
-    
         this.ui = {};
         this.gatherUI = {};
         this.createUI = {};

@@ -1,3 +1,5 @@
+import { getItemMax } from '../utils/stageHelpers.js';
+
 export default class StageProgressManager {
 
     constructor(gameData, stageData, stageItems, stageObjectives) {
@@ -46,62 +48,76 @@ export default class StageProgressManager {
         this.initializeObjectiveTracking();
     }
 
-    isCreateItemUnlocked(item) {
-        const requirements = item.requirements ?? {};
-    
-        // No requirements = unlocked
-        if (Object.keys(requirements).length === 0) {
-            return true;
+    // Availability
+    getAvailability(item) {
+        // Objectives
+        if (item.objective) {
+            return this.getObjectiveStatus(
+                item.id
+            );
         }
-        
-        // Every required item must be unlocked
-        return Object.keys(requirements).every(
-            id => this.getUnlocked(id)
-        );
-    }
 
-    getCreateData(item) {
-        const requirements = item.requirements;
-        if (!requirements || requirements === undefined) return;
-        const reqItems = [];
-        Object.entries(requirements).forEach(([req, val]) => {
-            const currentCnt = this.get(req);
-            const title = this.getItemTitle(req);
-            if (title) {
-                reqItems.push({
-                    id: req,
-                    title: title,
-                    req: val,
-                    cnt: currentCnt,
-                    reqMet: currentCnt >= val
-                });
+        // CREATE ITEMS
+        if (item.tab === 'create') {
+            if (!this.isCreateItemUnlocked(item)) {
+                return 'locked';
             }
-        });
-        
-        const producesItems = [];
-        // Get produce data
-        if (item.produces) {
-            Object.entries(item.produces).forEach(([pro, val]) => {
-                const title = this.getItemTitle(pro) ?? pro;
-                producesItems.push({
-                    id: pro,
-                    title: title,
-                    producesCnt: val
-                });
-            });
+    
+            const requirementsMet =
+                Object.entries(item.requirements ?? {})
+                    .every(([id, required]) => {
+                        return this.get(id) >= required;
+                    });
+    
+            if (!requirementsMet) {
+                return 'unlocked';
+            }
+    
+            return 'active';
         }
-        
-        return {
-            id: item.id,
-            allReqMet: reqItems.every(requirement => requirement.reqMet),
-            req: reqItems,
-            produces: producesItems
-        };
+
+        // GATHER ITEM
+        const unlocked =
+            item.startsUnlocked ||
+            this.getUnlocked(item.id);
+
+        if (!unlocked) {
+            return 'locked';
+        }
+
+        const amount =
+            this.get(item.id);
+    
+        const max =
+            getItemMax(item, this);
+    
+        if (
+            max != null &&
+            amount >= max
+        ) {
+            return 'maxed';
+        }
+    
+        const requirementsMet =
+            Object.entries(item.requirements ?? {})
+                .every(([id, required]) => {
+    
+                    const current =
+                        this.get(id);
+    
+                    return current >= required;
+                });
+    
+        if (!requirementsMet) {
+            return 'insufficient';
+        }
+
+        return 'active';
     }
 
-    getCreateItems() {
-        return this.stageItems.filter(item => item.tab === 'create');
-    }
+//--------------------------------
+//ggg getCurrentTabCardData => item functions for GATHER
+//--------------------------------
 
     getGatherUpgradeStats(id, item) {
         const upgrade =
@@ -161,34 +177,6 @@ export default class StageProgressManager {
         };
     }
 
-    hasGatherUpgrade(item) {
-        const upgrade =
-            item.gather?.upgrade;
-    
-        if (!upgrade) {
-            return false;
-        }
-    
-        // Explicitly disabled
-        if (upgrade.enabled === false) {
-            return false;
-        }
-    
-        const hasRate =
-            (upgrade.rateIncrease ?? 0) > 0;
-    
-        const hasMax =
-            (upgrade.maxIncrease ?? 0) > 0;
-    
-        // enabled:true OR legacy/missing enabled
-        // with an actual upgrade value.
-        return (
-            upgrade.enabled === true ||
-            hasRate ||
-            hasMax
-        );
-    }
-
     gatherUpgradeAvailable(item) {
         if (!this.hasGatherUpgrade(item)) {
             return false;
@@ -242,88 +230,59 @@ export default class StageProgressManager {
         return true;
     }
 
-    // --------------------------------------------------
-    // Get all values
-    // --------------------------------------------------
+//--------------------------------
+//ggg OTHER GATHER FUNCTIONS
+//--------------------------------
 
-    getAll() {
-        return { ...this.values };
-    }
-
-    // Get amount
-    get(id) {
-        return this.values[id] ?? 0;
-    }
-
-    // Set amount
-    set(id, amount) {
-        const newAmount =
-            Math.max(0, amount);
-
-        this.values[id] =
-            newAmount;
-
-        this.sync();
-
-        this.events.emit(
-            'updated',
-            {
-                type: 'amount',
-                id,
-                amount: newAmount
-            }
-        );
-
-        return newAmount;
-    }
-
-    // Add amount
-    add(id, amount) {
-        return this.set(
-            id,
-            this.get(id) + amount
-        );
-    }
-
-    // Remove amount
-    remove(id, amount = 1) {
-        return this.set(
-            id,
-            this.get(id) - amount
-        );
-    }
-
-    // Returns an array of objective required items (from stageItems)
-    getReqItems(id) {
-        // NOTE: this.objectives = stageObjectives
-        const thisItem = this.objectives.find(i => i.id === id);
-
-        let result = [];
-        
-        const reqItems = thisItem?.requirements?.items;
-        
-        if (reqItems) {
-            reqItems.forEach(item => {
-                const [[reqId, required]] = Object.entries(item);
-                //console.log(`ID: ${reqId}, Value: ${required}`);
-                const matchedId = this.stageItems.find(i => i.id === reqId);
-                result.push(matchedId);
-            });
-        }
-
-        return result;
-    }
-
-    getItem(id) {
-        return this.stageItems.find(
-            item => item.id === id
-        ) ?? null;
-    }
+    hasGatherUpgrade(item) {
+        const upgrade =
+            item.gather?.upgrade;
     
-    getItemTitle(id) {
-        const item = this.stageItems.find(i => i.id === id);
-        if (item) return item.title ?? item.id;
-        return null;
+        if (!upgrade) {
+            return false;
+        }
+    
+        // Explicitly disabled
+        if (upgrade.enabled === false) {
+            return false;
+        }
+    
+        const hasRate =
+            (upgrade.rateIncrease ?? 0) > 0;
+    
+        const hasMax =
+            (upgrade.maxIncrease ?? 0) > 0;
+    
+        // enabled:true OR legacy/missing enabled
+        // with an actual upgrade value.
+        return (
+            upgrade.enabled === true ||
+            hasRate ||
+            hasMax
+        );
+    }
+
+    getGatherAmount(item) {
+        const baseAmount = 1;
+    
+        const upgrade =
+            item.gather?.upgrade;
+    
+        if (
+            !upgrade ||
+            upgrade.enabled === false ||
+            (upgrade.rateIncrease ?? 0) <= 0
+        ) {
+            return baseAmount;
+        }
+    
+        const level =
+            this.getGatherLevel(item.id);
+    
+        return (
+            baseAmount +
+            level * upgrade.rateIncrease
+        );
     }
 
     // Gather upgrade levels
@@ -359,109 +318,96 @@ export default class StageProgressManager {
         );
     }
 
-    // UNLOCK
-    getAllUnlocked() {
-        return this.unlocked;
-    }
-    
-    getUnlocked(id) {
-        return this.unlocked[id] === true;
-    }
-    
-    unlock(id) {
-        if (this.unlocked[id]) {
-            return;
-        }
-        this.unlocked[id] = true;
-        this.sync();
-        this.events.emit('updated', {
-            id,
-            type: 'unlock'
-        });
-    }
-    
-    lock(id) {
-        delete this.unlocked[id];
-        this.sync();
-        this.events.emit('updated', {
-            id,
-            type: 'unlock'
-        });
-    }
+//--------------------------------
+//ccc functions for CREATE
+//--------------------------------
 
-    getTabId(id) {
-        const createItem = this.stageItems.find(s => s.id === id && s.tab === 'create');
-        if (createItem) {
-            return 'create';
-        }
-        const discoverItem = this.objectives.find(o => o.id === id && o.tab === 'discover');
-        if (discoverItem) {
-            return 'discover';
-        }
-        return 'gather';
-    }
-
-//////// OBJECTIVES
-    getObjective(id) {
-        return this.objectives.find(
-            objective => objective.id === id
-        ) ?? null;
-    }
+    isCreateItemUnlocked(item) {
+        const requirements = item.requirements ?? {};
     
-    getObjectiveState(id) {
-        return this.objectiveState[id] ?? {
-            unlocked: false,
-            completed: false
-        };
-    }
-    
-    isObjectiveUnlocked(id) {
-        const objective =
-            this.getObjective(id);
-    
-        if (!objective) {
-            return false;
-        }
-        if (objective.startsUnlocked) {
+        // No requirements = unlocked
+        if (Object.keys(requirements).length === 0) {
             return true;
         }
-        return this.getObjectiveState(id).unlocked === true;
+        
+        // Every required item must be unlocked
+        return Object.keys(requirements).every(
+            id => this.getUnlocked(id)
+        );
     }
-    
-    isObjectiveComplete(id) {
-        return this.getObjectiveState(id).completed === true;
-    }
-    
-    areObjectiveRequirementsMet(objective) {
-    
-        // Item requirements
-        const itemRequirements =
-            objective.requirements?.items ?? [];
-    
-        const itemsMet =
-            itemRequirements.every(
-                requirement =>
-                    Object.entries(requirement)
-                        .every(([id, required]) =>
-                            this.get(id) >= required
-                        )
-            );
-    
-        if (!itemsMet) {
-            return false;
+
+    getCreateData(item) {
+        const requirements = item.requirements;
+        if (!requirements || requirements === undefined) return;
+        const reqItems = [];
+        Object.entries(requirements).forEach(([req, val]) => {
+            const currentCnt = this.get(req);
+            const title = this.getItemTitle(req);
+            if (title) {
+                reqItems.push({
+                    id: req,
+                    title: title,
+                    req: val,
+                    cnt: currentCnt,
+                    reqMet: currentCnt >= val
+                });
+            }
+        });
+        
+        const producesItems = [];
+        // Get produce data
+        if (item.produces) {
+            Object.entries(item.produces).forEach(([pro, val]) => {
+                const title = this.getItemTitle(pro) ?? pro;
+                producesItems.push({
+                    id: pro,
+                    title: title,
+                    producesCnt: val
+                });
+            });
         }
-    
-        // Child objectives
-        const childRequirements =
-            objective.children ?? [];
-    
-        const childrenMet =
-            childRequirements.every(
-                childId =>
-                    this.isObjectiveComplete(childId)
-            );
-    
-        return childrenMet;
+        
+        return {
+            id: item.id,
+            allReqMet: reqItems.every(requirement => requirement.reqMet),
+            req: reqItems,
+            produces: producesItems
+        };
+    }
+
+    getCreateItems() {
+        return this.stageItems.filter(item => item.tab === 'create');
+    }
+
+//--------------------------------
+//ddd functions for DISCOVER
+//--------------------------------
+
+//
+
+//--------------------------------
+//obj getObjectiveCardData => functions for OBJECTIVES
+//--------------------------------
+
+    // Returns an array of objective required items (from stageItems)
+    getReqItems(id) {
+        // NOTE: this.objectives = stageObjectives
+        const thisItem = this.objectives.find(i => i.id === id);
+
+        let result = [];
+        
+        const reqItems = thisItem?.requirements?.items;
+        
+        if (reqItems) {
+            reqItems.forEach(item => {
+                const [[reqId, required]] = Object.entries(item);
+                //console.log(`ID: ${reqId}, Value: ${required}`);
+                const matchedId = this.stageItems.find(i => i.id === reqId);
+                result.push(matchedId);
+            });
+        }
+
+        return result;
     }
 
     getObjectiveStatus(id) {
@@ -519,188 +465,108 @@ CREATION DAY 1
 STATUS: COMPLETED
 */
 
-// --------------------------------------------------
-// OBJECTIVE TRACKING
-// --------------------------------------------------
+//--------------------------------
+//pobj getObjectiveCardData => functions for PARENT OBJECTIVES
+//--------------------------------
 
-    objectiveUnlockList(item) {
-        const itemUnlocked = item.unlocks?.items ?? [];
-        const objectivesUnlocked = item.unlocks?.objectives ?? [];
-        const items = [];
-        const objectives = [];
-
-        for (const unlockId of itemUnlocked) {
-            const itemData =
-                this.stageItems.find(
-                    i => i.id === unlockId
-                );
+    getParentProgress(id) {
+        const objective =
+            this.getObjective(id);
     
-            if (itemData) {
-                items.push(itemData.title);
-            }
+        if (
+            !objective ||
+            objective.type !== 'parent'
+        ) {
+            return null;
         }
     
-        for (const unlockId of objectivesUnlocked) {
-            const objData =
-                this.objectives.find(
-                    i => i.id === unlockId
-                );
+        const children =
+            objective.children ?? [];
     
-            if (objData) {
-                objectives.push(objData.title);
-            }
-        }
+        const completed =
+            children.filter(
+                childId =>
+                    this.isObjectiveComplete(childId)
+            ).length;
+    
+        const total =
+            children.length;
     
         return {
-            items,
-            objectives
+            completed,
+            total,
+            percent:
+                total > 0
+                    ? completed / total
+                    : 0
         };
     }
 
-    isObjectiveTracked(id) {
-        return this.tracked[id] === true;
+    isObjectiveComplete(id) {
+        return this.getObjectiveState(id).completed === true;
     }
     
-    setObjectiveTracked(id, tracked = true) {
+//--------------------------------
+//obj OTHER OBJECTIVE FUNCTIONS
+//--------------------------------
+
+    getObjective(id) {
+        return this.objectives.find(
+            objective => objective.id === id
+        ) ?? null;
+    }
+    
+    getObjectiveState(id) {
+        return this.objectiveState[id] ?? {
+            unlocked: false,
+            completed: false
+        };
+    }
+    
+    isObjectiveUnlocked(id) {
         const objective =
             this.getObjective(id);
     
         if (!objective) {
             return false;
         }
-    
-        this._setTracked(id, tracked);
-    
-        this.sync();
-    
-        this.events.emit(
-            'updated',
-            {
-                type: 'objective-track',
-                id,
-                tracked
-            }
-        );
-    
-        return tracked;
-    }
-    
-    _setTracked(id, tracked) {
-        if (tracked) {
-            this.tracked[id] = true;
-            this.objectiveTrackingCounter++;
-    
-            const state = this.getObjectiveState(id);
-            state.trackingOrder = this.objectiveTrackingCounter;
-            this.objectiveState[id] = state;
-        } else {
-            delete this.tracked[id];
-            const state = this.getObjectiveState(id);
-            delete state.trackingOrder;
+        if (objective.startsUnlocked) {
+            return true;
         }
+        return this.getObjectiveState(id).unlocked === true;
     }
     
-    getTrackingOrder(id) {
-        return (
-            this.getObjectiveState(id)
-                .trackingOrder
-            ?? 0
-        );
-    }
+    areObjectiveRequirementsMet(objective) {
     
-    getTrackedObjectives(options = {}) {
-        const objectives =
-            this.getCurrentObjectives()
-                .filter(objective => {
+        // Item requirements
+        const itemRequirements =
+            objective.requirements?.items ?? [];
     
-                    // Must be tracked
-                    if (!this.isObjectiveTracked(objective.id)) {
-                        return false;
-                    }
-    
-                    // Tracker only shows objectives still in progress
-                    if (this.isObjectiveComplete(objective.id)) {
-                        return false;
-                    }
-    
-                    return true;
-                });
-    
-        if (!options.newestFirst) {
-            return objectives;
-        }
-    
-        // The property order of `tracked` represents
-        // the order objectives were most recently tracked.
-        const trackedOrder =
-            Object.keys(this.tracked);
-    
-        const orderIndex =
-            new Map(
-                trackedOrder.map(
-                    (id, index) =>
-                        [id, index]
-                )
+        const itemsMet =
+            itemRequirements.every(
+                requirement =>
+                    Object.entries(requirement)
+                        .every(([id, required]) =>
+                            this.get(id) >= required
+                        )
             );
     
-        return objectives.sort(
-            (a, b) => {
+        if (!itemsMet) {
+            return false;
+        }
     
-                // Parents always go to the bottom.
-                if (
-                    a.type === 'parent' &&
-                    b.type !== 'parent'
-                ) {
-                    return 1;
-                }
+        // Child objectives
+        const childRequirements =
+            objective.children ?? [];
     
-                if (
-                    a.type !== 'parent' &&
-                    b.type === 'parent'
-                ) {
-                    return -1;
-                }
-    
-                // Otherwise newest tracked objective first.
-                return (
-                    orderIndex.get(b.id) -
-                    orderIndex.get(a.id)
-                );
-            }
-        );
-    }
-    
-    initializeObjectiveTracking() {
-        const stage =
-            this.getCurrentStageId();
-    
-        const startingObjective =
-            this.objectives.find(
-                objective =>
-                    objective.stage === stage &&
-                    objective.startsUnlocked === true &&
-                    !this.isObjectiveComplete(objective.id)
+        const childrenMet =
+            childRequirements.every(
+                childId =>
+                    this.isObjectiveComplete(childId)
             );
     
-        if (!startingObjective) {
-            return;
-        }
-    
-        if (
-            this.isObjectiveTracked(
-                startingObjective.id
-            )
-        ) {
-            return;
-        }
-    
-        this.tracked[startingObjective.id] = true;
-    
-        this.sync();
+        return childrenMet;
     }
-// --------------------------------------------------
-// END ... OBJECTIVE TRACKING
-// --------------------------------------------------
 
 // NEW -- WIP integrate into StageCard
     getObjectiveRequirements(id) {
@@ -887,39 +753,6 @@ STATUS: COMPLETED
         };
     }
 
-    getParentProgress(id) {
-        const objective =
-            this.getObjective(id);
-    
-        if (
-            !objective ||
-            objective.type !== 'parent'
-        ) {
-            return null;
-        }
-    
-        const children =
-            objective.children ?? [];
-    
-        const completed =
-            children.filter(
-                childId =>
-                    this.isObjectiveComplete(childId)
-            ).length;
-    
-        const total =
-            children.length;
-    
-        return {
-            completed,
-            total,
-            percent:
-                total > 0
-                    ? completed / total
-                    : 0
-        };
-    }
-    
     completeObjective(id) {
         const objective =
             this.getObjective(id);
@@ -1170,9 +1003,296 @@ STATUS: COMPLETED
             ?? Number.MAX_SAFE_INTEGER
         );
     }
-//////////////// END OBJECTIVES
 
-    // Sync to gameData
+// --------------------------------------------------
+//tobj OBJECTIVE TRACKING FUNCTIONS
+// --------------------------------------------------
+
+    objectiveUnlockList(item) {
+        const itemUnlocked = item.unlocks?.items ?? [];
+        const objectivesUnlocked = item.unlocks?.objectives ?? [];
+        const items = [];
+        const objectives = [];
+
+        for (const unlockId of itemUnlocked) {
+            const itemData =
+                this.stageItems.find(
+                    i => i.id === unlockId
+                );
+    
+            if (itemData) {
+                items.push(itemData.title);
+            }
+        }
+    
+        for (const unlockId of objectivesUnlocked) {
+            const objData =
+                this.objectives.find(
+                    i => i.id === unlockId
+                );
+    
+            if (objData) {
+                objectives.push(objData.title);
+            }
+        }
+    
+        return {
+            items,
+            objectives
+        };
+    }
+
+    isObjectiveTracked(id) {
+        return this.tracked[id] === true;
+    }
+    
+    setObjectiveTracked(id, tracked = true) {
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return false;
+        }
+    
+        this._setTracked(id, tracked);
+    
+        this.sync();
+    
+        this.events.emit(
+            'updated',
+            {
+                type: 'objective-track',
+                id,
+                tracked
+            }
+        );
+    
+        return tracked;
+    }
+    
+    _setTracked(id, tracked) {
+        if (tracked) {
+            this.tracked[id] = true;
+            this.objectiveTrackingCounter++;
+    
+            const state = this.getObjectiveState(id);
+            state.trackingOrder = this.objectiveTrackingCounter;
+            this.objectiveState[id] = state;
+        } else {
+            delete this.tracked[id];
+            const state = this.getObjectiveState(id);
+            delete state.trackingOrder;
+        }
+    }
+    
+    getTrackingOrder(id) {
+        return (
+            this.getObjectiveState(id)
+                .trackingOrder
+            ?? 0
+        );
+    }
+    
+    getTrackedObjectives(options = {}) {
+        const objectives =
+            this.getCurrentObjectives()
+                .filter(objective => {
+    
+                    // Must be tracked
+                    if (!this.isObjectiveTracked(objective.id)) {
+                        return false;
+                    }
+    
+                    // Tracker only shows objectives still in progress
+                    if (this.isObjectiveComplete(objective.id)) {
+                        return false;
+                    }
+    
+                    return true;
+                });
+    
+        if (!options.newestFirst) {
+            return objectives;
+        }
+    
+        // The property order of `tracked` represents
+        // the order objectives were most recently tracked.
+        const trackedOrder =
+            Object.keys(this.tracked);
+    
+        const orderIndex =
+            new Map(
+                trackedOrder.map(
+                    (id, index) =>
+                        [id, index]
+                )
+            );
+    
+        return objectives.sort(
+            (a, b) => {
+    
+                // Parents always go to the bottom.
+                if (
+                    a.type === 'parent' &&
+                    b.type !== 'parent'
+                ) {
+                    return 1;
+                }
+    
+                if (
+                    a.type !== 'parent' &&
+                    b.type === 'parent'
+                ) {
+                    return -1;
+                }
+    
+                // Otherwise newest tracked objective first.
+                return (
+                    orderIndex.get(b.id) -
+                    orderIndex.get(a.id)
+                );
+            }
+        );
+    }
+    
+    initializeObjectiveTracking() {
+        const stage =
+            this.getCurrentStageId();
+    
+        const startingObjective =
+            this.objectives.find(
+                objective =>
+                    objective.stage === stage &&
+                    objective.startsUnlocked === true &&
+                    !this.isObjectiveComplete(objective.id)
+            );
+    
+        if (!startingObjective) {
+            return;
+        }
+    
+        if (
+            this.isObjectiveTracked(
+                startingObjective.id
+            )
+        ) {
+            return;
+        }
+    
+        this.tracked[startingObjective.id] = true;
+    
+        this.sync();
+    }
+
+    // --------------------------------------------------
+    // GETTERS AND SETTERS
+    // --------------------------------------------------
+
+    getAll() {
+        return { ...this.values };
+    }
+
+    // Get amount
+    get(id) {
+        return this.values[id] ?? 0;
+    }
+
+    // Set amount
+    set(id, amount) {
+        const newAmount =
+            Math.max(0, amount);
+
+        this.values[id] =
+            newAmount;
+
+        this.sync();
+
+        this.events.emit(
+            'updated',
+            {
+                type: 'amount',
+                id,
+                amount: newAmount
+            }
+        );
+
+        return newAmount;
+    }
+
+    // Add amount
+    add(id, amount) {
+        return this.set(
+            id,
+            this.get(id) + amount
+        );
+    }
+
+    // Remove amount
+    remove(id, amount = 1) {
+        return this.set(
+            id,
+            this.get(id) - amount
+        );
+    }
+
+    getItem(id) {
+        return this.stageItems.find(
+            item => item.id === id
+        ) ?? null;
+    }
+    
+    getItemTitle(id) {
+        const item = this.stageItems.find(i => i.id === id);
+        if (item) return item.title ?? item.id;
+        return null;
+    }
+
+    // UNLOCK
+    getAllUnlocked() {
+        return this.unlocked;
+    }
+    
+    getUnlocked(id) {
+        return this.unlocked[id] === true;
+    }
+    
+    unlock(id) {
+        if (this.unlocked[id]) {
+            return;
+        }
+        this.unlocked[id] = true;
+        this.sync();
+        this.events.emit('updated', {
+            id,
+            type: 'unlock'
+        });
+    }
+    
+    lock(id) {
+        delete this.unlocked[id];
+        this.sync();
+        this.events.emit('updated', {
+            id,
+            type: 'unlock'
+        });
+    }
+
+    getTabId(id) {
+        const createItem = this.stageItems.find(s => s.id === id && s.tab === 'create');
+        if (createItem) {
+            return 'create';
+        }
+        const discoverItem = this.objectives.find(o => o.id === id && o.tab === 'discover');
+        if (discoverItem) {
+            return 'discover';
+        }
+        return 'gather';
+    }
+
+//--------------------------------
+// Sync to gameData for saving
+//--------------------------------
+
     sync() {
         this.gameData.stageProgress = {
             amounts: this.values,
@@ -1197,7 +1317,11 @@ STATUS: COMPLETED
     getCurrentStage() {
         return this.stage;
     }
-    
+
+//--------------------------------
+// STAGE FUNCTIONS
+//--------------------------------
+
     // For objective lookups
     getCurrentStageId() {
         const stage = this.stageData.find(s => s.stage === this.gameData.currentStage.stage);
@@ -1223,7 +1347,10 @@ STATUS: COMPLETED
         this.scene.start(nextStage.scene);
     }
 
-    // Destroy
+//--------------------------------
+// Destroy
+//--------------------------------
+
     destroy() {
         this.events.removeAllListeners();
         this.events.destroy();

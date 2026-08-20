@@ -112,61 +112,6 @@ export default class StageViewport {
         return card;
     }
 
-/*
-console.log(
-    'ADDING:' +
-    options.id + ' / ' +
-    options.title + 
-    'Map size:' +
-    this.cards.size
-);*/
-
-/* OLD
-    updateCard(id, data) {
-    
-        const card =
-            this.cards.get(id);
-    
-        if (!card) return;
-    
-        if (data.amount !== undefined) {
-            card.setAmount(data.amount);
-        }
-    
-        if (data.max !== undefined) {
-            card.setMax(data.max);
-        }
-    
-        let heightChanged = false;
-    
-        if (data.upgradeStats !== undefined) {
-    
-            card.upgradeStats =
-                data.upgradeStats;
-    
-            card.updateUpgrades();
-    
-            heightChanged =
-                card.refreshHeight();
-        }
-    
-        if (data.availability !== undefined) {
-    
-            card.availability =
-                data.availability;
-    
-            card.updateAvailability();
-        }
-    
-        card.updateRequirements(
-            card.getAmount
-        );
-    
-        if (heightChanged) {
-            this.relayoutCards();
-        }
-    }
-*/
     syncCards(cardData = []) {
         const desiredIds =
             new Set(
@@ -246,10 +191,6 @@ console.log(
         }
     
         card.update(data);
-    
-        card.updateRequirements(
-            card.getAmount
-        );
     }
 
     updateCard(id, data) {

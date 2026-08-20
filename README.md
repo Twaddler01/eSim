@@ -14,6 +14,7 @@
     - StageCard-discover section: Update needed. Only live updates are neccesary for add/remove/unlock cards.
 
 # Future Updates / Ideas
+- Add sub tab options within each main tab.
 - Add an auto-gather/creator - e.g. "element collector", etc.
 - More structural content.
 - More dynamic upgrades, including caps for rate/max, etc.
