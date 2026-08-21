@@ -21,6 +21,7 @@
 
 # Completed Updates
 08-21-2026
+- Fixed a case-sensitive issue with debug.js module showimg as Debug.js on remote, resulting in an ES module error. Added basic error catching even outside of DEBUG variable (from Github pages workflow) to hopefully catch these errors in the future (in console.js).
 - Finished reworking StageCard class ->
     - StageCard-gather section: Update done. Needs a level bonus status?
     - StageCard-create section: Update done. IDEA: updates to created item quantities from upgrades.
