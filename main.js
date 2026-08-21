@@ -1,7 +1,7 @@
 //import { DEBUG } from './config.js';
 //if (DEBUG) {
-    import('./debug/debug.js'); // logExport, htmlExport
-    import('./debug/zoom.js'); // zoom
+//    import('./debug/debug.js'); // logExport, htmlExport
+//    import('./debug/zoom.js'); // zoom
 //}
 
 import BootScene from './scenes/BootScene.js';
