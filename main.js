@@ -4,6 +4,10 @@
 //    import('./debug/zoom.js'); // zoom
 //}
 
+hellooooo
+
+
+/*
 import BootScene from './scenes/BootScene.js';
 import CreationScene from './scenes/CreationScene.js';
 // OLD
@@ -91,7 +95,7 @@ console.trace();         // Show the call stack
 */
 
 // PHASER START
-const MAX_WIDTH = 1280; // Max width for mobile portrait
+/*const MAX_WIDTH = 1280; // Max width for mobile portrait
 const MAX_HEIGHT = 1920; // Max height for mobile portrait
 const ASPECT_RATIO = 3 / 2; // Portrait aspect ratio (adjust as needed)
 
@@ -134,3 +138,5 @@ window.addEventListener("resize", () => {
     const { width, height } = getGameSize();
     game.scale.resize(width, height);
 });
+
+*/
