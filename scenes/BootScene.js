@@ -8,8 +8,8 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
-        // TEST
-        this.add.rectangle(
+// TEST
+/*this.add.rectangle(
             0,
             0,
             this.game.config.width,
@@ -24,6 +24,7 @@ export default class BootScene extends Phaser.Scene {
             'Text ... 6'
         )
         .setOrigin(0);
+*/
         
         const saveManager = new SaveManager(
             gameData,
