@@ -1,4 +1,4 @@
-import { DEBUG } from '../config.js';
+//import { DEBUG } from '../config.js';
 
 /*!
  * MiniConsole
@@ -247,6 +247,6 @@ function startConsole() {
     }
 }
 
-if (DEBUG) {
+//if (DEBUG) {
     startConsole();
-}
+//}
