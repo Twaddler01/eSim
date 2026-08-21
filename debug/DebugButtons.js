@@ -1,4 +1,4 @@
-import { stageData, stageItems, stageObjectives } from '../../data/stageData.js';
+import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
 
 export default class DebugButtons {
 

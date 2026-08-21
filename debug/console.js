@@ -1,5 +1,58 @@
-//import { DEBUG } from '../config.js';
+// ==================================================
+// PRODUCTION ERROR CATCHER
+// ==================================================
 
+window.addEventListener('error', event => {
+    showFatalError(
+        'JavaScript Error',
+        event.error?.stack ||
+        `${event.message}\n${event.filename}:${event.lineno}:${event.colno}`
+    );
+});
+
+window.addEventListener('unhandledrejection', event => {
+    const error = event.reason;
+
+    showFatalError(
+        'Unhandled Promise Error',
+        error?.stack || error?.message || String(error)
+    );
+});
+
+function showFatalError(title, message) {
+
+    const consoleLog = document.getElementById('consoleLog');
+
+    if (!consoleLog) return;
+
+    consoleLog.innerHTML = `
+        <div style="
+            background:#300;
+            color:#fff;
+            padding:12px;
+            font-family:monospace;
+            white-space:pre-wrap;
+            overflow:auto;
+        ">
+            <strong>⚠ ${escapeHTML(title)}</strong>
+
+            <div style="
+                margin-top:10px;
+                color:#ffaaaa;
+            ">${escapeHTML(message)}</div>
+        </div>
+    `;
+}
+
+function escapeHTML(value) {
+    const div = document.createElement('div');
+    div.textContent = String(value);
+    return div.innerHTML;
+}
+
+import { DEBUG } from '../config.js';
+
+function startConsole() { // CONSOLE START
 /*!
  * MiniConsole
  * v1.5
@@ -245,6 +298,8 @@ function range(a,b) {
 	return result; 
 }
 
-//if (DEBUG) {
-//    startConsole();
-//}
+} // CONSOLE END
+
+if (DEBUG) {
+    startConsole();
+}
