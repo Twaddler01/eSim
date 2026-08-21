@@ -28,15 +28,15 @@ jobs:
 
       - name: Prepare Pages files
         run: |
-          # mkdir -p public
+          mkdir -p public
 
-          # rsync -av \
-          #   --exclude='.git' \
-          #  --exclude='.github' \
-          #  --exclude='public' \
-          #  ./ public/
+          rsync -av \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='public' \
+            ./ public/
 
-          # sed -i 's/export const DEBUG = true;/export const DEBUG = false;/' public/config.js
+          sed -i 's/export const DEBUG = true;/export const DEBUG = false;/' public/config.js
 
           cat > public/readme-date.svg <<EOF
           <svg xmlns="http://www.w3.org/2000/svg" width="300" height="28">
