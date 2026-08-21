@@ -1,5 +1,5 @@
 //import StageUI from '../ui/stage/StageUI.js';
-//import { gameData } from '../data/gameData.js';
+import { gameData } from '../data/gameData.js';
 //import GameTimer from '../systems/GameTimer.js';
 
 export default class CreationScene extends Phaser.Scene {
