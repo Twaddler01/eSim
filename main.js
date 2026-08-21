@@ -1,7 +1,6 @@
 import BootScene from './scenes/BootScene.js';
 import CreationScene from './scenes/CreationScene.js';
 import MainScene from './scenes/MainScene.js';
-    import('./debug/debug.js');
 import { DEBUG } from './config.js';
 if (DEBUG) {
     import('./debug/debug.js'); // logExport, htmlExport
@@ -24,11 +23,6 @@ window.addText = function (scene, x, y, text, style = {}) {
         }
     );
 };
-
-/*
-window.jp = (item) => {
-    console.log(JSON.stringify(item, null,  2));
-}
 
 window.jp = (...args) => {
 
@@ -79,7 +73,7 @@ window.jp = (...args) => {
 
     console.log(item);
 };
-*/
+
 /*
 OTHER USEFUL CONSOLE FUBCTIONS:
 console.dir(object);     // Interactive object inspection
