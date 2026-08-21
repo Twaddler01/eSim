@@ -107,9 +107,8 @@ const { width, height } = getGameSize();
 const config = {
     type: Phaser.AUTO,
     scene: [ 
-        BootScene,
-        //CreationScene, 
-        //MainScene
+        BootScene//,
+        //CreationScene
     ],
     scale: {
         mode: Phaser.Scale.FIT, // FIT is good for preserving aspect ratio

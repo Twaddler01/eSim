@@ -1,5 +1,5 @@
-import { gameData } from '../data/gameData.js';
-import SaveManager from '../systems/SaveManager.js';
+//import { gameData } from '../data/gameData.js';
+//import SaveManager from '../systems/SaveManager.js';
 
 export default class BootScene extends Phaser.Scene {
 
@@ -8,7 +8,17 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
-        const saveManager = new SaveManager(
+        // TEST
+        this.add.rectangle(
+            0,
+            0,
+            this.game.config.width,
+            this.game.config.height,
+            0x000055
+        )
+        .setOrigin(0);
+        
+        /*const saveManager = new SaveManager(
             gameData,
             'saveState',
             5000

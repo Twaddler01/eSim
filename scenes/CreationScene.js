@@ -1,10 +1,6 @@
-console.log('1 ... CreationScene.js');
 import StageUI from '../ui/stage/StageUI.js';
-console.log('2 ... StageUI.js');
 import { gameData } from '../data/gameData.js';
-console.log('3 ... gameData');
 import GameTimer from '../systems/GameTimer.js';
-console.log('4 ... GameTimer.js');
 
 export default class CreationScene extends Phaser.Scene {
 
