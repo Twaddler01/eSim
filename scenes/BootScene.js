@@ -24,9 +24,9 @@ export default class BootScene extends Phaser.Scene {
 
         if (gameData.currentStage.stage < 1) {
             this.scene.start('CreationScene');
-        } else {
+        } /*else {
             this.scene.start('MainScene');
-        }
+        }*/
     }
 }
 

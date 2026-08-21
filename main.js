@@ -6,7 +6,8 @@
 
 import BootScene from './scenes/BootScene.js';
 import CreationScene from './scenes/CreationScene.js';
-import MainScene from './scenes/MainScene.js';
+// OLD
+//import MainScene from './scenes/MainScene.js';
 
 // ==================================================
 // GLOBAL GAME HELPERS
@@ -108,7 +109,7 @@ const config = {
     scene: [ 
         BootScene,
         CreationScene, 
-        MainScene
+        //MainScene
     ],
     scale: {
         mode: Phaser.Scale.FIT, // FIT is good for preserving aspect ratio
