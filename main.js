@@ -1,6 +1,7 @@
 import BootScene from './scenes/BootScene.js';
 import CreationScene from './scenes/CreationScene.js';
 import MainScene from './scenes/MainScene.js';
+    import('./debug/debug.js');
 import { DEBUG } from './config.js';
 if (DEBUG) {
     import('./debug/debug.js'); // logExport, htmlExport
