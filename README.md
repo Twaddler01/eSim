@@ -21,6 +21,7 @@
 
 # Completed Updates
 08-21-2026
+- UPDATE: DEBUG variable was added a while back in config.js to be automatically set to false (staying true/enabled on local) for GitHub pages to disable most debugging tools for better user experience. In other words, most debugging features won't be published -- only baaic error catching as per next note below.
 - Fixed a case-sensitive issue with debug.js module showing as Debug.js on remote, resulting in an ES module error. Added basic error catching even outside of DEBUG variable (from Github pages workflow) to hopefully catch these errors in the future (in console.js).
 - Finished reworking StageCard class ->
     - StageCard-gather section: Update done. Needs a level bonus status?
