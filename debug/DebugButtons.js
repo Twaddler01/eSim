@@ -26,12 +26,20 @@ export default class DebugButtons {
         this.addTitle('DEBUG BUTTONS:');
 
 // BUTTONS
-this.addButton('Clear Data', () => {
+this.addButton('Clear Save Data', () => {
     this.saveManager.clear();
 });
 ////
-this.addButton('Get All Unlocks', () => {
-    console.log(this.stageProgress.getAllUnlocked());
+this.addButton('Show current savedData', () => {
+    this.saveManager.debug();
+});
+////
+this.addButton('unlock the_void (gather)', () => {
+    this.stageProgress.unlock('the_void');
+});
+////
+this.addButton('LOCK black_hole (create)', () => {
+    this.stageProgress.lock('black_hole');
 });
 ////
 this.addButton('getCreateData(item)', () => {

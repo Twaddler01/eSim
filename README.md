@@ -7,7 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Card updates meed to be debugged to confirm a clean and live add/remove. Generally smooth within same card updates.
+- Live updates and sorting.
 - Reworking StageCard class ->
     - StageCard-gather section: Update done. Needs a level bonus status?
     - StageCard-create section: Update done. IDEA: updates to created item quantities from upgrades.
@@ -25,11 +25,15 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
-09-19-2026
+08-21-2026
+- Card updates meed to be debugged to confirm a clean and live add/remove. Generally smooth within same card updates.
+
+
+08-19-2026
 - Updated DebugButtons class.
 - Updated StageCard: gather and create sectons.
 
-09-18-2026
+08-18-2026
 - Create tab has been updated, still needs the click action.
 - Updated Tracker to display each objective unlocks (items/new objectives).
 

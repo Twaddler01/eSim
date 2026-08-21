@@ -49,9 +49,9 @@ export default class StageProgressManager {
     }
 
     // Availability
-    getAvailability(item) {
+    getAvailability(item, tab) {
         // Objectives
-        if (item.tab === 'discover') {
+        if (tab === 'discover') {
             return this.isObjectiveActive(
                 item.id
             );
@@ -383,84 +383,100 @@ export default class StageProgressManager {
 //ddd functions for DISCOVER
 //--------------------------------
 
-// Gets all data for StageCard
-getObjectiveData() {
-    const returnData = [];
-    this.objectives.forEach(obj => {
-
-        //if (!this.isObjectiveComplete(obj.id)) return;
-
-        // Only include these types
-        if (obj.type !== 'objective' &&
-            obj.type !== 'child' &&
-            obj.type !== 'parent') {
-            return;
-        }
-
-        const data = {
-            tab: 'discover',
-            id: obj.id,
-            title: obj.title,
-            objectiveText: obj.objectiveText,
-            description: obj.description,
-
-            required: {
-                items: [],
-                objectives: [],
-                children: []
-            },
-
-            unlocked: {
-                items: [],
-                objectives: [],
-                children: []
+    // Gets all data for StageCard
+    getObjectiveData() {
+        const returnData = [];
+        this.objectives.forEach(obj => {
+    
+            //if (!this.isObjectiveComplete(obj.id)) return;
+    
+            // Only include these types
+            if (obj.type !== 'objective' &&
+                obj.type !== 'child' &&
+                obj.type !== 'parent') {
+                return;
             }
-        };
+    
+            const data = {
+                tab: 'discover',
+                id: obj.id,
+                title: obj.title,
+                objectiveText: obj.objectiveText,
+                description: obj.description,
+                
+                availability: this.getAvailability(obj, 'discover'),
 
-        // ==========================================
-        // REQUIRED
-        // ==========================================
+                required: {
+                    items: [],
+                    objectives: [],
+                    children: []
+                },
+    
+                unlocked: {
+                    items: [],
+                    objectives: [],
+                    children: []
+                }
+            };
+    
+            // ==========================================
+            // REQUIRED
+            // ==========================================
+    
+            if (obj.requirements?.items) {
+                data.required.items =
+                    this.fetchObjData(obj.requirements.items);
+            }
+    
+            if (obj.requirements?.objectives) {
+                data.required.objectives =
+                    this.fetchObjData(obj.requirements.objectives);
+            }
+    
+            // Parent children
+            if (obj.children) {
+                data.required.children =
+                    this.fetchObjData(obj.children);
+            }
+    
+            // ==========================================
+            // UNLOCKED
+            // ==========================================
+    
+            if (obj.unlocks?.items) {
+                data.unlocked.items =
+                    this.fetchObjData(obj.unlocks.items);
+            }
+    
+            if (obj.unlocks?.objectives) {
+                data.unlocked.objectives =
+                    this.fetchObjData(obj.unlocks.objectives);
+            }
+    
+            if (obj.unlocks?.children) {
+                data.unlocked.children =
+                    this.fetchObjData(obj.unlocks.children);
+            }
 
-        if (obj.requirements?.items) {
-            data.required.items =
-                this.fetchObjData(obj.requirements.items);
-        }
+            returnData.push(data);
 
-        if (obj.requirements?.objectives) {
-            data.required.objectives =
-                this.fetchObjData(obj.requirements.objectives);
-        }
+            // TEST SORT
+            const order = {
+                active: 0,
+                completed: 1,
+                locked: 2
+            };
+        
+            returnData.sort(
+                (a, b) =>
+                    order[a.availability] -
+                    order[b.availability]
+            );
 
-        // Parent children
-        if (obj.children) {
-            data.required.children =
-                this.fetchObjData(obj.children);
-        }
-
-        // ==========================================
-        // UNLOCKED
-        // ==========================================
-
-        if (obj.unlocks?.items) {
-            data.unlocked.items =
-                this.fetchObjData(obj.unlocks.items);
-        }
-
-        if (obj.unlocks?.objectives) {
-            data.unlocked.objectives =
-                this.fetchObjData(obj.unlocks.objectives);
-        }
-
-        if (obj.unlocks?.children) {
-            data.unlocked.children =
-                this.fetchObjData(obj.unlocks.children);
-        }
-
-        returnData.push(data);
-    });
-
-    return returnData;
-}
+        });
+    
+        return returnData;
+    }
 
     // Helper ^
     fetchObjData(data) {

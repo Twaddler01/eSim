@@ -228,24 +228,26 @@ this.debugButtons =
 // Listener updates
 //--------------------------------
     updateAffectedCards(update) {
-        // Objective changes can add/remove/reorder
-        // cards and change parent progress.
-        if (
-            update.type === 'objective-unlock' ||
-            update.type === 'objective-complete'
-        ) {
-            this.refreshCurrentTab();
+        const updateTypes = [
+            'amount',
+            'gather-upgrade',
+            'objective-unlock',
+            'objective-complete',
+            'unlock'
+        ];
+    
+        if (updateTypes.includes(update.type)) {
+            this.updateCurrentTab();
             return;
         }
     
-        // Amount changes can change requirements,
-        // availability, progress, etc.
-        if (
-            update.type === 'amount' ||
-            update.type === 'gather-upgrade'
-        ) {
-            this.updateCurrentTab();
-            return;
+        const refreshTypes = [
+            // 'stage-change',
+            // 'change-card-definition',
+        ];
+    
+        if (refreshTypes.includes(update.type)) {
+            this.refreshCurrentTab();
         }
     }
 
@@ -318,7 +320,7 @@ this.debugButtons =
                 this.stageProgress.getGatherUpgradeStats(item.id, item),
     
             availability:
-                this.stageProgress.getAvailability(item),
+                this.stageProgress.getAvailability(item, item.tab),
 
             getCreateData: item.tab === 'create'
                 ? () =>
@@ -346,8 +348,13 @@ this.debugButtons =
     // DIFFERENT TAB REFRESH
     // Destroy old tab and build new tab
     refreshCurrentTab() {
-        const cardData =
+        let cardData =
             this.getCurrentTabCardData();
+        
+        if (this.currentTab === 'gather') {
+            const gatherData = cardData.filter(c => c.tab === 'gather');
+            cardData = this.getGatherData(gatherData);
+        }
     
         this.viewport.showCards(
             cardData
@@ -357,11 +364,45 @@ this.debugButtons =
     // SAME TAB REFRESH
     // Keep the existing cards and reconcile them with the new state
     updateCurrentTab() {
-        const cardData =
+        let cardData =
             this.getCurrentTabCardData();
+        
+        if (this.currentTab === 'gather') {
+            const gatherData = cardData.filter(c => c.tab === 'gather');
+            cardData = this.getGatherData(gatherData);
+        }
     
         this.viewport.syncCards(
             cardData
+        );
+    }
+
+    // Helper ^
+    sortByAvailability(data, order) {
+        return data.sort(
+            (a, b) =>
+                (order[a.availability] ?? 999) -
+                (order[b.availability] ?? 999)
+        );
+    }
+
+    // For updateCurrentTab() ^
+    getGatherData(gatherData) {
+        const data = gatherData;
+            data.map(item => ({
+                ...item,
+                availability:
+                    this.stageProgress.getAvailability(item, 'gather')
+            }));
+    
+        return this.sortByAvailability(
+            data,
+            {
+                active: 0,
+                insufficient: 0,
+                maxed: 0,
+                locked: 1
+            }
         );
     }
 
@@ -441,7 +482,7 @@ this.debugButtons =
     }
 
     getCardCanAction(item) {
-        return this.stageProgress.getAvailability(item) === 'active';
+        return this.stageProgress.getAvailability(item, item.tab) === 'active';
     }
     
     handleCardAction(item) {
