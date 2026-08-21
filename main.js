@@ -108,7 +108,7 @@ const config = {
     type: Phaser.AUTO,
     scene: [ 
         BootScene,
-        //CreationScene, 
+        CreationScene, 
         //MainScene
     ],
     scale: {
