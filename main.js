@@ -1,20 +1,3 @@
-console.log('MAIN.JS STARTED');
-
-const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600
-};
-
-console.log('ABOUT TO START PHASER');
-
-const game = new Phaser.Game(config);
-
-console.log('PHASER STARTED');
-
-
-/*
-
 //import { DEBUG } from './config.js';
 //if (DEBUG) {
 //    import('./debug/debug.js'); // logExport, htmlExport
@@ -22,7 +5,7 @@ console.log('PHASER STARTED');
 //}
 
 import BootScene from './scenes/BootScene.js';
-import CreationScene from './scenes/CreationScene.js';
+//import CreationScene from './scenes/CreationScene.js';
 // OLD
 //import MainScene from './scenes/MainScene.js';
 
@@ -107,7 +90,6 @@ console.count('name');   // Count how many times something runs
 console.trace();         // Show the call stack
 */
 
-/*
 // PHASER START
 const MAX_WIDTH = 1280; // Max width for mobile portrait
 const MAX_HEIGHT = 1920; // Max height for mobile portrait
@@ -126,7 +108,7 @@ const config = {
     type: Phaser.AUTO,
     scene: [ 
         BootScene,
-        CreationScene, 
+        //CreationScene, 
         //MainScene
     ],
     scale: {
@@ -152,4 +134,3 @@ window.addEventListener("resize", () => {
     const { width, height } = getGameSize();
     game.scale.resize(width, height);
 });
-*/
