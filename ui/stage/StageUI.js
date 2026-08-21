@@ -7,6 +7,7 @@ import StageProgressManager from '../../managers/StageProgressManager.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
 import DebugButtons from '../../debug/DebugButtons.js';
+import { DEBUG } from '../../config.js';
 import StageDiscoveryTracker from './StageDiscoveryTracker.js';
 
 export default class StageUI {
@@ -159,8 +160,10 @@ export default class StageUI {
         this.refreshCurrentTab();
 
 //// Debugging
-this.debugButtons = 
-    new DebugButtons(this.scene, this.stageProgress);
+if (DEBUG) {
+    this.debugButtons = 
+        new DebugButtons(this.scene, this.stageProgress);
+}
 ////
     }
 
