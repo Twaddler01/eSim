@@ -21,7 +21,7 @@ export default class BootScene extends Phaser.Scene {
         this.add.text(
             0,
             0,
-            'Text ... 5'
+            'Text ... 6'
         )
         .setOrigin(0);
         
