@@ -4,7 +4,9 @@
 //    import('./debug/zoom.js'); // zoom
 //}
 
-hellooooo
+let div = document.createElement('div');
+div.innerHTML = 'hello there ...'
+document.body.appendChild(div);
 
 
 /*
