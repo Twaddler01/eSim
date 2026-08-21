@@ -295,26 +295,20 @@ this.debugButtons =
             ...item,
     
             amount:
-                item.discovery
-                    ? null
-                    : this.stageProgress.get(item.id),
+                this.stageProgress.get(item.id),
     
             max:
-                item.discovery
-                    ? null
-                    : getItemMax(
-                        item,
-                        this.stageProgress
-                    ),
+                getItemMax(
+                    item,
+                    this.stageProgress
+                ),
     
             nextMax:
-                item.gather
-                    ? getItemMax(
+                getItemMax(
                         item,
                         this.stageProgress,
                         'next'
-                    )
-                    : null,
+                    ),
     
             upgradeStats:
                 this.stageProgress.getGatherUpgradeStats(item.id, item),

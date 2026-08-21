@@ -427,6 +427,16 @@ export default class StageProgressManager {
                 data.required.items =
                     this.fetchObjData(obj.requirements.items);
             }
+            
+            if (obj.objectiveText) {
+                data.required.items = [
+                    { 
+                        id: 'startsUnlocked',
+                        title: obj.objectiveText,
+                        amt: 0
+                    }
+                ];
+            }
     
             if (obj.requirements?.objectives) {
                 data.required.objectives =

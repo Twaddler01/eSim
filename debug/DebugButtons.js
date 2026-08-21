@@ -25,7 +25,7 @@ export default class DebugButtons {
     create() {
         this.addTitle('DEBUG BUTTONS:');
 
-// BUTTONS
+/* BUTTONS
 this.addButton('Clear Save Data', () => {
     this.saveManager.clear();
 });
@@ -40,7 +40,7 @@ this.addButton('unlock the_void (gather)', () => {
 ////
 this.addButton('LOCK black_hole (create)', () => {
     this.stageProgress.lock('black_hole');
-});
+});*/
 ////
 this.addButton('getCreateData(item)', () => {
     stageItems.filter(i => i.tab === 'create').forEach(item => {

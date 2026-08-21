@@ -75,7 +75,7 @@ export const stageItems = [
         requirements: {
             water: 15,
             carbon: 1,
-            water_molecule: 5
+            water_molecule: 1
         },
         produces: {
             water_molecule: 4

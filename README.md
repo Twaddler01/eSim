@@ -7,14 +7,9 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Live updates and sorting.
-- Reworking StageCard class ->
-    - StageCard-gather section: Update done. Needs a level bonus status?
-    - StageCard-create section: Update done. IDEA: updates to created item quantities from upgrades.
-    - StageCard-discover section: Update needed. Only live updates are neccesary for add/remove/unlock cards.
+- Add sub tab options within each main tab.
 
 # Future Updates / Ideas
-- Add sub tab options within each main tab.
 - Add an auto-gather/creator - e.g. "element collector", etc.
 - More structural content.
 - More dynamic upgrades, including caps for rate/max, etc.
@@ -26,7 +21,14 @@
 
 # Completed Updates
 08-21-2026
-- Card updates debugged to confirm a clean and live add/remove. Generally smooth with updates only.
+- Finished reworking StageCard class ->
+    - StageCard-gather section: Update done. Needs a level bonus status?
+    - StageCard-create section: Update done. IDEA: updates to created item quantities from upgrades.
+    - StageCard-discover section: Update done.
+- Live updates and sorting. Direction is keeping it mostly live unless tabs change.
+
+08-20-2026
+- Card updates debugged to confirm a clean and live lock/unlock. Generally smooth with updates only.
 
 08-19-2026
 - Updated DebugButtons class.

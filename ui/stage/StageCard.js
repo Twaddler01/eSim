@@ -28,6 +28,9 @@ export default class StageCard {
         this.description = options.description ?? '';
         this.actionLabel = options.actionLabel ?? 'ACTION';
         this.tab = options.tab ?? 'gather';
+        this.required = options.required ?? null;
+        this.unlocked = options.unlocked ?? null;
+        this.objectiveText = options.objectiveText ?? null;
 
         // Function values
         this.upgradeStats = options.upgradeStats ?? null;
@@ -120,23 +123,40 @@ export default class StageCard {
                     0x000000,
                     0.55
                 )
-                .setOrigin(0)
-            );
+            .setOrigin(0)
+        );
                 
         // Availability message
         this.ui.availabilityText =
+            this.addElement(
+                addText(this.scene,
+                    this.width / 2,
+                    this.height / 2,
+                    'LOCKED',
+                    {
+                        fontSize: '18px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0.5)
+        );
+        
+        // DISCOVER ONLY
+        if (this.tab === 'discover' && this.availability !== 'locked') {
+            this.discoverUI.availabilityTitle =
                 this.addElement(
                     addText(this.scene,
                         this.width / 2,
-                        this.height / 2,
-                        'LOCKED',
+                        this.height / 2 - this.ui.availabilityText.height - 5,
+                        'STATUS:',
                         {
-                            fontSize: '18px',
-                            color: '#ffffff'
+                            fontSize: '22px',
+                            color: '#ffff00'
                         }
                     )
                 .setOrigin(0.5)
             );
+        }
     }
 
     createTitle() {
@@ -665,25 +685,244 @@ export default class StageCard {
     }
 
 //--------------------------------
-// DISCOVER TAB
+//ddd DISCOVER TAB
 //--------------------------------
+/*
+tab: 'discover',
+id: obj.id,
+title: obj.title,
+objectiveText: obj.objectiveText,
+description: obj.description,
+
+availability: this.getAvailability(obj, 'discover'),
+
+required: {
+    items: [],
+    objectives: [],
+    children: []
+},
+
+unlocked: {
+    items: [],
+    objectives: [],
+    children: []
+}*/
 
     createDiscover() {
-        // (Title already setup)
-
+        // (Title already setup) (15, 12)
+        let startY = 12;
+        
         // Active only
-        if (this.tab === 'discover') {
+        this.discoverUI.descriptionText =
+            this.addElement(
+                addText(this.scene,
+                    15,
+                    startY + this.ui.title.height + 5,
+                    this.description,
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+        
+        const requireText = this.availability === 'completed' ? 'Required:' : 'Requires:';
+        this.discoverUI.requireLabel =
+            this.addElement(
+                addText(this.scene,
+                    15,
+                    this.discoverUI.descriptionText.y + this.discoverUI.descriptionText.height + 10,
+                    requireText,
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+        
+        let currentY = this.discoverUI.requireLabel.y + this.discoverUI.requireLabel.height + 5;
+        
+        if (this.required.items.length) {
+            this.discoverUI.requireItemsTitleText =
+                this.addElement(
+                    addText(this.scene,
+                        25, // +10
+                        currentY,
+                        'ITEMS',
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            currentY += this.discoverUI.requireItemsTitleText.height + 5;
             
+            this.required.items.forEach(item => {
+                const count = item.amt > 0 ? item.amt : '';
+                this.discoverUI.requireList =
+                    this.addElement(
+                        addText(this.scene,
+                            35, // +10
+                            currentY,
+                            '- ' + item.title + ' ' + count,
+                            {
+                                fontSize: '16px',
+                                color: '#ffffff'
+                            }
+                        )
+                    .setOrigin(0)
+                );
+                currentY += this.discoverUI.requireList.height + 5;
+            });
         }
 
-        // completed only
-        // start with this.stageProgress.getObjectiveStatus(id) === 'completed' 
+        if (this.required.children.length) {
+            this.discoverUI.requireObjTitleText =
+                this.addElement(
+                    addText(this.scene,
+                        25, // +10
+                        currentY,
+                        'OBJECTIVES',
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            currentY += this.discoverUI.requireObjTitleText.height + 5;
+            
+            this.required.children.forEach(item => {
+                this.discoverUI.requireChildrenList =
+                    this.addElement(
+                        addText(this.scene,
+                            35, // +10
+                            currentY,
+                            '- ' + item.title,
+                            {
+                                fontSize: '16px',
+                                color: '#ffffff'
+                            }
+                        )
+                    .setOrigin(0)
+                );
+                currentY += this.discoverUI.requireChildrenList.height + 5;
+            });
+        }
         
+        if (currentY > this.height) {
+            this.refreshHeight(currentY + 10);
+        }
+        
+        // For unlocks display
+        const currentX = this.width - 250;
+        currentY = 30;
+        
+        const unlockText = this.availability === 'completed' ? 'Unlocked:' : 'Unlocks:';
+        if (this.unlocked.items.length || this.unlocked.objectives.length) {
+            this.discoverUI.unlockTitle =
+                this.addElement(
+                    addText(
+                        this.scene,
+                        currentX,
+                        currentY,
+                        unlockText,
+                        {
+                            fontSize: '30px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+        
+            currentY += this.discoverUI.unlockTitle.height + 15;
+        }
+        
+        let unlocksItemsTitleTextHeight = 0;
+        if (this.unlocked.items.length) {
+            this.discoverUI.unlocksItemsTitleText =
+                this.addElement(
+                    addText(this.scene,
+                        currentX,
+                        currentY,
+                        'ITEMS',
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            unlocksItemsTitleTextHeight = this.discoverUI.unlocksItemsTitleText.height;
+            
+            currentY += this.discoverUI.unlocksItemsTitleText.height + 5;
 
+            this.unlocked.items.forEach(item => {
+                this.discoverUI.unlocksItemsText =
+                    this.addElement(
+                        addText(this.scene,
+                            currentX,
+                            currentY,
+                            '- ' + item.title,
+                            {
+                                fontSize: '16px',
+                                color: '#ffffff'
+                            }
+                        )
+                    .setOrigin(0)
+                );
+                
+                currentY += this.discoverUI.unlocksItemsText.height + 5;
+            });
+        }
         
-        // WIP
-        // probably no live updates except card additions/sorting
-        // objective / discovery information
+        currentY += unlocksItemsTitleTextHeight;
+
+        if (this.unlocked.objectives.length) {
+            this.discoverUI.unlocksObjTitleText =
+                this.addElement(
+                    addText(this.scene,
+                        currentX,
+                        currentY,
+                        'OBJECTIVES',
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            
+            currentY += this.discoverUI.unlocksObjTitleText.height + 5;
+
+            this.unlocked.objectives.forEach(item => {
+                this.discoverUI.unlocksObjText =
+                    this.addElement(
+                        addText(this.scene,
+                            currentX,
+                            currentY,
+                            '- ' + item.title,
+                            {
+                                fontSize: '16px',
+                                color: '#ffffff'
+                            }
+                        )
+                    .setOrigin(0)
+                );
+                
+                currentY += this.discoverUI.unlocksObjText.height + 5;
+                
+            });
+        }
+
+        if (currentY > this.height) {
+            this.refreshHeight(currentY + 10);
+        }
+
+
     }
 
     updateDiscover(data) {
@@ -777,6 +1016,13 @@ export default class StageCard {
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);
 
+        // Discover updates
+        const requireText = this.availability === 'completed' ? 'Required:' : 'Requires:';
+        this.discoverUI.requireLabel?.setText(requireText);
+        
+        const unlockText = this.availability === 'completed' ? 'Unlocked:' : 'Unlocks:';
+        this.ui.unlockTitle?.setText(unlockText);
+
         // ACTIVE
         if (state === 'active') {
             // Gather
@@ -824,6 +1070,7 @@ export default class StageCard {
             if (this.tab === 'discover') {
                 this.ui.availabilityText?.setVisible(true)
                     .setText('COMPLETED');
+                this.ui.background?.setFillStyle(0x112a12);
             }
             return;
         }

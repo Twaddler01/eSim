@@ -183,13 +183,6 @@ export default class StageViewport {
 
     // syncCards helper
     updateCardData(card, data) {
-        if (data.getChildComplete) {
-            card.getChildComplete =
-                data.getChildComplete;
-    
-            card.updateChildObjectives();
-        }
-    
         card.update(data);
     }
 
