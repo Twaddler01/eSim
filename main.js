@@ -5,7 +5,7 @@
 //}
 
 import BootScene from './scenes/BootScene.js';
-import CreationScene from './scenes/CreationScene.js';
+//import CreationScene from './scenes/CreationScene.js';
 // OLD
 //import MainScene from './scenes/MainScene.js';
 
@@ -108,7 +108,7 @@ const config = {
     type: Phaser.AUTO,
     scene: [ 
         BootScene,
-        CreationScene, 
+        //CreationScene, 
         //MainScene
     ],
     scale: {
