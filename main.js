@@ -134,5 +134,3 @@ window.addEventListener("resize", () => {
     const { width, height } = getGameSize();
     game.scale.resize(width, height);
 });
-
-*/
