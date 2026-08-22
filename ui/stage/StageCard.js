@@ -1,3 +1,5 @@
+import CreateUpgradesCard from './cards/CreateUpgradesCard.js';
+
 // FOR GATHER, CREATE, DISCOVER TABS
 export default class StageCard {
 
@@ -6,12 +8,25 @@ export default class StageCard {
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
         this.width = options.width ?? 930;
+        
+        // Tab references
         this.tab = options.tab ?? 'gather';
+        this.subTab = options.subTab ?? null;
+        
         const CARD_HEIGHTS = {
-            gather: 150,
-            create: 200,
-            discover: 200
+            tab: {
+                gather: 150,
+                create: 200,
+                discover: 200
+            },
+            sub: {
+                updates: 300
+            }
         };
+        this.height = CARD_HEIGHTS.tab[this.tab] ?? 200;
+        if (this.subTab) {
+            this.height = CARD_HEIGHTS.sub[this.subTab] ?? 200;
+        }
         this.height = CARD_HEIGHTS[this.tab] ?? 200;
         this.container = this.scene.add.container(this.x, this.y);
         options.parentContainer.add(this.container);
@@ -24,7 +39,7 @@ export default class StageCard {
 
         // Data
         this.id = options.id ?? null;
-        this.title = options.title ?? 'Item';
+        this.title = options.title ?? options.id ?? 'ItemTitle';
         this.description = options.description ?? '';
         this.actionLabel = options.actionLabel ?? 'ACTION';
         this.tab = options.tab ?? 'gather';
@@ -76,7 +91,7 @@ export default class StageCard {
     }
 
     // CREATE
-    create() {
+    create(options = {}) {
         // ui
         this.createBackground();
         this.createTitle();
@@ -86,7 +101,13 @@ export default class StageCard {
                 this.createGather();
                 break;
             case 'create':
-                this.createCreate();
+                // Move into new class
+                if (this.subTab === 'upgrades') {
+                    this.createUpgradesCard = 
+                        new CreateUpgradesCard(this.scene, {...options});
+                } else {
+                    this.createCreate();
+                }
                 break;
             case 'discover':
                 this.createDiscover();

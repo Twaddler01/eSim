@@ -49,56 +49,29 @@ export default class StageViewport {
                 this.y
             );
 
-this.maskShape =
-    this.scene.make.graphics({
-        add: false
-    });
-
-this.maskShape.fillStyle(0xffffff);
-
-this.maskShape.fillRect(
-    0,
-    0,
-    this.width,
-    this.height
-);
-
-this.mask =
-    this.maskShape.createGeometryMask();
-
-this.maskShape.setPosition(
-    this.x,
-    this.y
-);
-
-this.container.setMask(this.mask);
-//// Mask old
-/*
-        const maskShape =
+        this.maskShape =
             this.scene.make.graphics({
                 add: false
             });
-
-        maskShape.fillStyle(0xffffff);
-
-        maskShape.fillRect(
-            this.x,
-            this.y,
+        
+        this.maskShape.fillStyle(0xffffff);
+        
+        this.maskShape.fillRect(
+            0,
+            0,
             this.width,
             this.height
         );
-
+        
         this.mask =
-            maskShape.createGeometryMask();
-
-        this.container.setMask(
-            this.mask
+            this.maskShape.createGeometryMask();
+        
+        this.maskShape.setPosition(
+            this.x,
+            this.y
         );
-*/
-////
-
-
-
+        
+        this.container.setMask(this.mask);
 
         this.container.setDepth(this.depth);
         this.setupScrolling();

@@ -112,7 +112,25 @@ export const stageItems = [
     }
 ];
 
-// NEW WIP
+// created in stageCardData.js -> getCreateUpgradesCardData()
+/*export const stageCreateUpgrades = [
+    {
+        levels: [
+            {
+                cost: { darkness: 10 },
+                gatherGain: 1
+            },
+            {
+                cost: { darkness: 25 },
+                gatherGain: 2
+            },
+            {
+                cost: { darkness: 50 },
+                gatherGain: 3
+            }
+        ]
+    }
+];*/
 
 /* STATUS OPTIONS:
 LOCKED

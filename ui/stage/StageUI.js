@@ -1,6 +1,6 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-import { subTabs, stageData, stageItems, stageObjectives } from '../../data/stageData.js';
+import { stageData, subTabs, stageItems, stageObjectives } from '../../data/stageData.js';
 import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
 import StageProgressManager from '../../managers/StageProgressManager.js';
@@ -10,6 +10,7 @@ import DebugButtons from '../../debug/DebugButtons.js';
 import { DEBUG } from '../../config.js';
 import StageDiscoveryTracker from './StageDiscoveryTracker.js';
 import StageSubNavigation from './StageSubNavigation.js';
+import * as scdata from './stageCardData.js';
 
 export default class StageUI {
 
@@ -387,7 +388,8 @@ if (DEBUG) {
             this.currentTab === 'create' &&
             this.currentSubTab === 'upgrades'
         ) {
-            return [];
+            const createUpgradesCards = scdata.getCreateUpgradesCardData(this.stageProgress);
+            return createUpgradesCards;
         }
         
         let cards =

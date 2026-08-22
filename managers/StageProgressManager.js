@@ -48,71 +48,90 @@ export default class StageProgressManager {
         this.initializeObjectiveTracking();
     }
 
-    // Availability
-    getAvailability(item, tab) {
-        // Objectives
-        if (tab === 'discover') {
-            return this.isObjectiveActive(
-                item.id
-            );
-        }
-
-        // CREATE ITEMS
-        if (item.tab === 'create') {
-            if (!this.isCreateItemUnlocked(item)) {
+        // Availability (items)
+        getAvailability(item, tab) {
+            // Objectives
+            if (tab === 'discover') {
+                return this.isObjectiveActive(
+                    item.id
+                );
+            }
+    
+            // CREATE ITEMS
+            if (item.tab === 'create') {
+                if (!this.isCreateItemUnlocked(item)) {
+                    return 'locked';
+                }
+        
+                const requirementsMet =
+                    Object.entries(item.requirements ?? {})
+                        .every(([id, required]) => {
+                            return this.get(id) >= required;
+                        });
+        
+                if (!requirementsMet) {
+                    return 'unlocked';
+                }
+        
+                return 'active';
+            }
+    
+            // GATHER ITEM
+            const unlocked =
+                item.startsUnlocked ||
+                this.getUnlocked(item.id);
+    
+            if (!unlocked) {
                 return 'locked';
             }
     
+            const amount =
+                this.get(item.id);
+        
+            const max =
+                getItemMax(item, this);
+        
+            if (
+                max != null &&
+                amount >= max
+            ) {
+                return 'maxed';
+            }
+        
             const requirementsMet =
                 Object.entries(item.requirements ?? {})
                     .every(([id, required]) => {
-                        return this.get(id) >= required;
+        
+                        const current =
+                            this.get(id);
+        
+                        return current >= required;
                     });
-    
+        
             if (!requirementsMet) {
-                return 'unlocked';
+                return 'insufficient';
             }
     
             return 'active';
         }
-
-        // GATHER ITEM
-        const unlocked =
-            item.startsUnlocked ||
-            this.getUnlocked(item.id);
-
-        if (!unlocked) {
-            return 'locked';
+// WIP
+    // Availability (create -> upgrades sub tab ... more later)
+    getUpgradeAvailability(item) {
+        if (!item) return;
+        
+        // Get status of item affected by upgrade (unlocked = active)
+        const isActive = this.isCreateUpgradesActive(item.item);
+        
+        if (isActive) {
+            return 'active';
         }
-
-        const amount =
-            this.get(item.id);
+        
+        return 'locked';
+    }
     
-        const max =
-            getItemMax(item, this);
-    
-        if (
-            max != null &&
-            amount >= max
-        ) {
-            return 'maxed';
-        }
-    
-        const requirementsMet =
-            Object.entries(item.requirements ?? {})
-                .every(([id, required]) => {
-    
-                    const current =
-                        this.get(id);
-    
-                    return current >= required;
-                });
-    
-        if (!requirementsMet) {
-            return 'insufficient';
-        }
-
-        return 'active';
+    // helper ^
+    isCreateUpgradesActive(id) {
+        return this.getUnlocked(id);
     }
 
 //--------------------------------
@@ -233,6 +252,10 @@ export default class StageProgressManager {
 //--------------------------------
 //ggg OTHER GATHER FUNCTIONS
 //--------------------------------
+
+    getGatherItems() {
+        return this.stageItems.filter(item => item.tab === 'gather');
+    }
 
     hasGatherUpgrade(item) {
         const upgrade =
