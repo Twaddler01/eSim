@@ -118,14 +118,18 @@ export default class StageUI {
             this.height -
             navigationHeight -
             margin;
-        const viewportY = 380; // - 60 on sub
+            
+        //const viewportY = 380; // - 60 on sub
+        this.contentBottomTab = 380;
+        this.contentBottomSub = 320;
+        
         const viewportBottom =
             navigationY - 10;
         const viewportHeight =
-            viewportBottom - viewportY;
+            viewportBottom - this.contentBottomTab;
         
         // Header for cards
-        this.createCardHeader(margin, viewportY);
+        this.createCardHeader(margin, this.contentBottomTab);
 
         // Initial tab
         this.currentTab = 'gather'; // gather
@@ -137,7 +141,7 @@ export default class StageUI {
                 this.scene,
                 {
                     x: margin + 6,
-                    y: viewportY,
+                    y: this.contentBottomTab,
                     width:
                         this.width -
                         margin * 2 - 5,
@@ -270,33 +274,31 @@ if (DEBUG) {
             0x444444
         )
         .setOrigin(0);
-        
-        
-        
     }
 
-// WIP
-//
-// Sub Tabs
-
-getSubTabs() {
-    return subTabs[this.currentTab] ?? null;
-}
-
-getDefaultSubTab() {
-    const tabs = this.getSubTabs();
-    return tabs?.[0]?.id ?? null;
-}
-
-changeSubTab(id) {
-    if (this.currentSubTab === id) {
-        return;
+    // Dynamic viewport
+    updateViewportLayout() {
+        const viewportY =
+            this.contentBottomTab;
+    
+        const viewportBottom =
+            this.hasSubNavigation()
+                ? this.subNavigation.y - 10
+                : this.navigation.y - 10;
+    
+        const height =
+            viewportBottom - viewportY;
+    
+        this.viewport.setBounds(
+            viewportY,
+            height
+        );
     }
-
-    this.currentSubTab = id;
-
-    this.refreshCurrentTab();
-}
+    
+    // Helper ^
+    hasSubNavigation() {
+        return this.subNavigation?.container.visible === true;
+    }
 
 //--------------------------------
 // Listener updates
@@ -348,40 +350,34 @@ changeSubTab(id) {
         );
         
         // WIP
-        //this.updateViewportLayout();
+        this.updateViewportLayout();
 
         // Changing tabs DOES rebuild the cards.
         this.refreshCurrentTab();
     }
 
-    updateViewportLayout() {
-        const hasSubTabs =
-            this.subNavigation?.container.visible === true;
-    
-        const top =
-            hasSubTabs
-                ? this.subNavigation.y +
-                  this.subNavigation.height
-                : this.contentTop;
-    
-        const height =
-            this.navigation.y - top;
-    
-        this.viewport.setBounds({
-            x: 10,
-            y: top,
-            width: this.scene.scale.width - 20,
-            height
-        });
+    // Sub Tabs
+    getSubTabs() {
+        return subTabs[this.currentTab] ?? null;
     }
     
-    // Helper ^
-    hasSubNavigation() {
-        return this.subNavigation?.container.visible === true;
+    getDefaultSubTab() {
+        const tabs = this.getSubTabs();
+        return tabs?.[0]?.id ?? null;
+    }
+    
+    changeSubTab(id) {
+        if (this.currentSubTab === id) {
+            return;
+        }
+    
+        this.currentSubTab = id;
+    
+        this.refreshCurrentTab();
     }
 
 //--------------------------------
-//--------------------------------
+// CARDS
 //--------------------------------
 
     // Get cards (for tab initialization)

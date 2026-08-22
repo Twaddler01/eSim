@@ -49,6 +49,31 @@ export default class StageViewport {
                 this.y
             );
 
+this.maskShape =
+    this.scene.make.graphics({
+        add: false
+    });
+
+this.maskShape.fillStyle(0xffffff);
+
+this.maskShape.fillRect(
+    0,
+    0,
+    this.width,
+    this.height
+);
+
+this.mask =
+    this.maskShape.createGeometryMask();
+
+this.maskShape.setPosition(
+    this.x,
+    this.y
+);
+
+this.container.setMask(this.mask);
+//// Mask old
+/*
         const maskShape =
             this.scene.make.graphics({
                 add: false
@@ -69,9 +94,41 @@ export default class StageViewport {
         this.container.setMask(
             this.mask
         );
+*/
+////
+
+
+
 
         this.container.setDepth(this.depth);
         this.setupScrolling();
+    }
+
+    setBounds(y, height) {
+    
+        this.y = y;
+        this.height = height;
+    
+        this.background.y = y;
+    
+        this.maskShape.setPosition(
+            this.x,
+            y
+        );
+    
+        this.container.y =
+            y - this.scrollY;
+    
+        this.maskShape.clear();
+        this.maskShape.fillStyle(0xffffff);
+        this.maskShape.fillRect(
+            0,
+            0,
+            this.width,
+            height
+        );
+    
+        this.updateScrollLimits();
     }
 
     // Add card

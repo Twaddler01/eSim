@@ -8,8 +8,6 @@
 
 # Work In Progress
 - Need tab titles at top of viewport to better show user navigation.
-- Adding sub tab options within each main tab.
-- Highlight current tab selection.
 
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
@@ -22,6 +20,10 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
+08-22-2026
+- Added sub tab options within main tabs.
+- Fill color sat for thr current tab/sub tab selection.
+
 08-21-2026
 - UPDATE: DEBUG variable was added a while back in config.js to be automatically set to false (staying true/enabled on local) for GitHub pages to disable most debugging tools for better user experience. In other words, most debugging features won't be published -- only baaic error catching as per next note below.
 - Fixed a case-sensitive issue with debug.js module showing as Debug.js on remote, resulting in an ES module error. Added basic error catching even outside of DEBUG variable (from Github pages workflow) to hopefully catch these errors in the future (in console.js).
