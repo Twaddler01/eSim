@@ -104,7 +104,15 @@ export default class StageCard {
                 // Move into new class
                 if (this.subTab === 'upgrades') {
                     this.createUpgradesCard = 
-                        new CreateUpgradesCard(this.scene, {...options});
+                        new CreateUpgradesCard(this.scene, {
+                            ...options,
+                            container: this.container,
+                            x: this.x,
+                            y: this.y,
+                            width: this.width,
+                            height: this.height
+                        }
+                    );
                 } else {
                     this.createCreate();
                 }
