@@ -8,14 +8,14 @@ export default class StageViewport {
 
         this.x = options.x ?? 10;
         this.y = options.y ?? 60;
-
+    
         this.width =
             options.width ??
             scene.scale.width - 20;
 
         this.height =
             options.height ?? 400;
-
+        
         this.depth =
             this.scene.depths.viewport;
 

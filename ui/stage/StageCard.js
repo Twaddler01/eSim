@@ -107,7 +107,7 @@ export default class StageCard {
                     0x000055
                 )
                 .setOrigin(0)
-                .setStrokeStyle(1, 0x000000)
+                .setStrokeStyle(1, 0xffffff)
             );
     }
 
@@ -180,9 +180,6 @@ export default class StageCard {
 //--------------------------------
 
     createGather() {
-        // Main width left of upgrade bar
-        this.ui.background.width = this.gatherLeftPanelWidth;
-
         // Gain label -- uses this.upgradeStats
         let currentGatherRate = 1;
         if (this.upgradeStats.hasRateUpgrade) currentGatherRate = this.upgradeStats.currentGatherRate;
@@ -289,20 +286,20 @@ export default class StageCard {
         this.gatherUI.upgradeBox =
             this.addElement(
                 this.scene.add.rectangle(
-                    this.width - this.upgradeBoxWidth + 15,
+                    this.width - this.upgradeBoxWidth,
                     0, 
                     this.upgradeBoxWidth,
                     this.height,
                     0x000055
                 )
                 .setOrigin(0)
-                .setStrokeStyle(1, 0x000000)
+                .setStrokeStyle(1, 0xffffff)
             );
     
         this.gatherUI.upgradeText =
             this.addElement(
                 addText(this.scene,
-                    this.width - this.upgradeBoxWidth + 15 + 10,
+                    this.width - this.upgradeBoxWidth + 10,
                     10,
                     'No upgrades available.',
                     {
@@ -323,7 +320,7 @@ export default class StageCard {
                 this.gatherUI.upradeMaxIncreaseText =
                     this.addElement(
                         addText(this.scene,
-                            this.width - this.upgradeBoxWidth + 15 + 10,
+                            this.width - this.upgradeBoxWidth + 10,
                             currentY,
                             'Next Max Increase: +' + upgradeData.maxIncrease,
                             {
@@ -339,7 +336,7 @@ export default class StageCard {
                 this.gatherUI.upradeRateText =
                     this.addElement(
                         addText(this.scene,
-                            this.width - this.upgradeBoxWidth + 15 + 10,
+                            this.width - this.upgradeBoxWidth + 10,
                             currentY,
                             'Next Rate Increase: +' + upgradeData.rateIncrease,
                             {
@@ -355,7 +352,7 @@ export default class StageCard {
             this.gatherUI.upgradeButton =
                 this.addElement(
                     this.scene.add.rectangle(
-                        this.width - this.upgradeBoxWidth + 25,
+                        this.width - this.upgradeBoxWidth + 10,
                         this.height - 45,
                         this.upgradeBoxWidth - 20,
                         30,
@@ -370,7 +367,7 @@ export default class StageCard {
                 this.addElement(
                     addText(
                         this.scene,
-                        this.width - this.upgradeBoxWidth / 2 + 15,
+                        this.gatherUI.upgradeButton.x + this.gatherUI.upgradeButton.width / 2,
                         this.height - 30,
                         'UPGRADE',
                         {
@@ -398,8 +395,6 @@ export default class StageCard {
 
     // PRIMARY GATHER UPDATE CALLS
     updateGather(data) {
-        // Center availabilityText with gatherLeftPanelWidth
-        if (this.ui.availabilityText) this.ui.availabilityText.x = this.gatherLeftPanelWidth / 2;
         this.updateGatherProgress();
         this.updateAvailability(); // multi
         this.updateGatherUpgradeAvailability();

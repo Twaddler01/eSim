@@ -1,6 +1,6 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-import { stageData, stageItems, stageObjectives } from '../../data/stageData.js';
+import { subTabs, stageData, stageItems, stageObjectives } from '../../data/stageData.js';
 import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
 import StageProgressManager from '../../managers/StageProgressManager.js';
@@ -9,6 +9,7 @@ import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
 import DebugButtons from '../../debug/DebugButtons.js';
 import { DEBUG } from '../../config.js';
 import StageDiscoveryTracker from './StageDiscoveryTracker.js';
+import StageSubNavigation from './StageSubNavigation.js';
 
 export default class StageUI {
 
@@ -66,6 +67,15 @@ export default class StageUI {
                     this.changeTab(id);
                 }
             );
+            
+        this.removeSubTabListener =
+            listenToEvent(
+                this.scene.events,
+                'stage-sub-tab-changed',
+                id => {
+                    this.changeSubTab(id);
+                }
+            );
 
         // Inventory
         this.inventory =
@@ -108,29 +118,50 @@ export default class StageUI {
             this.height -
             navigationHeight -
             margin;
-        const viewportY = 300;
+        const viewportY = 380; // - 60 on sub
         const viewportBottom =
             navigationY - 10;
         const viewportHeight =
             viewportBottom - viewportY;
+        
+        // Header for cards
+        this.createCardHeader(margin, viewportY);
 
         // Initial tab
-        this.currentTab = 'create'; // gather
+        this.currentTab = 'gather'; // gather
+        // Initial sub Tab
+        this.currentSubTab = this.getDefaultSubTab();
 
         this.viewport =
             new StageViewport(
                 this.scene,
                 {
-                    x: margin,
+                    x: margin + 6,
                     y: viewportY,
                     width:
                         this.width -
-                        margin * 2,
+                        margin * 2 - 5,
                     height:
                         viewportHeight,
-                    tab: this.tab
+                    tab: this.currentTab
                 }
             );
+
+        // Sub tabs class
+        const subNavigationY = navigationY - navigationHeight;
+        this.subNavigation =
+            new StageSubNavigation(
+                this.scene,
+                {
+                    x: margin,
+                    y: subNavigationY,
+                    width: this.width - margin * 2,
+                    height: 50,
+                    tabs: this.getSubTabs() ?? []
+                }
+            );
+        // Initial sub tab
+        this.subNavigation.setActiveTab(this.currentSubTab);
 
         // Navigation
         this.navigation =
@@ -146,6 +177,8 @@ export default class StageUI {
                         navigationHeight
                 }
             );
+        // Initial tab
+        this.navigation.setActiveTab(this.currentTab);
 
         // DISCOVERY TRACKER
         this.discoveryTracker =
@@ -227,6 +260,44 @@ if (DEBUG) {
         );
     }
 
+    createCardHeader(startX, startY) {
+        const padding = 10;
+        this.scene.add.rectangle(
+            startX + 6,
+            startY - 80,
+            this.width - padding * 2 - 6,
+            80 - padding,
+            0x444444
+        )
+        .setOrigin(0);
+        
+        
+        
+    }
+
+// WIP
+//
+// Sub Tabs
+
+getSubTabs() {
+    return subTabs[this.currentTab] ?? null;
+}
+
+getDefaultSubTab() {
+    const tabs = this.getSubTabs();
+    return tabs?.[0]?.id ?? null;
+}
+
+changeSubTab(id) {
+    if (this.currentSubTab === id) {
+        return;
+    }
+
+    this.currentSubTab = id;
+
+    this.refreshCurrentTab();
+}
+
 //--------------------------------
 // Listener updates
 //--------------------------------
@@ -262,17 +333,67 @@ if (DEBUG) {
         }
 
         this.currentTab = id;
+        
+        // Reset to the first sub-tab for this main tab
+        this.currentSubTab =
+            this.getDefaultSubTab();
+        
+        // Clear sub tabs
+        this.subNavigation.setTabs(
+            this.getSubTabs() ?? []
+        );
+        
+        this.subNavigation.setActiveTab(
+            this.currentSubTab
+        );
+        
+        // WIP
+        //this.updateViewportLayout();
 
         // Changing tabs DOES rebuild the cards.
         this.refreshCurrentTab();
     }
+
+    updateViewportLayout() {
+        const hasSubTabs =
+            this.subNavigation?.container.visible === true;
     
+        const top =
+            hasSubTabs
+                ? this.subNavigation.y +
+                  this.subNavigation.height
+                : this.contentTop;
+    
+        const height =
+            this.navigation.y - top;
+    
+        this.viewport.setBounds({
+            x: 10,
+            y: top,
+            width: this.scene.scale.width - 20,
+            height
+        });
+    }
+    
+    // Helper ^
+    hasSubNavigation() {
+        return this.subNavigation?.container.visible === true;
+    }
+
 //--------------------------------
 //--------------------------------
 //--------------------------------
 
     // Get cards (for tab initialization)
     getCurrentTabCardData() {
+        // CREATE sub-tab
+        if (
+            this.currentTab === 'create' &&
+            this.currentSubTab === 'upgrades'
+        ) {
+            return [];
+        }
+        
         let cards =
             stageItems.filter(
                 item =>

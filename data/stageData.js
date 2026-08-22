@@ -4,6 +4,17 @@ export const stageData = [
     { id: 'early_humanity', title: '== EARLY HUMANITY STAGE ==', scene: 'MainScene', stage: 1 }
 ];
 
+export const subTabs = {
+    gather: null,
+
+    create: [
+        { id: 'items', label: 'ITEMS' },
+        { id: 'upgrades', label: 'UPGRADES' }
+    ],
+
+    discover: null
+};
+
 export const stageItems = [
 
 // Resources
@@ -60,6 +71,14 @@ export const stageItems = [
         },
         produces: {
             air: 1
+        }, actionLabel: 'CREATE'
+    },
+    { stage: 'creation', id: 'space', title: 'Space', drsxription: 'As if you need more..', tab: 'create', category: "created",
+        requirements: {
+            darkness: 5
+        },
+        produces: {
+            space: 314
         }, actionLabel: 'CREATE'
     },
     { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', drsxription: 'Seems useful.', tab: 'create', category: "created",

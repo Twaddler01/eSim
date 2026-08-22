@@ -18,6 +18,8 @@ export default class StageNavigation {
 
         // Event handlers
         this.tabHandlers = [];
+        
+        this.activeTab = null;
 
         // Phaser objects
         this.buttons = [];
@@ -64,6 +66,19 @@ export default class StageNavigation {
         );
     }
 
+    setActiveTab(id) {
+        this.activeTab = id;
+    
+        this.buttons.forEach(tab => {
+    
+            tab.background.setFillStyle(
+                tab.id === id
+                    ? 0x444444
+                    : 0x222222
+            );
+    
+        });
+    }
 
     createButton(label, index, id) {
 
@@ -91,7 +106,7 @@ export default class StageNavigation {
                 0x000055
             )
             .setOrigin(0)
-            .setStrokeStyle(1, 0x000000)
+            .setStrokeStyle(1, 0xffffff)
             .setInteractive();
 
         button.setDepth(this.depth);
@@ -122,6 +137,8 @@ export default class StageNavigation {
 
         const handler = () => {
 
+            this.setActiveTab(id);
+
             this.scene.events.emit(
                 'stage-tab-changed',
                 id
@@ -145,9 +162,11 @@ export default class StageNavigation {
             handler
         });
 
-        this.buttons.push(button);
-        this.labels.push(buttonLabel);
-
+         this.buttons.push({
+            id,
+            background: button,
+            label: buttonLabel
+        });
 
         return button;
     }
@@ -182,30 +201,13 @@ export default class StageNavigation {
         // --------------------------------------------------
 
         this.buttons.forEach(
-            button => {
-
-                button.destroy();
-
+            tab => {
+                tab.background.destroy();
+                tab.label.destroy();
             }
         );
 
         this.buttons = [];
-
-
-        // --------------------------------------------------
-        // Destroy labels
-        // --------------------------------------------------
-
-        this.labels.forEach(
-            label => {
-
-                label.destroy();
-
-            }
-        );
-
-        this.labels = [];
-
 
         // --------------------------------------------------
         // Destroy background

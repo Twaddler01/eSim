@@ -21,7 +21,7 @@ window.addEventListener('unhandledrejection', event => {
 
 function showFatalError(title, message) {
 
-    const consoleLog = document.getElementById('consoleLog');
+    const consoleLog = document.getElementById('productionErrorLog');
 
     if (!consoleLog) return;
 

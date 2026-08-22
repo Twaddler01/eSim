@@ -7,7 +7,9 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Add sub tab options within each main tab.
+- Need tab titles at top of viewport to better show user navigation.
+- Adding sub tab options within each main tab.
+- Highlight current tab selection.
 
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
