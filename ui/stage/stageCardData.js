@@ -101,6 +101,7 @@ export function getCreateCardData(
 // CREATE (UPGRADE - sub tab)
 // ==========================================
 
+// WIP
 export function getCreateUpgradesCardData(
     stageProgress
 ) {
@@ -113,14 +114,14 @@ export function getCreateUpgradesCardData(
             subTab: 'upgrades',
             id: item.id + '_gather_upgrade',
             title: item.title + ' UPGRADES',
-            item: item.id
+            item: item.id // item upgrade is for
         });
     })
 
     const returnData = addData.map(upgrade => ({
         ...upgrade,
         
-        // upgrade.item = id of item
+        // upgrade.item = id of stageItem
         
         itemAmount:
             stageProgress.get(upgrade.item),

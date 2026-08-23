@@ -1,9 +1,12 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-import { stageData, subTabs, stageItems, stageObjectives } from '../../data/stageData.js';
+
+//import { stageData, stageItems, stageObjectives } from '../../data/stageData.js';
+import { subTabs, stageItems } from '../../data/stageData.js';
+
 import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
-import StageProgressManager from '../../managers/StageProgressManager.js';
+//import StageProgressManager from '../../managers/StageProgressManager.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
 import DebugButtons from '../../debug/DebugButtons.js';
@@ -40,8 +43,9 @@ export default class StageUI {
 
     // Create UI
     createUI() {
-        this.stageProgress =
-            new StageProgressManager(gameData, stageData, stageItems, stageObjectives);
+        // Import from CreationScene
+        this.stageProgress = 
+            this.scene.game.registry.get('stageProgress');
 
         // Set current stage
         this.stageTitle = this.stageProgress.setStage('creation');

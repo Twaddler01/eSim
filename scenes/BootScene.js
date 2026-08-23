@@ -1,5 +1,6 @@
 import { gameData } from '../data/gameData.js';
 import SaveManager from '../systems/SaveManager.js';
+import GameTimer from '../systems/GameTimer.js';
 
 export default class BootScene extends Phaser.Scene {
 
@@ -8,35 +9,22 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
-// TEST
-/*this.add.rectangle(
-            0,
-            0,
-            this.game.config.width,
-            this.game.config.height,
-            0x000055
-        )
-        .setOrigin(0);
-    
-        this.add.text(
-            0,
-            0,
-            'Text ... 6'
-        )
-        .setOrigin(0);
-*/
-        
-        const saveManager = new SaveManager(
-            gameData,
-            'saveState',
-            5000
-        );
+        const saveManager = 
+            new SaveManager(gameData, 'saveState', 5000);
         
         this.registry.set(
             'saveManager',
             saveManager
         );
-        
+
+        const gameTimer = 
+            new GameTimer(gameData);
+
+        this.registry.set(
+            'gameTimer',
+            gameTimer
+        );
+
         // IN OTHER SCENES
         // this.saveManager = this.scene.registry.get('saveManager');
 

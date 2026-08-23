@@ -18,4 +18,8 @@ export default class GameTimer {
 
         return `${minutes}:${String(seconds).padStart(2, '0')}`;
     }
+    
+    getRaw() {
+        return this.gameData.elapsedTime;
+    }
 }

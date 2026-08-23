@@ -52,6 +52,11 @@ this.addButton('getObjectiveData', () => {
     jp(this.stageProgress.getObjectiveData());
 });
 ////
+this.addButton('gameTimer', () => {
+    const time = this.scene.gameTimer.getRaw();
+    jp(time);
+});
+////
 
 ////
 
