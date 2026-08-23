@@ -28,6 +28,8 @@ export default class StageCard {
             this.height = CARD_HEIGHTS.sub[this.subTab] ?? 200;
         }
         this.height = CARD_HEIGHTS[this.tab] ?? 200;
+        
+        // Use 0, 0
         this.container = this.scene.add.container(this.x, this.y);
         options.parentContainer.add(this.container);
 
@@ -107,10 +109,10 @@ export default class StageCard {
                         new CreateUpgradesCard(this.scene, {
                             ...options,
                             container: this.container,
-                            x: this.x,
-                            y: this.y,
-                            width: this.width,
-                            height: this.height
+                            x: 10,
+                            y: 10,
+                            width: this.width - 20,
+                            height: this.height - 20
                         }
                     );
                 } else {
@@ -138,6 +140,22 @@ export default class StageCard {
                 .setOrigin(0)
                 .setStrokeStyle(1, 0xffffff)
             );
+
+        // SKIP Create: Upgrades / Discover
+        if (this.subTab === 'items' || this.tab === 'discover') return;
+        const titleHeght = 24.265625;
+        this.ui.titleBar =
+            this.addElement(
+                this.scene.add.rectangle(
+                    0,
+                    0,
+                    this.width,
+                    titleHeght + 25,
+                    0x000077,
+                )
+            .setOrigin(0)
+            .setStrokeStyle(1, 0xffffff)
+        );
     }
 
     createStatusOverlay() {
@@ -189,11 +207,12 @@ export default class StageCard {
     }
 
     createTitle() {
+        const titleX = this.tab !== 'gather' ? this.width / 2 : this.gatherLeftPanelWidth / 2;
         this.ui.title =
             this.addElement(
                 addText(
                     this.scene,
-                    15,
+                    titleX,
                     12,
                     this.title,
                     {
@@ -201,7 +220,8 @@ export default class StageCard {
                         color: '#ffffff'
                     }
                 )
-            );
+            .setOrigin(0.5, 0)
+        );
     }
 
 //--------------------------------
@@ -210,13 +230,14 @@ export default class StageCard {
 
     createGather() {
         // Gain label -- uses this.upgradeStats
+        let gatherY = 67; // +55
         let currentGatherRate = 1;
         if (this.upgradeStats.hasRateUpgrade) currentGatherRate = this.upgradeStats.currentGatherRate;
         this.gatherUI.gainLabel =
             this.addElement(
                 addText(this.scene,
                     15,
-                    37, // +25
+                    gatherY,
                     'Gather Rate: +' + currentGatherRate,
                     {
                         fontSize: '12px',
@@ -225,16 +246,17 @@ export default class StageCard {
                 )
             .setOrigin(0)
         );
+        gatherY += 50;
         
         // Progress (based on max)
-        const padding = 15;
+        const padding = 1;
         let barWidth = this.width - this.upgradeBoxWidth - padding * 2;
         const barHeight = 10;
         this.gatherUI.progressBackground =
             this.addElement(
                 this.scene.add.rectangle(
                     padding,
-                    67, // +30
+                    gatherY,
                     barWidth,
                     barHeight,
                     0x222222
@@ -247,21 +269,22 @@ export default class StageCard {
         this.gatherUI.progressFill =
             this.addElement(
                 this.scene.add.rectangle(
-                    15,
-                    67, // +30
+                    padding,
+                    gatherY,
                     0,
                     barHeight,
                     0x44aa44
                 )
                 .setOrigin(0)
             );
-            
+        gatherY += 15; // +10 bar +5 padding
+        
         // Current max display
         this.gatherUI.maxLabel =
             this.addElement(
                 addText(this.scene,
                     15 + barWidth - 80,
-                    82, // +10 bar +5 padding
+                    gatherY,
                     'Max: ' + this.max,
                     {
                         fontSize: '12px',

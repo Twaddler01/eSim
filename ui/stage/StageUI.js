@@ -415,6 +415,8 @@ if (DEBUG) {
         return cards.map(item => ({
     
             ...item,
+            
+            subTab: this.currentSubTab ?? null,
     
             amount:
                 this.stageProgress.get(item.id),

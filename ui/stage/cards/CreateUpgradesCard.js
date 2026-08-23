@@ -8,10 +8,17 @@ export default class CreateUpgradesCard {
         this.width = options.width ?? 200;
         this.height = options.height ?? 50;
         
+        // Use this.x, this.y (inherited)
         this.container = options.container ?? null;
 
         this.amount = options.amount ?? 0;
         this.availability = options.availability ?? 'locked';
+        this.onAction = options.onAction ?? null;
+        
+        this._actionHandler = () => {
+            jp('... pointerdown ...');
+            //this.onAction?.();
+        };
 
         this.elements = [];
         this.ui = {};
@@ -22,21 +29,63 @@ export default class CreateUpgradesCard {
 
     create() {
         // Title and overlay integrated already
+        const titleX = this.x + 5;
+        let upgradeY = this.y + 24.265625 + 20;
+    
+        this.ui.upgradeAutoLabel =
+            this.addElement(
+                addText(this.scene,
+                    titleX,
+                    upgradeY,
+                    'Auto Gather',
+                    {
+                        fontSize: '18px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
         
-        this.ui.cardReference =
+        // Upgrade auto button
+        upgradeY += this.ui.upgradeAutoLabel.height + 5;
+        const upgradeButtonStroke = 1;
+        const upgradeButtonHeght = 30;
+        this.ui.upgradeAutoButton =
             this.addElement(
                 this.scene.add.rectangle(
-                    10,
-                    10,
-                    this.width - 20,
-                    this.height - 20,
-                    0xff0000
+                    titleX,
+                    upgradeY,
+                    120,
+                    upgradeButtonHeght,
+                    0x335533
                 )
                 .setOrigin(0)
-                .setVisible(false)
+                .setStrokeStyle(
+                    upgradeButtonStroke,
+                    0x66aa66
+                )
+                .setInteractive()
             );
-        
-        //
+
+        // Click action
+        this.ui.upgradeAutoButton.on(
+            'pointerdown',
+            this._actionHandler
+        );
+
+        this.ui.upgradeAutoButtonText =
+            this.addElement(
+                addText(this.scene,
+                    titleX + 60,
+                    upgradeY + 15/2,
+                    'UPGRADE',
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0.5, 0)
+        );
         
     }
 
