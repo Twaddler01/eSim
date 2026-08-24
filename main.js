@@ -7,72 +7,8 @@ if (DEBUG) {
     import('./debug/zoom.js'); // zoom
 }
 
-// ==================================================
-// GLOBAL GAME HELPERS
-// ==================================================
-
-const DEFAULT_FONT_FAMILY = 'Arial';
-window.addText = function (scene, x, y, text, style = {}) {
-    return scene.add.text(
-        x,
-        y,
-        text,
-        {
-            fontFamily: DEFAULT_FONT_FAMILY,
-            ...style
-        }
-    );
-};
-
-window.jp = (...args) => {
-
-    if (args.length !== 1) {
-        console.log(...args);
-        return;
-    }
-
-    const item = args[0];
-
-    // Array of Object.entries()
-    if (
-        Array.isArray(item) &&
-        item.every(
-            entry =>
-                Array.isArray(entry) &&
-                entry.length === 2
-        )
-    ) {
-        console.table(
-            Object.fromEntries(item)
-        );
-        return;
-    }
-
-    // Regular arrays
-    if (Array.isArray(item)) {
-        console.log(
-            JSON.stringify(item, null, 2)
-        );
-        return;
-    }
-
-    // Objects
-    if (
-        item !== null &&
-        typeof item === 'object'
-    ) {
-        try {
-            console.log(
-                JSON.stringify(item, null, 2)
-            );
-        } catch {
-            console.log(item);
-        }
-        return;
-    }
-
-    console.log(item);
-};
+// window (global) functions
+import('./utils/globalHelpers.js');
 
 /*
 OTHER USEFUL CONSOLE FUBCTIONS:
