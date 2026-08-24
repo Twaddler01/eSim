@@ -50,7 +50,7 @@ function escapeHTML(value) {
     return div.innerHTML;
 }
 
-import { DEBUG } from '../config.js';
+//import { DEBUG } from '../config.js';
 
 function startConsole() { // CONSOLE START
 /*!
@@ -300,6 +300,6 @@ function range(a,b) {
 
 } // CONSOLE END
 
-if (DEBUG) {
+/*if (DEBUG) {
     startConsole();
-}
+}*/
