@@ -1,5 +1,5 @@
 import BootScene from './scenes/BootScene.js';
-//import CreationScene from './scenes/CreationScene.js';
+import CreationScene from './scenes/CreationScene.js';
 
 import { DEBUG } from './config.js';
 if (DEBUG) {
