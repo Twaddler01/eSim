@@ -27,20 +27,10 @@ export default class CreationScene extends Phaser.Scene {
         this.stageProgress =
             new StageProgressManager(gameData, stageData, stageItems, stageObjectives);
 
-        this.game.registry.set(
-            'stageProgress',
-            this.stageProgress
-        );
-
         this.autoGather =
             new AutoGatherManager(
                 itemId => this.stageProgress.handleAutoGather(itemId)
             );
-
-        this.game.registry.set(
-            'autoGather',
-            this.autoGather
-        );
 
         this.stageUI = new StageUI(this);
 

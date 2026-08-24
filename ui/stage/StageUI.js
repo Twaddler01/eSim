@@ -1,7 +1,6 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
 import { subTabs, stageItems } from '../../data/stageData.js';
-import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
@@ -17,6 +16,7 @@ export default class StageUI {
 
         this.scene = scene;
         this.autoGather = this.scene.autoGather;
+        this.stageProgress = this.scene.stageProgress;
 
         this.width =
             options.width ??
@@ -40,12 +40,6 @@ export default class StageUI {
 
     // Create UI
     createUI() {
-        // Imports from CreationScene
-        this.stageProgress = 
-            this.scene.game.registry.get('stageProgress');
-        this.autoGather = 
-            this.scene.game.registry.get('autoGather');
-
         // Set current stage
         this.stageTitle = this.stageProgress.setStage('creation');
 
