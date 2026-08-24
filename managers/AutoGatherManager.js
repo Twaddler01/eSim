@@ -7,6 +7,129 @@ export default class AutoGatherManager {
         this.interval = 1000;
         this.accumulator = 0;
 
+        // itemId -> auto amount per tick
+        this.activeItems = new Map();
+    }
+
+    setActive(itemId, autoAmt) {
+
+        if (autoAmt <= 0) {
+            this.activeItems.delete(itemId);
+            return;
+        }
+
+        this.activeItems.set(itemId, autoAmt);
+    }
+
+    clear() {
+        this.activeItems.clear();
+    }
+
+    update(delta) {
+
+        if (this.activeItems.size === 0) {
+            return;
+        }
+
+        this.accumulator += delta;
+
+        while (this.accumulator >= this.interval) {
+
+            this.accumulator -= this.interval;
+
+            this.gather();
+        }
+    }
+
+    gather() {
+
+        for (const [itemId, autoAmt] of this.activeItems) {
+
+            this.onGather?.(itemId, autoAmt);
+        }
+    }
+}
+
+/*
+// VERSION 3
+export default class AutoGatherManager {
+
+    constructor(onGather) {
+
+        this.onGather = onGather;
+
+        this.interval = 1000;
+        this.accumulator = 0;
+
+        // itemId -> gather amount per interval
+        this.activeItems = new Map();
+    }
+
+    setActive(itemId, amount = 1) {
+
+        this.activeItems.set(
+            itemId,
+            amount
+        );
+    }
+
+    removeActive(itemId) {
+
+        this.activeItems.delete(itemId);
+    }
+
+    clear() {
+
+        this.activeItems.clear();
+    }
+
+    isActive(itemId) {
+
+        return this.activeItems.has(itemId);
+    }
+
+    update(delta) {
+
+        if (this.activeItems.size === 0) {
+            return;
+        }
+
+        this.accumulator += delta;
+
+        if (this.accumulator < this.interval) {
+            return;
+        }
+
+        this.accumulator -= this.interval;
+
+        this.gather();
+    }
+
+    gather() {
+
+        this.activeItems.forEach(
+            (amount, itemId) => {
+
+                this.onGather?.(
+                    itemId,
+                    amount
+                );
+
+            }
+        );
+    }
+}
+
+// VERSION 2
+export default class AutoGatherManager {
+
+    constructor(onGather) {
+
+        this.onGather = onGather;
+
+        this.interval = 1000;
+        this.accumulator = 0;
+
         this.activeItem = null;
     }
 
@@ -41,7 +164,7 @@ export default class AutoGatherManager {
 }
 
 // TEST INTERVAL
-/*export default class AutoGatherManager {
+export default class AutoGatherManager {
 
     constructor(stageProgress) {
 
@@ -118,4 +241,6 @@ export default class AutoGatherManager {
             );
         }
     }
-}*/
+}
+
+*/

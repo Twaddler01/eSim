@@ -196,8 +196,15 @@ export function getCreateUpgradesCardData(
                 upgrade
             ),
         
-        onAction: (itemId) => {
-            autoGather.setActive(itemId);
+        onAction: () => {
+            const level =
+                stageProgress.upgradeAutoGather(
+                    upgrade.item
+                );
+            autoGather.setActive(
+                upgrade.item,
+                level
+            );
         },
     }));
 

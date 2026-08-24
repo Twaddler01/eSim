@@ -21,6 +21,9 @@ export default class StageProgressManager {
         this.gatherLevels =
             gameData.stageProgress?.gatherLevels ?? {};
 
+        this.autoGatherLevels = 
+            gameData.stageProgress?.autoGatherLevels ?? {};
+
         // Stores unlocked, completed only
         this.objectiveState =
             gameData.stageProgress?.objectives ?? {};
@@ -138,26 +141,96 @@ export default class StageProgressManager {
 //ggg getCurrentTabCardData => item functions for GATHER/CREATE/DISCOVER
 //--------------------------------
 
-    handleAutoGather(itemId) {
+    // AUTO GATHER
+    syncAutoGather() {
+        this.autoGather.clear();
+    
+        for (const item of this.stageProgress.getGatherItems()) {
+    
+            const autoAmt =
+                this.stageProgress.getAutoGatherAmount(
+                    item.id
+                );
+    
+            if (autoAmt <= 0) {
+                continue;
+            }
+    
+            this.autoGather.setActive(
+                item.id,
+                autoAmt
+            );
+        }
+    }
+    
+    handleAutoGather(itemId, autoAmt) {
         const item =
             this.getGatherItems()
                 .find(item => item.id === itemId);
-        if (!item) return;
-        this.gather(item);
+        if (!item) {
+            return;
+        }
+        this.gather(item, autoAmt);
+    }
+    
+    upgradeAutoGather(itemId) {
+        const current =
+            this.getAutoGatherAmount(itemId);
+    
+        const newLevel =
+            current + 1;
+    
+        this.setAutoGatherLevel(
+            itemId,
+            newLevel
+        );
+        return newLevel;
     }
 
-    gather(item) {
+    getAutoGatherAmount(itemId) {
+        const level =
+            this.autoGatherLevels[itemId] ?? 0;
+        return level;
+    }
+
+    setAutoGatherLevel(id, level) {
+        const newLevel =
+            Math.max(0, level);
+    
+        this.autoGatherLevels[id] =
+            newLevel;
+    
+        this.sync();
+    
+        this.events.emit(
+            'updated',
+            {
+                type: 'gather-auto-upgrade',
+                id,
+                level: newLevel
+            }
+        );
+    
+        return newLevel;
+    }
+
+    gather(item, autoAmt = 0) {
         const current =
             this.get(item.id);
     
         const upgradeStats =
-            this.getGatherUpgradeStats(item.id, item);
+            this.getGatherUpgradeStats(
+                item.id,
+                item
+            );
     
         const max =
             upgradeStats.current_max;
     
         const gatherAmount =
-            this.getGatherAmount(item);
+            autoAmt > 0
+                ? autoAmt
+                : this.getGatherAmount(item);
     
         const newAmount =
             max == null
@@ -171,7 +244,7 @@ export default class StageProgressManager {
             item.id,
             newAmount
         );
-        
+    
         this.gatherUpgradeAvailable(item);
     }
     
@@ -1585,6 +1658,7 @@ STATUS: COMPLETED
         this.gameData.stageProgress = {
             amounts: this.values,
             gatherLevels: this.gatherLevels,
+            autoGatherLevels: this.autoGatherLevels,
             objectives: this.objectiveState,
             unlocked: this.unlocked,
             tracked: this.tracked,

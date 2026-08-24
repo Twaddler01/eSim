@@ -20,7 +20,6 @@ export default class CreateUpgradesCard {
 
         this._actionHandler = () => {
             this.onAction?.(this.item);
-            jp('onAction: ' + this.item);
         };
 
         this.elements = [];
