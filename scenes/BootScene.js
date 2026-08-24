@@ -1,6 +1,6 @@
-//import { gameData } from '../data/gameData.js';
-//import SaveManager from '../systems/SaveManager.js';
-//import GameTimer from '../systems/GameTimer.js';
+import { gameData } from '../data/gameData.js';
+import SaveManager from '../systems/SaveManager.js';
+import GameTimer from '../systems/GameTimer.js';
 
 export default class BootScene extends Phaser.Scene {
 

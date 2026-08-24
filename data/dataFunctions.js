@@ -1,5 +1,5 @@
 // dataFunctions.js
-import { getItemMax } from '../../utils/stageHelpers.js';
+import { getItemMax } from '../utils/stageHelpers.js';
 
 export function getCurrentTabCardData(
     tab,
