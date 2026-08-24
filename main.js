@@ -1,14 +1,11 @@
 import BootScene from './scenes/BootScene.js';
 import CreationScene from './scenes/CreationScene.js';
 
-import { DEBUG } from './config.js';
+/*import { DEBUG } from './config.js';
 if (DEBUG) {
     import('./debug/debug.js'); // logExport, htmlExport
     import('./debug/zoom.js'); // zoom
-}
-
-// OLD
-//import MainScene from './scenes/MainScene.js';
+}*/
 
 // ==================================================
 // GLOBAL GAME HELPERS
