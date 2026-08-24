@@ -34,7 +34,7 @@ export default class CreationScene extends Phaser.Scene {
 
         this.autoGather =
             new AutoGatherManager(
-                itemId => this.handleAutoGather(itemId)
+                itemId => this.stageProgress.handleAutoGather(itemId)
             );
 
         this.game.registry.set(
@@ -54,15 +54,6 @@ export default class CreationScene extends Phaser.Scene {
     update(time, delta) {
         this.gameTimer.update(delta);
         this.autoGather.update(delta);
-    }
-
-    handleAutoGather(itemId) {
-        const item =
-            this.stageProgress
-                .getGatherItems()
-                .find(item => item.id === itemId);
-        if (!item) return;
-        this.stageUI.gather(item);
     }
 
     shutdown() {

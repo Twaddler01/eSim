@@ -48,73 +48,73 @@ export default class StageProgressManager {
         this.initializeObjectiveTracking();
     }
 
-        // Availability (items)
-        getAvailability(item, tab) {
-            // Objectives
-            if (tab === 'discover') {
-                return this.isObjectiveActive(
-                    item.id
-                );
-            }
-    
-            // CREATE ITEMS
-            if (item.tab === 'create') {
-                if (!this.isCreateItemUnlocked(item)) {
-                    return 'locked';
-                }
-        
-                const requirementsMet =
-                    Object.entries(item.requirements ?? {})
-                        .every(([id, required]) => {
-                            return this.get(id) >= required;
-                        });
-        
-                if (!requirementsMet) {
-                    return 'unlocked';
-                }
-        
-                return 'active';
-            }
-    
-            // GATHER ITEM
-            const unlocked =
-                item.startsUnlocked ||
-                this.getUnlocked(item.id);
-    
-            if (!unlocked) {
+    // Availability (items)
+    getAvailability(item, tab) {
+        // Objectives
+        if (tab === 'discover') {
+            return this.isObjectiveActive(
+                item.id
+            );
+        }
+
+        // CREATE ITEMS
+        if (item.tab === 'create') {
+            if (!this.isCreateItemUnlocked(item)) {
                 return 'locked';
             }
     
-            const amount =
-                this.get(item.id);
-        
-            const max =
-                getItemMax(item, this);
-        
-            if (
-                max != null &&
-                amount >= max
-            ) {
-                return 'maxed';
-            }
-        
             const requirementsMet =
                 Object.entries(item.requirements ?? {})
                     .every(([id, required]) => {
-        
-                        const current =
-                            this.get(id);
-        
-                        return current >= required;
+                        return this.get(id) >= required;
                     });
-        
+    
             if (!requirementsMet) {
-                return 'insufficient';
+                return 'unlocked';
             }
     
             return 'active';
         }
-// WIP
+
+        // GATHER ITEM
+        const unlocked =
+            item.startsUnlocked ||
+            this.getUnlocked(item.id);
+
+        if (!unlocked) {
+            return 'locked';
+        }
+
+        const amount =
+            this.get(item.id);
+    
+        const max =
+            getItemMax(item, this);
+    
+        if (
+            max != null &&
+            amount >= max
+        ) {
+            return 'maxed';
+        }
+    
+        const requirementsMet =
+            Object.entries(item.requirements ?? {})
+                .every(([id, required]) => {
+    
+                    const current =
+                        this.get(id);
+    
+                    return current >= required;
+                });
+    
+        if (!requirementsMet) {
+            return 'insufficient';
+        }
+
+        return 'active';
+    }
+
     // Availability (create -> upgrades sub tab ... more later)
     getUpgradeAvailability(item) {
         if (!item) return;
@@ -135,8 +135,107 @@ export default class StageProgressManager {
     }
 
 //--------------------------------
-//ggg getCurrentTabCardData => item functions for GATHER
+//ggg getCurrentTabCardData => item functions for GATHER/CREATE/DISCOVER
 //--------------------------------
+
+    handleAutoGather(itemId) {
+        const item =
+            this.getGatherItems()
+                .find(item => item.id === itemId);
+        if (!item) return;
+        this.gather(item);
+    }
+
+    gather(item) {
+        const current =
+            this.get(item.id);
+    
+        const upgradeStats =
+            this.getGatherUpgradeStats(item.id, item);
+    
+        const max =
+            upgradeStats.current_max;
+    
+        const gatherAmount =
+            this.getGatherAmount(item);
+    
+        const newAmount =
+            max == null
+                ? current + gatherAmount
+                : Math.min(
+                    current + gatherAmount,
+                    max
+                );
+    
+        this.set(
+            item.id,
+            newAmount
+        );
+        
+        this.gatherUpgradeAvailable(item);
+    }
+    
+    //ccc Create
+    create(item) {
+        const requirements =
+            item.requirements ?? {};
+
+        const canCreate =
+            Object.entries(requirements)
+                .every(([id, required]) => {
+
+                    const amount =
+                        this.get(id);
+
+                    return amount >= required;
+                });
+
+        if (!canCreate) {
+            return;
+        }
+
+        // Consume
+        Object.entries(requirements)
+            .forEach(([id, amount]) => {
+
+                this.add(
+                    id,
+                    -amount
+                );
+            });
+
+        // Produce
+        Object.entries(item.produces ?? {})
+            .forEach(([id, amount]) => {
+
+                // If produced item triggers requirements
+                if (!this.getUnlocked(id)) {
+                    this.unlock(id);
+                }
+
+                this.add(
+                    id,
+                    amount
+                );
+            });
+    }
+
+    getCardCanAction(item) {
+        return this.getAvailability(item, item.tab) === 'active';
+    }
+    
+    handleCardAction(item, tab) {
+        // Gather
+        if (tab === 'gather') {
+            this.gather(item);
+        }
+    
+        // Create
+        if (tab === 'create') {
+            this.create(item);
+            return;
+        }
+    }
 
     getGatherUpgradeStats(id, item) {
         const upgrade =

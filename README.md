@@ -21,6 +21,10 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
+08-24-2026
+- Added basic auto gather functionality (WIP).
+- Cleaned up StageUI and intregrated data functions.
+
 08-22-2026
 - Added sub tab options within main tabs.
 - Fill color sat for thr current tab/sub tab selection.

@@ -1,11 +1,12 @@
-// stageCardData.js
+// dataFunctions.js
 import { getItemMax } from '../../utils/stageHelpers.js';
 
 export function getCurrentTabCardData(
     tab,
     subTab,
     stageProgress,
-    autoGather
+    autoGather,
+    stageItems
 ) {
 
     if (
@@ -49,6 +50,117 @@ export function getCurrentTabCardData(
         tab,
         subTab
     );
+}
+
+// helper ^ getCurrentTabCardData
+function buildCardData(
+    item,
+    tab,
+    subTab,
+    stageProgress
+) {
+
+    return {
+        ...item,
+
+        subTab: subTab ?? null,
+
+        amount:
+            stageProgress.get(item.id),
+
+        max:
+            getItemMax(
+                item,
+                stageProgress
+            ),
+
+        nextMax:
+            getItemMax(
+                item,
+                stageProgress,
+                'next'
+            ),
+
+        upgradeStats:
+            stageProgress.getGatherUpgradeStats(
+                item.id,
+                item
+            ),
+
+        availability:
+            stageProgress.getAvailability(
+                item,
+                tab
+            ),
+
+        getCreateData:
+            item.tab === 'create'
+                ? () =>
+                    stageProgress.getCreateData(item)
+                : null,
+
+        canUpgrade:
+            () =>
+                stageProgress.gatherUpgradeAvailable(item),
+
+        onUpgrade:
+            () =>
+                stageProgress.upgradeGather(item),
+
+        canAction:
+            () =>
+                stageProgress.getCardCanAction(item),
+
+        onAction:
+            () =>
+                stageProgress.handleCardAction(
+                    item,
+                    tab
+                )
+    };
+}
+
+// helper ^ getCurrentTabCardData
+function sortTabCards(
+    cards,
+    tab,
+    subTab
+) {
+
+    switch (tab) {
+        case 'gather':
+            return sortGatherCards(cards);
+
+        case 'create':
+            return cards;
+            // WIP return sortCreateCards(cards, subTab);
+
+        case 'discover':
+            return cards;
+            // WIP return sortDiscoverCards(cards);
+
+        default:
+            return cards;
+    }
+}
+
+// helper ^ sortTabCards
+function sortGatherCards(cards) {
+    return [...cards].sort(
+        (a, b) =>
+            getGatherOrder(a.availability) -
+            getGatherOrder(b.availability)
+    );
+}
+
+// helper ^ sortGatherCards
+function getGatherOrder(availability) {
+    return {
+        active: 0,
+        insufficient: 0,
+        maxed: 0,
+        locked: 1
+    }[availability] ?? 999;
 }
 
 // ==========================================

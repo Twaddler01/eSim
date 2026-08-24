@@ -13,7 +13,7 @@ export default class AutoGatherManager {
     setActive(itemId) {
         this.activeItem = itemId;
         
-        jp('AUTO GATHER ACTIVE:' + itemId);
+        //jp('AUTO GATHER ACTIVE:' + itemId);
     }
 
     update(delta) {
@@ -34,8 +34,9 @@ export default class AutoGatherManager {
     }
 
     gather() {
-        jp('AUTO GATHER:' + this.activeItem);
         this.onGather?.(this.activeItem);
+
+        //jp('AUTO GATHER:' + this.activeItem);
     }
 }
 

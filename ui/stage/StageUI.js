@@ -9,7 +9,7 @@ import DebugButtons from '../../debug/DebugButtons.js';
 import { DEBUG } from '../../config.js';
 import StageDiscoveryTracker from './StageDiscoveryTracker.js';
 import StageSubNavigation from './StageSubNavigation.js';
-import * as scdata from './stageCardData.js';
+import * as df from '../../data/dataFunctions.js';
 
 export default class StageUI {
 
@@ -384,246 +384,31 @@ if (DEBUG) {
 // CARDS
 //--------------------------------
 
-    // Get cards (for tab initialization)
-    getCurrentTabCardData() {
-        // CREATE sub-tab
-        if (
-            this.currentTab === 'create' &&
-            this.currentSubTab === 'upgrades'
-        ) {
-            const createUpgradesCards = scdata.getCreateUpgradesCardData(this.stageProgress);
-            return createUpgradesCards.map(item => ({
-                ...item,
-                
-                onAction: (itemId) => {
-                    this.autoGather.setActive(itemId);
-                },
-                //
-            }));
-        }
-        
-        let cards =
-            stageItems.filter(
-                item =>
-                    item.tab === this.currentTab
+    // Get cards (for tabs)
+    refreshCurrentTab() {
+        const cardData =
+            df.getCurrentTabCardData(
+                this.currentTab,
+                this.currentSubTab,
+                this.stageProgress,
+                this.autoGather,
+                stageItems
             );
     
-        // OBJECTIVES
-        if (this.currentTab === 'discover') {
-            
-            // Modified array structure 
-            const objectiveCards =
-                this.stageProgress
-                    .getObjectiveData();
-            
-            cards = [
-                ...objectiveCards,
-                ...cards
-            ];
-        }
-
-        return cards.map(item => ({
-    
-            ...item,
-            
-            subTab: this.currentSubTab ?? null,
-    
-            amount:
-                this.stageProgress.get(item.id),
-    
-            max:
-                getItemMax(
-                    item,
-                    this.stageProgress
-                ),
-    
-            nextMax:
-                getItemMax(
-                        item,
-                        this.stageProgress,
-                        'next'
-                    ),
-    
-            upgradeStats:
-                this.stageProgress.getGatherUpgradeStats(item.id, item),
-    
-            availability:
-                this.stageProgress.getAvailability(item, item.tab),
-
-            getCreateData: item.tab === 'create'
-                ? () =>
-                    this.stageProgress.getCreateData(item) : null,
-
-            canUpgrade:
-                () =>
-                    this.stageProgress.gatherUpgradeAvailable(item),
-            
-            onUpgrade:
-                () =>
-                    this.stageProgress.upgradeGather(item),
-    
-            canAction:
-                () =>
-                    this.getCardCanAction(item),
-    
-            onAction:
-                () =>
-                    this.handleCardAction(item)
-    
-        }));
+        this.viewport.showCards(cardData);
     }
 
-    // DIFFERENT TAB REFRESH
-    // Destroy old tab and build new tab
-    refreshCurrentTab() {
-        let cardData =
-            this.getCurrentTabCardData();
-        
-        if (this.currentTab === 'gather') {
-            const gatherData = cardData.filter(c => c.tab === 'gather');
-            cardData = this.getGatherData(gatherData);
-        }
-
-        this.viewport.showCards(
-            cardData
-        );
-    }
-
-    // SAME TAB REFRESH
-    // Keep the existing cards and reconcile them with the new state
     updateCurrentTab() {
-        let cardData =
-            this.getCurrentTabCardData();
-        
-        if (this.currentTab === 'gather') {
-            const gatherData = cardData.filter(c => c.tab === 'gather');
-            cardData = this.getGatherData(gatherData);
-        }
+        const cardData =
+            df.getCurrentTabCardData(
+                this.currentTab,
+                this.currentSubTab,
+                this.stageProgress,
+                this.autoGather,
+                stageItems
+            );
     
-        this.viewport.syncCards(
-            cardData
-        );
-    }
-
-    // Helper ^
-    sortByAvailability(data, order) {
-        return data.sort(
-            (a, b) =>
-                (order[a.availability] ?? 999) -
-                (order[b.availability] ?? 999)
-        );
-    }
-
-    // For updateCurrentTab() ^
-    getGatherData(gatherData) {
-        const data = gatherData;
-            data.map(item => ({
-                ...item,
-                availability:
-                    this.stageProgress.getAvailability(item, 'gather')
-            }));
-    
-        return this.sortByAvailability(
-            data,
-            {
-                active: 0,
-                insufficient: 0,
-                maxed: 0,
-                locked: 1
-            }
-        );
-    }
-
-    //ggg this.gather
-    gather(item) {
-        const current =
-            this.stageProgress.get(item.id);
-    
-        const upgradeStats =
-            this.stageProgress.getGatherUpgradeStats(item.id, item);
-    
-        const max =
-            upgradeStats.current_max;
-    
-        const gatherAmount =
-            this.stageProgress.getGatherAmount(item);
-    
-        const newAmount =
-            max == null
-                ? current + gatherAmount
-                : Math.min(
-                    current + gatherAmount,
-                    max
-                );
-    
-        this.stageProgress.set(
-            item.id,
-            newAmount
-        );
-        
-        this.stageProgress.gatherUpgradeAvailable(item);
-    }
-    
-    //ccc Create
-    create(item) {
-        const requirements =
-            item.requirements ?? {};
-
-        const canCreate =
-            Object.entries(requirements)
-                .every(([id, required]) => {
-
-                    const amount =
-                        this.stageProgress.get(id);
-
-                    return amount >= required;
-                });
-
-        if (!canCreate) {
-            return;
-        }
-
-        // Consume
-        Object.entries(requirements)
-            .forEach(([id, amount]) => {
-
-                this.stageProgress.add(
-                    id,
-                    -amount
-                );
-            });
-
-        // Produce
-        Object.entries(item.produces ?? {})
-            .forEach(([id, amount]) => {
-
-                // If produced item triggers requirements
-                if (!this.stageProgress.getUnlocked(id)) {
-                    this.stageProgress.unlock(id);
-                }
-
-                this.stageProgress.add(
-                    id,
-                    amount
-                );
-            });
-    }
-
-    getCardCanAction(item) {
-        return this.stageProgress.getAvailability(item, item.tab) === 'active';
-    }
-    
-    handleCardAction(item) {
-        // Gather
-        if (this.currentTab === 'gather') {
-            this.gather(item);
-        }
-    
-        // Create
-        if (this.currentTab === 'create') {
-            this.create(item);
-            return;
-        }
+        this.viewport.syncCards(cardData);
     }
 
     // Destroy
