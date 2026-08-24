@@ -116,7 +116,7 @@ export default class StageViewport {
     
         const y =
             this.contentHeight + padding;
-    
+
         const card =
             new StageCard(
                 this.scene,

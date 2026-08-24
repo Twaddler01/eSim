@@ -121,8 +121,6 @@ export function getCreateUpgradesCardData(
     const returnData = addData.map(upgrade => ({
         ...upgrade,
         
-        // upgrade.item = id of stageItem
-        
         itemAmount:
             stageProgress.get(upgrade.item),
 

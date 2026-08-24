@@ -1,12 +1,8 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-
-//import { stageData, stageItems, stageObjectives } from '../../data/stageData.js';
 import { subTabs, stageItems } from '../../data/stageData.js';
-
 import { gameData } from '../../data/gameData.js';
 import MessageStatus from './MessageStatus.js';
-//import StageProgressManager from '../../managers/StageProgressManager.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
 import DebugButtons from '../../debug/DebugButtons.js';
@@ -20,6 +16,7 @@ export default class StageUI {
     constructor(scene, options = {}) {
 
         this.scene = scene;
+        this.autoGather = this.scene.autoGather;
 
         this.width =
             options.width ??
@@ -43,9 +40,11 @@ export default class StageUI {
 
     // Create UI
     createUI() {
-        // Import from CreationScene
+        // Imports from CreationScene
         this.stageProgress = 
             this.scene.game.registry.get('stageProgress');
+        this.autoGather = 
+            this.scene.game.registry.get('autoGather');
 
         // Set current stage
         this.stageTitle = this.stageProgress.setStage('creation');
@@ -393,7 +392,14 @@ if (DEBUG) {
             this.currentSubTab === 'upgrades'
         ) {
             const createUpgradesCards = scdata.getCreateUpgradesCardData(this.stageProgress);
-            return createUpgradesCards;
+            return createUpgradesCards.map(item => ({
+                ...item,
+                
+                onAction: (itemId) => {
+                    this.autoGather.setActive(itemId);
+                },
+                //
+            }));
         }
         
         let cards =
@@ -477,7 +483,7 @@ if (DEBUG) {
             const gatherData = cardData.filter(c => c.tab === 'gather');
             cardData = this.getGatherData(gatherData);
         }
-    
+
         this.viewport.showCards(
             cardData
         );

@@ -63,6 +63,9 @@ export default class StageCard {
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
 
+this.options = this.subTab === 'upgrades' ? options : null;
+
+
         // Button event handler
         this._actionHandler = () => {
             if (!this.canAction()) {
@@ -105,9 +108,8 @@ export default class StageCard {
             case 'create':
                 // Move into new class
                 if (this.subTab === 'upgrades') {
-                    this.createUpgradesCard = 
                         new CreateUpgradesCard(this.scene, {
-                            ...options,
+                            ...this.options,
                             container: this.container,
                             x: 10,
                             y: 10,

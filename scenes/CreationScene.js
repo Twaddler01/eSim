@@ -8,6 +8,7 @@ export default class CreationScene extends Phaser.Scene {
 
     constructor() {
         super('CreationScene');
+        this.scene = this.game;
 
         this.depths = {
             background: 0,
@@ -33,8 +34,13 @@ export default class CreationScene extends Phaser.Scene {
 
         this.autoGather =
             new AutoGatherManager(
-                this.stageProgress
+                itemId => this.handleAutoGather(itemId)
             );
+
+        this.game.registry.set(
+            'autoGather',
+            this.autoGather
+        );
 
         this.stageUI = new StageUI(this);
 
@@ -49,7 +55,16 @@ export default class CreationScene extends Phaser.Scene {
         this.gameTimer.update(delta);
         this.autoGather.update(delta);
     }
-    
+
+    handleAutoGather(itemId) {
+        const item =
+            this.stageProgress
+                .getGatherItems()
+                .find(item => item.id === itemId);
+        if (!item) return;
+        this.stageUI.gather(item);
+    }
+
     shutdown() {
         this.stageUI?.destroy();
     }

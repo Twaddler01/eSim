@@ -1,5 +1,47 @@
 export default class AutoGatherManager {
 
+    constructor(onGather) {
+
+        this.onGather = onGather;
+
+        this.interval = 1000;
+        this.accumulator = 0;
+
+        this.activeItem = null;
+    }
+
+    setActive(itemId) {
+        this.activeItem = itemId;
+        
+        jp('AUTO GATHER ACTIVE:' + itemId);
+    }
+
+    update(delta) {
+
+        if (!this.activeItem) {
+            return;
+        }
+
+        this.accumulator += delta;
+
+        if (this.accumulator < this.interval) {
+            return;
+        }
+
+        this.accumulator -= this.interval;
+
+        this.gather();
+    }
+
+    gather() {
+        jp('AUTO GATHER:' + this.activeItem);
+        this.onGather?.(this.activeItem);
+    }
+}
+
+// TEST INTERVAL
+/*export default class AutoGatherManager {
+
     constructor(stageProgress) {
 
         this.stageProgress = stageProgress;
@@ -29,9 +71,9 @@ export default class AutoGatherManager {
         // Eventually:
         // this.stageProgress.add(...);
     }
-}
+}*/
 
-
+// VERSION 1
 /*export default class AutoGatherManager {
 
     constructor(stageProgress, gameTimer) {

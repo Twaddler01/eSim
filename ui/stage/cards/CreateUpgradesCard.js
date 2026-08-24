@@ -1,3 +1,5 @@
+// CreateUpgradesCard.js
+// data source: stageCardData.js -> getCreateUpgradesCardData()
 export default class CreateUpgradesCard {
 
     constructor(scene, options = {}) {
@@ -11,13 +13,14 @@ export default class CreateUpgradesCard {
         // Use this.x, this.y (inherited)
         this.container = options.container ?? null;
 
+        this.item = options.item ?? null;
         this.amount = options.amount ?? 0;
         this.availability = options.availability ?? 'locked';
         this.onAction = options.onAction ?? null;
-        
+
         this._actionHandler = () => {
-            jp('... pointerdown ...');
-            //this.onAction?.();
+            this.onAction?.(this.item);
+            jp('onAction: ' + this.item);
         };
 
         this.elements = [];

@@ -7,6 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Auto gather runs but needs work, along with "upgrades" sub tab.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Future Updates / Ideas
