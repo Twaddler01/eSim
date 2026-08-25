@@ -196,6 +196,8 @@ export function getCreateUpgradesCardData(
                 upgrade
             ),
         
+        level: stageProgress.getAutoGatherAmount(upgrade.item),
+        
         canAction:
             () =>
                 stageProgress.getCardCanAction(upgrade),

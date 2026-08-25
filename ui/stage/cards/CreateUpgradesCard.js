@@ -16,7 +16,8 @@ export default class CreateUpgradesCard {
         this.item = options.item ?? null;
         this.amount = options.amount ?? 0;
         this.availability = options.availability ?? 'locked';
-        
+        this.level = options.level ?? 0;
+
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
 
@@ -62,7 +63,7 @@ export default class CreateUpgradesCard {
             this.addElement(
                 this.scene.add.rectangle(
                     titleX + 150,
-                    upgradeY,
+                    upgradeY - 15 / 2 + 1,
                     upgradeButtonWidth,
                     upgradeButtonHeght,
                     0x335533
@@ -85,14 +86,57 @@ export default class CreateUpgradesCard {
             this.addElement(
                 addText(this.scene,
                     titleX + 150 + upgradeButtonWidth / 2,
-                    upgradeY + 15,
+                    upgradeY,
                     'UPGRADE',
                     {
                         fontSize: '16px',
                         color: '#ffffff'
                     }
                 )
-            .setOrigin(0.5, 0.5)
+            .setOrigin(0.5, 0)
+        );
+    
+            this.ui.upgradeAutoStatusLabel =
+            this.addElement(
+                addText(this.scene,
+                    titleX + 150 + 150 + upgradeButtonWidth / 2,
+                    upgradeY,
+                    'Status: ',
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+    
+        this.ui.upgradeAutoStatus =
+            this.addElement(
+                addText(this.scene,
+                    titleX + 150 + 150 + this.ui.upgradeAutoStatusLabel.width + upgradeButtonWidth / 2,
+                    upgradeY,
+                    'Inactuve',
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+        );
+
+        this.ui.upgradeAutoLevel =
+            this.addElement(
+                addText(this.scene,
+                    titleX + 150 + 150 + 150 + this.ui.upgradeAutoStatusLabel.width + upgradeButtonWidth / 2,
+                    upgradeY,
+                    'Level: ' + this.level,
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0)
+            .setVisible(false)
         );
         
     }
@@ -107,10 +151,23 @@ export default class CreateUpgradesCard {
     // Accessed from StageCard
     //update(data = {}) {}
 
+    // Runs from StageCard
     updateAvailability(state) {
+
+        this.ui.upgradeAutoStatus.setText('Inactive');
+        this.ui.upgradeAutoStatus.setColor('#ff6666');
+        this.ui.upgradeAutoLevel.setVisible(false);
+        
+        // ENABLED (auto active)
+        if (state === 'enabled') {
+            this.ui.upgradeAutoStatus.setColor('#66ff66');
+            this.ui.upgradeAutoStatus.setText('Active');
+            this.ui.upgradeAutoLevel.setVisible(true);
+            this.ui.upgradeAutoLevel.setText('Level: ' + this.level);
+        }
         
         // ACTIVE
-        if (state === 'active') {
+        if (state === 'active' || state === 'enabled') {
             this.ui.upgradeAutoButton
                 ?.setFillStyle(0x335533)
                 .setStrokeStyle(1, 0x66aa66);

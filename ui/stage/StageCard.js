@@ -54,6 +54,7 @@ export default class StageCard {
         this.amount = options.amount ?? 0;
         this.max = options.max ?? null;
         this.availability = options.availability ?? 'locked';
+        this.level = options.level ?? 0;
         // WIP this.percent = options.percent ?? null;
 
         // Callbacks
@@ -1016,6 +1017,10 @@ unlocked: {
         if ('upgradeStats' in data) {
             this.upgradeStats = data.upgradeStats;
         }
+        
+        if ('level' in data) {
+            this.createUpgradesCard.level = data.level;
+        }
     
         switch (this.tab) {
     
@@ -1071,13 +1076,16 @@ unlocked: {
     updateAvailability() {
         let state = this.availability;
 
-        if (this.createUpgradesCard) {
-            this.createUpgradesCard.updateAvailability(state);
-        }
-        
         // Reset
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);
+
+        if (this.createUpgradesCard) {
+            this.createUpgradesCard.updateAvailability(state);
+            if (state === 'active' || state === 'enabled') {
+                return;
+            }
+        }
 
         // Discover updates
         const requireText = this.availability === 'completed' ? 'Required:' : 'Requires:';

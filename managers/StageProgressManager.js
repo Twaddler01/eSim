@@ -53,13 +53,6 @@ export default class StageProgressManager {
 
     // Availability (items)
     getAvailability(item, tab) {
-        if (item.subTab === 'upgrades' && item.tab === 'create') {
-            if (this.getUnlocked(item.item)) {
-                return 'active';
-            }
-            return 'locked';
-        }
-        
         // Objectives
         if (tab === 'discover') {
             return this.isObjectiveActive(
@@ -131,8 +124,14 @@ export default class StageProgressManager {
         
         // Get status of item affected by upgrade (unlocked = active)
         const isActive = this.isCreateUpgradesActive(item.item);
-        
+
         if (isActive) {
+            const level = this.autoGatherLevels[item.item];
+
+            if (level > 0) {
+                // Auto gather UI status 
+                return 'enabled';
+            }
             return 'active';
         }
         
@@ -191,7 +190,10 @@ export default class StageProgressManager {
             itemId,
             newLevel
         );
+        
+        // wip
         jp(itemId + ' / ' + newLevel);
+        
         return newLevel;
     }
 
