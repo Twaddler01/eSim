@@ -307,7 +307,8 @@ if (DEBUG) {
             'gather-upgrade',
             'objective-unlock',
             'objective-complete',
-            'unlock'
+            'unlock',
+            'gather-auto-upgrade'
         ];
     
         if (updateTypes.includes(update.type)) {

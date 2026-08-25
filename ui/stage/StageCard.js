@@ -63,8 +63,8 @@ export default class StageCard {
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
 
-this.options = this.subTab === 'upgrades' ? options : null;
-
+        // Pass data for CreateUpgradesCard
+        this.options = this.subTab === 'upgrades' ? options : null;
 
         // Button event handler
         this._actionHandler = () => {
@@ -108,6 +108,7 @@ this.options = this.subTab === 'upgrades' ? options : null;
             case 'create':
                 // Move into new class
                 if (this.subTab === 'upgrades') {
+                    this.createUpgradesCard =
                         new CreateUpgradesCard(this.scene, {
                             ...this.options,
                             container: this.container,
@@ -209,7 +210,16 @@ this.options = this.subTab === 'upgrades' ? options : null;
     }
 
     createTitle() {
-        const titleX = this.tab !== 'gather' ? this.width / 2 : this.gatherLeftPanelWidth / 2;
+        let titleX = this.width / 2;
+        let titleOriginX = 0.5;
+        if (this.tab === 'gather') {
+            titleX = this.gatherLeftPanelWidth / 2;
+        }
+        if (this.tab === 'create') {
+            titleOriginX = 0;
+            titleX = 10;
+        }
+        
         this.ui.title =
             this.addElement(
                 addText(
@@ -222,7 +232,7 @@ this.options = this.subTab === 'upgrades' ? options : null;
                         color: '#ffffff'
                     }
                 )
-            .setOrigin(0.5, 0)
+            .setOrigin(titleOriginX, 0)
         );
     }
 
@@ -1061,6 +1071,10 @@ unlocked: {
     updateAvailability() {
         let state = this.availability;
 
+        if (this.createUpgradesCard) {
+            this.createUpgradesCard.updateAvailability(state);
+        }
+        
         // Reset
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);

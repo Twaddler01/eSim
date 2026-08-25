@@ -16,9 +16,14 @@ export default class CreateUpgradesCard {
         this.item = options.item ?? null;
         this.amount = options.amount ?? 0;
         this.availability = options.availability ?? 'locked';
+        
+        this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
 
         this._actionHandler = () => {
+            if (!this.canAction()) {
+                return;
+            }
             this.onAction?.(this.item);
         };
 
@@ -26,13 +31,14 @@ export default class CreateUpgradesCard {
         this.ui = {};
 
         this.create();
-        this.update();
     }
 
     create() {
         // Title and overlay integrated already
         const titleX = this.x + 5;
-        let upgradeY = this.y + 24.265625 + 20;
+        let upgradeY = this.y + 24.265625 + 30;
+        // Area below title box
+        const bottomArea = 24.265625 + 25;
     
         this.ui.upgradeAutoLabel =
             this.addElement(
@@ -49,15 +55,15 @@ export default class CreateUpgradesCard {
         );
         
         // Upgrade auto button
-        upgradeY += this.ui.upgradeAutoLabel.height + 5;
         const upgradeButtonStroke = 1;
         const upgradeButtonHeght = 30;
+        const upgradeButtonWidth = 120;
         this.ui.upgradeAutoButton =
             this.addElement(
                 this.scene.add.rectangle(
-                    titleX,
+                    titleX + 150,
                     upgradeY,
-                    120,
+                    upgradeButtonWidth,
                     upgradeButtonHeght,
                     0x335533
                 )
@@ -78,15 +84,15 @@ export default class CreateUpgradesCard {
         this.ui.upgradeAutoButtonText =
             this.addElement(
                 addText(this.scene,
-                    titleX + 60,
-                    upgradeY + 15/2,
+                    titleX + 150 + upgradeButtonWidth / 2,
+                    upgradeY + 15,
                     'UPGRADE',
                     {
                         fontSize: '16px',
                         color: '#ffffff'
                     }
                 )
-            .setOrigin(0.5, 0)
+            .setOrigin(0.5, 0.5)
         );
         
     }
@@ -98,16 +104,39 @@ export default class CreateUpgradesCard {
         return element;
     }
 
-    update(data = {}) {
-        // Amount of item this upgrade modifies
-        if ('amount' in data) {
-            this.amount = data.amount;
-        }
+    // Accessed from StageCard
+    //update(data = {}) {}
 
-        // 'active' or 'locked'
-        if ('availability' in data) {
-            this.availability = data.availability;
+    updateAvailability(state) {
+        
+        // ACTIVE
+        if (state === 'active') {
+            this.ui.upgradeAutoButton
+                ?.setFillStyle(0x335533)
+                .setStrokeStyle(1, 0x66aa66);
+            this.ui.upgradeAutoButtonText
+                ?.setColor('#ffffff');
+            
+            return;
+        } 
+        
+        // UNLOCKED
+        if (state === 'unlocked') {
+            this.ui.upgradeAutoButton
+                ?.setFillStyle(0x335533)
+                .setStrokeStyle(1, 0x66aa66);
+            this.ui.upgradeAutoButtonText
+                ?.setColor('#ffffff');
+
+            return;
         }
+        
+        // LOCKED
+        this.ui.upgradeAutoButton
+            ?.setFillStyle(0x222222)
+            .setStrokeStyle(1, 0x555555);
+        this.ui.upgradeAutoButtonText
+            ?.setColor('#777777');
     }
 
     // DESTROY

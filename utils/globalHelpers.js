@@ -42,6 +42,8 @@ function formatNumber(value) {
         return value;
     }
 
+    value = Math.round(value);
+
     const abs = Math.abs(value);
 
     if (abs >= 1_000_000) {
@@ -112,3 +114,17 @@ window.jp = (...args) => {
 
     console.log(item);
 };
+
+/*
+OTHER USEFUL CONSOLE FUBCTIONS:
+console.dir(object);     // Interactive object inspection
+console.table(array);    // Excellent for arrays/objects
+console.group('Name');   // Start a collapsible group
+console.groupEnd();      // End group
+console.warn('Warning'); // Yellow warning
+console.error('Error');  // Error
+console.time('test');    // Start timer
+console.timeEnd('test'); // End timer + elapsed time
+console.count('name');   // Count how many times something runs
+console.trace();         // Show the call stack
+*/

@@ -196,6 +196,10 @@ export function getCreateUpgradesCardData(
                 upgrade
             ),
         
+        canAction:
+            () =>
+                stageProgress.getCardCanAction(upgrade),
+        
         onAction: () => {
             const level =
                 stageProgress.upgradeAutoGather(

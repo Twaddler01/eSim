@@ -10,20 +10,6 @@ if (DEBUG) {
 // window (global) functions
 import('./utils/globalHelpers.js');
 
-/*
-OTHER USEFUL CONSOLE FUBCTIONS:
-console.dir(object);     // Interactive object inspection
-console.table(array);    // Excellent for arrays/objects
-console.group('Name');   // Start a collapsible group
-console.groupEnd();      // End group
-console.warn('Warning'); // Yellow warning
-console.error('Error');  // Error
-console.time('test');    // Start timer
-console.timeEnd('test'); // End timer + elapsed time
-console.count('name');   // Count how many times something runs
-console.trace();         // Show the call stack
-*/
-
 // PHASER START
 const MAX_WIDTH = 1280; // Max width for mobile portrait
 const MAX_HEIGHT = 1920; // Max height for mobile portrait
