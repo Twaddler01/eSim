@@ -3,7 +3,9 @@ import { gameData } from '../data/gameData.js';
 import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
 import AutoGatherManager from '../managers/AutoGatherManager.js';
 import StageProgressManager from '../managers/StageProgressManager.js';
-
+import ConversationManager from '../managers/ConversationManager.js';
+import { conversations } from '../data/conversationData.js';
+    
 export default class CreationScene extends Phaser.Scene {
 
     constructor() {
@@ -35,6 +37,9 @@ export default class CreationScene extends Phaser.Scene {
 
         this.stageUI = new StageUI(this);
 
+        this.conversationManager =
+            new ConversationManager(this);
+
         this.events.once(
             Phaser.Scenes.Events.SHUTDOWN,
             this.shutdown,
@@ -42,18 +47,12 @@ export default class CreationScene extends Phaser.Scene {
         );
 
 // DEBUGGING
-this.time.delayedCall(3000, () => {
-    this.scene.pause();
-    this.scene.launch(
-        'DialogueScene',
-        {
-            message:
-                'This is a test conversation.\n\n' +
-                'Notice that the game underneath has stopped.',
-            returnScene: this.scene.key
-        }
+this.time.delayedCall(5000, () => {
+    this.conversationManager.start(
+        conversations.creation_intro
     );
 });
+////
 
     }
 
