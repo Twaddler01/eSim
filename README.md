@@ -7,7 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Auto gather runs but needs work, along with "upgrades" sub tab.
+- Working on NEW DialogueScene, a new scene overlay for progression / milestone messages, which temporarily pause game and give the player a guided experience.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Future Updates / Ideas
@@ -21,6 +21,9 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
+08-25-2025
+- Auto gather is currently based on their respective unlocked items. No requirements yet.
+
 08-24-2026
 - Added basic auto gather functionality (WIP).
 - Cleaned up StageUI and intregrated data functions.

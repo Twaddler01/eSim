@@ -54,7 +54,6 @@ export default class StageCard {
         this.amount = options.amount ?? 0;
         this.max = options.max ?? null;
         this.availability = options.availability ?? 'locked';
-        this.level = options.level ?? 0;
         // WIP this.percent = options.percent ?? null;
 
         // Callbacks
@@ -1018,6 +1017,7 @@ unlocked: {
             this.upgradeStats = data.upgradeStats;
         }
         
+        // CreateUpgradesCard only
         if ('level' in data) {
             this.createUpgradesCard.level = data.level;
         }

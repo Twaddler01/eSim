@@ -40,6 +40,21 @@ export default class CreationScene extends Phaser.Scene {
             this.shutdown,
             this
         );
+
+// DEBUGGING
+this.time.delayedCall(3000, () => {
+    this.scene.pause();
+    this.scene.launch(
+        'DialogueScene',
+        {
+            message:
+                'This is a test conversation.\n\n' +
+                'Notice that the game underneath has stopped.',
+            returnScene: this.scene.key
+        }
+    );
+});
+
     }
 
     syncAutoGather() {

@@ -51,8 +51,18 @@ export default class StageProgressManager {
         this.initializeObjectiveTracking();
     }
 
-    // Availability (items)
+    // Availability (items) / for getCardCanAction() ('active' = true)
     getAvailability(item, tab) {
+        // CreateUpgrades
+        if (item.tab === 'create' && item.subTab === 'upgrades') {
+            const isActive = this.isCreateUpgradesActive(item.item);
+            if (isActive) {
+                return 'active';
+            } else {
+                return 'locked';
+            }
+        }
+        
         // Objectives
         if (tab === 'discover') {
             return this.isObjectiveActive(
@@ -190,9 +200,6 @@ export default class StageProgressManager {
             itemId,
             newLevel
         );
-        
-        // wip
-        jp(itemId + ' / ' + newLevel);
         
         return newLevel;
     }

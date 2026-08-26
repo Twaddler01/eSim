@@ -18,7 +18,7 @@ export default class CreateUpgradesCard {
         this.availability = options.availability ?? 'locked';
         this.level = options.level ?? 0;
 
-        this.canAction = options.canAction ?? (() => true);
+        this.canAction = options.canAction ?? (() => false);
         this.onAction = options.onAction ?? null;
 
         this._actionHandler = () => {
