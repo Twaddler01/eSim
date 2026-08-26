@@ -59,35 +59,35 @@ function buildCardData(
     subTab,
     stageProgress
 ) {
-
     return {
         ...item,
 
         subTab: subTab ?? null,
 
-        amount:
+        // LIVE DATA
+        getAmount: () =>
             stageProgress.get(item.id),
 
-        max:
+        getMax: () =>
             getItemMax(
                 item,
                 stageProgress
             ),
 
-        nextMax:
+        getNextMax: () =>
             getItemMax(
                 item,
                 stageProgress,
                 'next'
             ),
 
-        upgradeStats:
+        getUpgradeStats: () =>
             stageProgress.getGatherUpgradeStats(
                 item.id,
                 item
             ),
 
-        availability:
+        getAvailability: () =>
             stageProgress.getAvailability(
                 item,
                 tab
@@ -96,9 +96,10 @@ function buildCardData(
         getCreateData:
             item.tab === 'create'
                 ? () =>
-                    stageProgress.getCreateData(item)
+                stageProgress.getCreateData(item)
                 : null,
 
+        // ACTIONS
         canUpgrade:
             () =>
                 stageProgress.gatherUpgradeAvailable(item),
@@ -191,12 +192,13 @@ export function getCreateUpgradesCardData(
         itemAmount:
             stageProgress.get(upgrade.item),
 
-        availability:
-            stageProgress.getUpgradeAvailability(
-                upgrade
-            ),
+        getAvailability:
+            () =>
+                stageProgress.getUpgradeAvailability(upgrade),
         
-        level: stageProgress.getAutoGatherAmount(upgrade.item),
+        getLevel: 
+            () =>
+                stageProgress.getAutoGatherAmount(upgrade.item),
         
         canAction:
             () =>

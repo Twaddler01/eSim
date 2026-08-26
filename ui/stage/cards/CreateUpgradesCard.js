@@ -15,8 +15,12 @@ export default class CreateUpgradesCard {
 
         this.item = options.item ?? null;
         this.amount = options.amount ?? 0;
-        this.availability = options.availability ?? 'locked';
-        this.level = options.level ?? 0;
+        this.lockOverlay = options.lockOverlay ?? null;
+        this.availabilityText = options.availabilityText ?? null;
+        this.getAvailability = options.getAvailability ?? (() => 'locked');
+        this.getLevel = options.getLevel ?? (() => null);
+
+        this.onAvailabilityChange = options.onAvailabilityChange ?? (() => {});
 
         this.canAction = options.canAction ?? (() => false);
         this.onAction = options.onAction ?? null;
@@ -148,12 +152,26 @@ export default class CreateUpgradesCard {
         return element;
     }
 
-    // Accessed from StageCard
-    //update(data = {}) {}
+    // Started from StageCard
+    update() {
+        const data = {
+            level: this.getLevel(),
+            availability: this.getAvailability()
+        };
+    
+        this.updateUI(data);
+    }
 
-    // Runs from StageCard
+    updateUI(data) {
+        this.ui.upgradeAutoLevel.setText('Level: ' + data.level);
+    
+        this.updateAvailability(data.availability);
+        // Specifically: overlay from StageCard
+        this.onAvailabilityChange(data.availability);
+    }
+
+    // Separate from StageCard
     updateAvailability(state) {
-
         this.ui.upgradeAutoStatus.setText('Inactive');
         this.ui.upgradeAutoStatus.setColor('#ff6666');
         this.ui.upgradeAutoLevel.setVisible(false);
@@ -163,7 +181,6 @@ export default class CreateUpgradesCard {
             this.ui.upgradeAutoStatus.setColor('#66ff66');
             this.ui.upgradeAutoStatus.setText('Active');
             this.ui.upgradeAutoLevel.setVisible(true);
-            this.ui.upgradeAutoLevel.setText('Level: ' + this.level);
         }
         
         // ACTIVE

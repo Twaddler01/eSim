@@ -15,7 +15,7 @@ export default class StageCard {
         
         const CARD_HEIGHTS = {
             tab: {
-                gather: 150,
+                gather: 200,
                 create: 200,
                 discover: 200
             },
@@ -25,15 +25,14 @@ export default class StageCard {
         };
         this.height = CARD_HEIGHTS.tab[this.tab] ?? 200;
         if (this.subTab) {
-            this.height = CARD_HEIGHTS.sub[this.subTab] ?? 200;
+            this.height = CARD_HEIGHTS.sub[this.subTab] ?? this.height;
         }
-        this.height = CARD_HEIGHTS[this.tab] ?? 200;
         
         // Use 0, 0
         this.container = this.scene.add.container(this.x, this.y);
         options.parentContainer.add(this.container);
 
-        // Gather | Upgrade areas if this.upgradeStats.enabled
+        // Gather | Upgrade areas if upgradeStats.enabled
         this.upgradeBoxWidth = 200;
         this.gatherLeftPanelWidth = this.width - this.upgradeBoxWidth;
         
@@ -49,12 +48,13 @@ export default class StageCard {
         this.unlocked = options.unlocked ?? null;
         this.objectiveText = options.objectiveText ?? null;
 
-        // Function values
-        this.upgradeStats = options.upgradeStats ?? null;
-        this.amount = options.amount ?? 0;
-        this.max = options.max ?? null;
-        this.availability = options.availability ?? 'locked';
-        // WIP this.percent = options.percent ?? null;
+        // LIVE DATA GETTERS
+        this.getAmount = options.getAmount ?? (() => 0);
+        this.getMax = options.getMax ?? (() => null);
+        this.getNextMax = options.getNextMax ?? (() => null);
+        this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
+        this.getAvailability = options.getAvailability ?? (() => 'locked')
+        this.getLevel = options.getLevel ?? (() => null);
 
         // Callbacks
         this.getCreateData = options.getCreateData ?? (() => null);
@@ -115,7 +115,13 @@ export default class StageCard {
                             x: 10,
                             y: 10,
                             width: this.width - 20,
-                            height: this.height - 20
+                            height: this.height - 20,
+                            // GETTERS
+                            getAvailability: this.getAvailability,
+                            getLevel: this.getLevel,
+                            // To grab new state for overlay
+                            onAvailabilityChange: state =>
+                                this.updateAvailability(state)
                         }
                     );
                 } else {
@@ -171,7 +177,7 @@ export default class StageCard {
                     this.width,
                     this.height,
                     0x000000,
-                    1.5
+                    0.75
                 )
             .setOrigin(0)
             .setStrokeStyle(1, 0xffffff)
@@ -193,7 +199,8 @@ export default class StageCard {
         );
         
         // DISCOVER ONLY
-        if (this.tab === 'discover' && this.availability !== 'locked') {
+        const availability = this.getAvailability();
+        if (this.tab === 'discover' && availability !== 'locked') {
             this.discoverUI.availabilityTitle =
                 this.addElement(
                     addText(this.scene,
@@ -243,9 +250,10 @@ export default class StageCard {
 
     createGather() {
         // Gain label -- uses this.upgradeStats
+        const upgradeStats = this.getUpgradeStats();
         let gatherY = 67; // +55
         let currentGatherRate = 1;
-        if (this.upgradeStats.hasRateUpgrade) currentGatherRate = this.upgradeStats.currentGatherRate;
+        if (upgradeStats.hasRateUpgrade) currentGatherRate = upgradeStats.currentGatherRate;
         this.gatherUI.gainLabel =
             this.addElement(
                 addText(this.scene,
@@ -376,7 +384,7 @@ export default class StageCard {
         );
         
         let currentY = 10;
-        const upgradeData = this.upgradeStats;
+        const upgradeData = this.getUpgradeStats();
         if (upgradeData.hasUpgrade) {
             this.gatherUI.upgradeText.setText('Upgrade Level: ' + upgradeData.level);
             
@@ -452,7 +460,7 @@ export default class StageCard {
                     }
             
                     this.onUpgrade?.();
-                    this.updateGatherUpgrades?.();
+                    this.updateGatherUpgrades?.(upgradeData);
                 }
             );
         }
@@ -460,32 +468,35 @@ export default class StageCard {
 
     // PRIMARY GATHER UPDATE CALLS
     updateGather(data) {
-        this.updateGatherProgress();
-        this.updateAvailability(); // multi
+        this.updateGatherProgress(
+            data.amount, data.max
+        );
+        this.updateGatherUpgrades(data.upgradeStats);
+        this.updateAvailability(data.availability); // multi
         this.updateGatherUpgradeAvailability();
     }
 
     // CURRENT UPGRADE updates
-    updateGatherUpgrades() {
-        if (!this.upgradeStats.hasUpgrade) {
+    updateGatherUpgrades(upgradeStats) {
+        if (!upgradeStats.hasUpgrade) {
             return;
         }
     
         // Max updates
-        if (this.max !== null) this.gatherUI.maxLabel.setText(`Max: ${this.upgradeStats.current_max}`);
+        if (this.gatherUI.maxLabel) this.gatherUI.maxLabel.setText(`Max: ${upgradeStats.current_max}`);
                 
         // Level update
-        this.gatherUI.upgradeText.setText(`Upgrade Level: ${this.upgradeStats.level}`);
+        this.gatherUI.upgradeText.setText(`Upgrade Level: ${upgradeStats.level}`);
         
         // Gather rate update
-        if (this.upgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${this.upgradeStats.currentGatherRate}`);
+        if (upgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${upgradeStats.currentGatherRate}`);
     }
 
     // GATHER PROGRESS updates
-    updateGatherProgress() {
+    updateGatherProgress(amount, max) {
         if (
-            this.max == null ||
-            this.max <= 0
+            max == null ||
+            max <= 0
         ) {
             this.gatherUI.progressBackground
                 .setVisible(false);
@@ -504,7 +515,7 @@ export default class StageCard {
     
         const percent =
             Phaser.Math.Clamp(
-                this.amount / this.max,
+                amount / max,
                 0,
                 1
             );
@@ -673,19 +684,16 @@ export default class StageCard {
 
     // PRIMARY CREATE UPDATE CALLS
     updateCreate(data) {
-        this.updateCreateRequirements();
-        this.updateAvailability();
+        this.updateCreateRequirements(data.createData);
+        this.updateAvailability(data.availability);
     }
 
     // Create live updates
-    updateCreateRequirements() {
-        const data =
-            this.getCreateData();
-    
+    updateCreateRequirements(data) {
         if (!data) {
             return;
         }
-    
+
         data.req.forEach(
             (require, index) => {
                 const text =
@@ -747,26 +755,6 @@ export default class StageCard {
 //--------------------------------
 //ddd DISCOVER TAB
 //--------------------------------
-/*
-tab: 'discover',
-id: obj.id,
-title: obj.title,
-objectiveText: obj.objectiveText,
-description: obj.description,
-
-availability: this.getAvailability(obj, 'discover'),
-
-required: {
-    items: [],
-    objectives: [],
-    children: []
-},
-
-unlocked: {
-    items: [],
-    objectives: [],
-    children: []
-}*/
 
     createDiscover() {
         // (Title already setup) (15, 12)
@@ -787,7 +775,8 @@ unlocked: {
             .setOrigin(0)
         );
         
-        const requireText = this.availability === 'completed' ? 'Required:' : 'Requires:';
+        const availability = this.getAvailability();
+        const requireText = availability === 'completed' ? 'Required:' : 'Requires:';
         this.discoverUI.requireLabel =
             this.addElement(
                 addText(this.scene,
@@ -881,7 +870,7 @@ unlocked: {
         const currentX = this.width - 250;
         currentY = 30;
         
-        const unlockText = this.availability === 'completed' ? 'Unlocked:' : 'Unlocks:';
+        const unlockText = availability === 'completed' ? 'Unlocked:' : 'Unlocks:';
         if (this.unlocked.items.length || this.unlocked.objectives.length) {
             this.discoverUI.unlockTitle =
                 this.addElement(
@@ -986,53 +975,41 @@ unlocked: {
     }
 
     updateDiscover(data) {
-        this.updateAvailability();
+        this.updateAvailability(data.availability);
     }
 
 //--------------------------------
-// UPDATES FOR ALL CARDS [ StageViewport ]
+// UI UPDATES FOR ALL CARDS [ StageViewport ]
 //--------------------------------
 
-    update(data = {}) {
-        if ('amount' in data) {
-            this.amount = data.amount;
-        }
-    
-        if ('max' in data) {
-            this.max = data.max;
-        }
-
-        if ('percent' in data) {
-            this.percent = data.percent;
-        }
-
-        if ('availability' in data) {
-            this.availability = data.availability;
-        }
-    
-        if ('canUpgrade' in data) {
-            this.canUpgrade = data.canUpgrade;
-        }
-    
-        if ('upgradeStats' in data) {
-            this.upgradeStats = data.upgradeStats;
-        }
+    update() {
+        const data = {
+            amount: this.getAmount(),
+            max: this.getMax(),
+            nextMax: this.getNextMax(),
+            upgradeStats: this.getUpgradeStats(),
+            availability: this.getAvailability(),
+            createData: this.getCreateData()
+        };
         
-        // CreateUpgradesCard only
-        if ('level' in data) {
-            this.createUpgradesCard.level = data.level;
-        }
-    
+        this.updateUI(data);
+    }
+
+    updateUI(data) {
         switch (this.tab) {
-    
             case 'gather':
                 this.updateGather(data);
                 break;
-    
             case 'create':
-                this.updateCreate(data);
+                // Default
+                if (this.subTab === 'items') {
+                    this.updateCreate(data);
+                }
+                // Update for subTab class
+                if (this.subTab === 'upgrades') {
+                    this.createUpgradesCard?.update();
+                }
                 break;
-    
             case 'discover':
                 this.updateDiscover(data);
                 break;
@@ -1074,25 +1051,17 @@ unlocked: {
 //--------------------------------
 
     // AVAILABILITY
-    updateAvailability() {
-        let state = this.availability;
+    updateAvailability(state) {
 
         // Reset
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);
 
-        if (this.createUpgradesCard) {
-            this.createUpgradesCard.updateAvailability(state);
-            if (state === 'active' || state === 'enabled') {
-                return;
-            }
-        }
-
         // Discover updates
-        const requireText = this.availability === 'completed' ? 'Required:' : 'Requires:';
+        const requireText = state === 'completed' ? 'Required:' : 'Requires:';
         this.discoverUI.requireLabel?.setText(requireText);
         
-        const unlockText = this.availability === 'completed' ? 'Unlocked:' : 'Unlocks:';
+        const unlockText = state === 'completed' ? 'Unlocked:' : 'Unlocks:';
         this.ui.unlockTitle?.setText(unlockText);
 
         // ACTIVE
@@ -1159,10 +1128,8 @@ unlocked: {
         }
     
         // LOCKED
-        this.ui.lockOverlay?.setVisible(true)
-            .setAlpha(0.55);
-        this.ui.availabilityText?.setText('LOCKED')
-            .setVisible(true);
+        this.ui.lockOverlay?.setVisible(true);
+        this.ui.availabilityText?.setVisible(true);
         // Gather
         this.gatherUI.gatherButton?.setFillStyle(0x222222)
             .setStrokeStyle(1, 0x555555);

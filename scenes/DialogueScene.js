@@ -60,3 +60,23 @@ export default class DialogScene extends Phaser.Scene {
         this.manager = null;
     }
 }
+
+/*
+ConversationManager
+│
+├── current conversation
+├── current message index
+├── next()
+├── cancel()
+├── isLastMessage()
+│
+└── DialogScene
+    │
+    └── ConversationOverlay
+        │
+        ├── TYPING
+        ├── COMPLETE
+        ├── NEXT
+        ├── DONE
+        └── CLOSE
+*/
