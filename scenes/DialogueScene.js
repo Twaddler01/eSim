@@ -24,12 +24,18 @@ export default class DialogScene extends Phaser.Scene {
     showCurrent() {
         const message =
             this.manager.getCurrentMessage();
-
+    
         if (!message) {
             return;
         }
-
-        this.overlay.showMessage(message);
+    
+        this.overlay.showMessage(
+            message,
+            {
+                isLast:
+                    this.manager.isLastMessage()
+            }
+        );
     }
 
     update() {

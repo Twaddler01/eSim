@@ -28,6 +28,14 @@ export default class ConversationOverlay {
             options.y ??
             scene.scale.height / 4;
 
+        this.typing = false;
+        this.typingTimer = null;
+        this.currentMessage = '';
+        this.currentIndex = 0;
+        
+        this.typingSpeed =
+            options.typingSpeed ?? 30;
+
         this.elements = [];
         this.dialogElements = [];
 
@@ -197,9 +205,14 @@ export default class ConversationOverlay {
 
         this.nextButton.on(
             'pointerdown',
-            () => this.onNext?.()
+            () => {
+                if (this.typing) {
+                    this.finishTyping();
+                    return;
+                }
+                this.onNext?.();
+            }
         );
-
 
         // ==========================================
         // CANCEL BUTTON
@@ -245,16 +258,81 @@ export default class ConversationOverlay {
         );
     }
 
-
-    showMessage(message) {
-
+    showMessage(message, options = {}) {
+        const isLast =
+            options.isLast ?? false;
+    
         this.speakerText
             .setText(message.speaker);
-
-        this.messageText
-            .setText(message.text);
+    
+        this.nextButtonText
+            .setText(
+                isLast
+                    ? 'DONE'
+                    : 'NEXT'
+            );
+    
+        this.cancelButton
+            .setVisible(!isLast);
+    
+        this.cancelButtonText
+            .setVisible(!isLast);
+    
+        this.startTyping(message.text);
     }
 
+    startTyping(text) {
+        this.stopTyping();
+    
+        this.currentMessage = text;
+        this.currentIndex = 0;
+        this.typing = true;
+    
+        this.messageText.setText('');
+    
+        this.typingTimer =
+            this.scene.time.addEvent({
+                delay: this.typingSpeed,
+                repeat: text.length - 1,
+    
+                callback: () => {
+    
+                    this.currentIndex++;
+    
+                    this.messageText.setText(
+                        this.currentMessage.substring(
+                            0,
+                            this.currentIndex
+                        )
+                    );
+    
+                    if (
+                        this.currentIndex >=
+                        this.currentMessage.length
+                    ) {
+                        this.finishTyping();
+                    }
+                }
+            });
+    }
+
+    finishTyping() {
+        this.stopTyping();
+    
+        this.typing = false;
+    
+        this.messageText
+            .setText(this.currentMessage);
+    }
+
+    stopTyping() {
+        if (this.typingTimer) {
+    
+            this.typingTimer.remove();
+    
+            this.typingTimer = null;
+        }
+    }
 
     setPosition(x, y) {
 
@@ -267,7 +345,8 @@ export default class ConversationOverlay {
 
 
     destroy() {
-
+        this.stopTyping();
+        
         this.dialogElements = [];
 
         this.elements.forEach(

@@ -58,6 +58,11 @@ export default class ConversationManager {
         this.finish();
     }
 
+    isLastMessage() {
+        return this.index ===
+            this.conversation.messages.length - 1;
+    }
+
     finish() {
         this.active = false;
     
