@@ -1056,6 +1056,11 @@ export default class StageCard {
         // Reset
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);
+        
+        // Skip if 'enabled' from this.createUpgradesCard
+        if (state === 'enabled') {
+            return;
+        }
 
         // Discover updates
         const requireText = state === 'completed' ? 'Required:' : 'Requires:';
