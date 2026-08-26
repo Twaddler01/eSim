@@ -171,9 +171,10 @@ export default class StageCard {
                     this.width,
                     this.height,
                     0x000000,
-                    0.55
+                    1.5
                 )
             .setOrigin(0)
+            .setStrokeStyle(1, 0xffffff)
         );
                 
         // Availability message
