@@ -1209,7 +1209,8 @@ STATUS: COMPLETED
             'updated',
             {
                 type: 'objective-complete',
-                id
+                id,
+                objective
             }
         );
 

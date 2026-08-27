@@ -29,6 +29,16 @@ export default class CreationScene extends Phaser.Scene {
         this.stageProgress =
             new StageProgressManager(gameData, stageData, stageItems, stageObjectives);
 
+        this.stageProgress.on(
+            'updated',
+            data => {
+                if (data.type === 'objective-complete') {
+                    this.handleObjectiveComplete(data);
+                }
+        
+            }
+        );
+
         this.autoGather =
             new AutoGatherManager(
                 (itemId, autoAmt) => this.stageProgress.handleAutoGather(itemId, autoAmt)
@@ -45,15 +55,26 @@ export default class CreationScene extends Phaser.Scene {
             this.shutdown,
             this
         );
+    }
 
-// DEBUGGING
-this.time.delayedCall(5000, () => {
-    this.conversationManager.start(
-        conversations.creation_intro
-    );
-});
-////
+    handleObjectiveComplete(data) {
+        const objective = data.objective;
+        const conversation = objective.triggers?.conversation;
 
+        if (!conversation) {
+            return;
+        }
+    
+        const delay = conversation.delay ?? 0;
+    
+        this.time.delayedCall(
+            delay,
+            () => {
+                this.conversationManager.start(
+                    conversations[conversation.id]
+                );
+            }
+        );
     }
 
     syncAutoGather() {
@@ -71,6 +92,15 @@ this.time.delayedCall(5000, () => {
                 autoAmt
             );
         }
+    }
+
+    // DEBUGGING
+    convoTest() {
+        this.time.delayedCall(5000, () => {
+            this.conversationManager.start(
+                conversations.creation_intro
+            );
+        });
     }
 
     update(time, delta) {

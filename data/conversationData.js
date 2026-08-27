@@ -1,10 +1,7 @@
 // data/conversationData.js
-
 export const conversations = {
-
     creation_intro: {
         id: 'creation_intro',
-
         messages: [
             {
                 speaker: 'God',
@@ -19,6 +16,27 @@ export const conversations = {
                 text: 'It is yours.'
             }
         ]
+    },
+    the_beginning_complete: {
+        id: 'the_beginning_complete',
+        messages: [
+            {
+                speaker: 'God',
+                text: 'Congratulations! It has begun!'
+            },
+            {
+                speaker: 'God',
+                text: 'But let us first start out simple..'
+            }
+        ]
+    },
+    creation_day_1_complete: {
+        id: 'creation_day_1_complete',
+        messages: [
+            {
+                speaker: 'God',
+                text: 'And there was light.'
+            }
+        ]
     }
-
 };

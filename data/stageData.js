@@ -181,7 +181,13 @@ export const stageObjectives = [
         requirements: {},
         unlocks: { 
             objectives: [ 'days_of_creation', "creation_day_1" ],
-            items: [ 'darkness' ] // for testing purposes
+            items: [ 'darkness' ], // for testing purposes
+        },
+        triggers: {
+            conversation: {
+                id: 'the_beginning_complete',
+                delay: 1200
+            }
         },
         actionLabel: 'COMPLETE'
     },
@@ -202,6 +208,12 @@ export const stageObjectives = [
             objectives: [ 'creation_day_2' ], // other objectives can be unlocked too
 // testing water
             items: [ 'light', 'water' ]
+        },
+        triggers: {
+            conversation: {
+                id: 'creation_day_1_complete',
+                delay: 1200
+            }
         },
         actionLabel: 'COMPLETE'
     },
