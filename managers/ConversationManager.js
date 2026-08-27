@@ -31,7 +31,7 @@ export default class ConversationManager {
         );
     
         this.scene.scene.launch(
-            'DialogScene',
+            'ConversationScene',
             {
                 manager: this
             }
@@ -67,7 +67,7 @@ export default class ConversationManager {
             );
 
         this.scene.scene
-            .get('DialogScene')
+            .get('ConversationScene')
             .showCurrent();
     }
 
@@ -83,7 +83,7 @@ export default class ConversationManager {
     finish() {
         this.active = false;
     
-        this.scene.scene.stop('DialogScene');
+        this.scene.scene.stop('ConversationScene');
     
         this.scene.scene.resume(
             this.scene.scene.key

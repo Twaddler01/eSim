@@ -7,6 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Need tiny status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pwuse the game.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Future Updates / Ideas

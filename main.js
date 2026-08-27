@@ -1,6 +1,6 @@
 import BootScene from './scenes/BootScene.js';
 import CreationScene from './scenes/CreationScene.js';
-import DialogueScene from './scenes/DialogueScene.js';
+import ConversationScene from './scenes/ConversationScene.js';
 
 import { DEBUG } from './config.js';
 if (DEBUG) {
@@ -30,7 +30,7 @@ const config = {
     scene: [ 
         BootScene,
         CreationScene,
-        DialogueScene
+        ConversationScene
     ],
     scale: {
         mode: Phaser.Scale.FIT, // FIT is good for preserving aspect ratio

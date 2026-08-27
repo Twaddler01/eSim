@@ -1,54 +1,82 @@
+import ConversationOverlay from '../ui/conversation/ConversationOverlay.js';
+
 export default class ConversationScene extends Phaser.Scene {
 
     constructor() {
         super('ConversationScene');
     }
 
-    init(data) {
+    create(data) {
+        this.manager = data.manager;
 
-        this.messages =
-            data.messages ?? [];
+        this.overlay =
+            new ConversationOverlay(
+                this,
+                {
+                    onNext: () => this.manager.next(),
+                    onCancel: () => this.manager.cancel()
+                }
+            );
 
-        this.pauseGame =
-            data.pauseGame ?? true;
-
-        this.returnScene =
-            data.returnScene ?? null;
-
-        this.currentIndex = 0;
+        this.showCurrent();
     }
 
-    create() {
-
-        if (this.pauseGame && this.returnScene) {
-            this.scene.pause(this.returnScene);
+    showCurrent() {
+        const message =
+            this.manager.getCurrentMessage();
+    
+        if (!message) {
+            return;
         }
-
-        this.createOverlay();
-        this.createDialog();
-        this.showMessage();
-
-        this.events.once(
-            Phaser.Scenes.Events.SHUTDOWN,
-            this.shutdown,
-            this
+    
+        this.overlay.showMessage(
+            message,
+            {
+                isLast:
+                    this.manager.isLastMessage()
+            }
         );
     }
 
-    createOverlay() {
-        this.overlay =
-            this.add.rectangle(
-                0,
-                0,
-                this.scale.width,
-                this.scale.height,
-                0x000000,
-                0.75
-            )
-            .setOrigin(0)
-            .setInteractive();
+    update() {
+
+        if (!this.manager.active) {
+            return;
+        }
+
+        const message =
+            this.manager.getCurrentMessage();
+
+        if (!message) {
+            return;
+        }
+
+        // We will eventually handle typing here.
     }
 
-
-
+    shutdown() {
+        this.overlay?.destroy();
+        this.overlay = null;
+        this.manager = null;
+    }
 }
+
+/*
+ConversationManager
+│
+├── current conversation
+├── current message index
+├── next()
+├── cancel()
+├── isLastMessage()
+│
+└── ConversationScene
+    │
+    └── ConversationOverlay
+        │
+        ├── TYPING
+        ├── COMPLETE
+        ├── NEXT
+        ├── DONE
+        └── CLOSE
+*/
