@@ -7,6 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Refractoring StageProgress class to utilize a separate ObjectivesManager class for objectives only.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Future Updates / Ideas
