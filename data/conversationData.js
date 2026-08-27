@@ -1,5 +1,5 @@
 // data/conversationData.js
-export const conversations = {
+export const conversationData = {
     creation_intro: {
         id: 'creation_intro',
         messages: [

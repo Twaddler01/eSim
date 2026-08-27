@@ -184,9 +184,19 @@ export const stageObjectives = [
             items: [ 'darkness' ], // for testing purposes
         },
         triggers: {
+            announcements: [
+                {
+                    id: 'obj_done_the_beginning',
+                    delay: 0
+                },
+                {
+                    id: 'obj_new_days_of_creation',
+                    delay: 6000
+                }
+            ],
             conversation: {
                 id: 'the_beginning_complete',
-                delay: 1200
+                delay: 3000
             }
         },
         actionLabel: 'COMPLETE'

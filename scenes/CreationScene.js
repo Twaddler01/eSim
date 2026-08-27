@@ -4,8 +4,10 @@ import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
 import AutoGatherManager from '../managers/AutoGatherManager.js';
 import StageProgressManager from '../managers/StageProgressManager.js';
 import ConversationManager from '../managers/ConversationManager.js';
-import { conversations } from '../data/conversationData.js';
-    
+import { conversationData } from '../data/conversationData.js';
+import AnnouncementManager from '../managers/AnnouncementManager.js';
+import { announcementData } from '../data/announcementData.js';
+
 export default class CreationScene extends Phaser.Scene {
 
     constructor() {
@@ -39,6 +41,9 @@ export default class CreationScene extends Phaser.Scene {
             }
         );
 
+        this.announcementManager =
+            new AnnouncementManager(this);
+
         this.conversationManager =
             new ConversationManager(this);
 
@@ -58,23 +63,53 @@ export default class CreationScene extends Phaser.Scene {
     }
 
     handleObjectiveComplete(data) {
-        const objective = data.objective;
-        const conversation = objective.triggers?.conversation;
-
-        if (!conversation) {
-            return;
+    
+        const triggers =
+            data.objective.triggers;
+    
+        // Announcement
+        if (triggers?.announcements) {
+    
+            const announcements =
+                triggers?.announcements ?? [];
+            
+            announcements.forEach(trigger => {
+            
+                const announcement =
+                    announcementData[trigger.id];
+            
+                if (!announcement) {
+                    return;
+                }
+            
+                this.time.delayedCall(
+                    trigger.delay ?? 0,
+                    () => {
+                        this.announcementManager.show(
+                            announcement
+                        );
+                    }
+                );
+            });
         }
     
-        const delay = conversation.delay ?? 0;
+        // Conversation
+        if (triggers?.conversation) {
     
-        this.time.delayedCall(
-            delay,
-            () => {
-                this.conversationManager.start(
-                    conversations[conversation.id]
-                );
-            }
-        );
+            const conversation =
+                conversationData[
+                    triggers.conversation.id
+                ];
+    
+            this.time.delayedCall(
+                triggers.conversation.delay ?? 0,
+                () => {
+                    this.conversationManager.start(
+                        conversation
+                    );
+                }
+            );
+        }
     }
 
     syncAutoGather() {

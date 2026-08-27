@@ -7,7 +7,6 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Need tiny status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pwuse the game.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Future Updates / Ideas
@@ -21,6 +20,9 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
+08-27-2026
+- Added status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pwuse the game. They will be on timers, along with the conversations.
+
 08-26-2026
 - Added "trigger" for messages display to display the same messages that are in dialogues/conversations.
 - Added NEW DialogueScene, a scene overlay for progression / milestone messages, which temporarily pause game and give the player a guided experience.

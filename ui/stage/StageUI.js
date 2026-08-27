@@ -110,6 +110,7 @@ export default class StageUI {
             2000
         );
 
+        // Insert messages from conversations
         this.conversationManager.events.on(
             'message',
             message => {
