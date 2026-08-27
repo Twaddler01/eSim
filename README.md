@@ -7,7 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Working on NEW DialogueScene, a new scene overlay for progression / milestone messages, which temporarily pause game and give the player a guided experience.
+- Adding triggers for messages display to display the same messages that are in dialogues/conversations.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Future Updates / Ideas
@@ -21,6 +21,10 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Completed Updates
+08-26-2026
+- Added NEW DialogueScene, a scene overlay for progression / milestone messages, which temporarily pause game and give the player a guided experience.
+- Added triggers to objectives, which trigger certain events, such as a conversation/dialogue popup. 
+
 08-25-2025
 - Auto gather is currently based on their respective unlocked items. No requirements yet.
 
