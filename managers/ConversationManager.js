@@ -6,6 +6,9 @@ export default class ConversationManager {
         this.active = false;
         this.conversation = null;
         this.index = 0;
+
+        this.events =
+            new Phaser.Events.EventEmitter();
     }
 
     start(conversation) {
@@ -16,7 +19,13 @@ export default class ConversationManager {
         this.active = true;
         this.conversation = conversation;
         this.index = 0;
-    
+
+        // Trigger a MessageStatus update 
+        this.events.emit(
+                'message',
+                this.getCurrentMessage()
+            );
+
         this.scene.scene.pause(
             this.scene.scene.key
         );
@@ -48,7 +57,15 @@ export default class ConversationManager {
             this.finish();
             return;
         }
-    
+
+        const message =
+            this.getCurrentMessage();
+        
+            this.events.emit(
+                'message',
+                message
+            );
+
         this.scene.scene
             .get('DialogScene')
             .showCurrent();

@@ -39,6 +39,9 @@ export default class CreationScene extends Phaser.Scene {
             }
         );
 
+        this.conversationManager =
+            new ConversationManager(this);
+
         this.autoGather =
             new AutoGatherManager(
                 (itemId, autoAmt) => this.stageProgress.handleAutoGather(itemId, autoAmt)
@@ -46,9 +49,6 @@ export default class CreationScene extends Phaser.Scene {
         this.syncAutoGather();
 
         this.stageUI = new StageUI(this);
-
-        this.conversationManager =
-            new ConversationManager(this);
 
         this.events.once(
             Phaser.Scenes.Events.SHUTDOWN,

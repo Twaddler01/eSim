@@ -17,6 +17,7 @@ export default class StageUI {
         this.scene = scene;
         this.autoGather = this.scene.autoGather;
         this.stageProgress = this.scene.stageProgress;
+        this.conversationManager = this.scene.conversationManager;
 
         this.width =
             options.width ??
@@ -107,6 +108,15 @@ export default class StageUI {
         this.messageStatus.addMessageDelayed(
             'Welcome to eSim: Creation Stage!',
             2000
+        );
+
+        this.conversationManager.events.on(
+            'message',
+            message => {
+                this.messageStatus.addMessage(
+                    `${message.speaker}: ${message.text}`
+                );
+            }
         );
 
         // Viewport
