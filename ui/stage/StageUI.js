@@ -1,6 +1,6 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-import { subTabs, stageItems } from '../../data/stageData.js';
+import { subTabs } from '../../data/stageData.js';
 import MessageStatus from './MessageStatus.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
@@ -81,7 +81,6 @@ export default class StageUI {
             new StageInventory(
                 this.scene,
                 this.stageProgress,
-                stageItems,
                 {
                     x: this.headerBoxX + this.headerBoxWidth + 1,
                     y: this.belowHeaderY + 1,
@@ -397,8 +396,7 @@ if (DEBUG) {
                 this.currentTab,
                 this.currentSubTab,
                 this.stageProgress,
-                this.autoGather,
-                stageItems
+                this.autoGather
             );
     
         this.viewport.showCards(cardData);
@@ -410,8 +408,7 @@ if (DEBUG) {
                 this.currentTab,
                 this.currentSubTab,
                 this.stageProgress,
-                this.autoGather,
-                stageItems
+                this.autoGather
             );
     
         this.viewport.syncCards(cardData);

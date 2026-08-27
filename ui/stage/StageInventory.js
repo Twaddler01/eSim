@@ -3,11 +3,11 @@ import ScrollBox from '../../utils/ScrollBox.js';
 
 export default class StageInventory {
 
-    constructor(scene, stageProgress, stageItems, options = {}) {
+    constructor(scene, stageProgress, options = {}) {
 
         this.scene = scene;
         this.stageProgress = stageProgress;
-        this.stageItems = stageItems;
+        this.stageItems = this.stageProgress.stageItems;
 
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;

@@ -12,7 +12,7 @@ export default class StageCard {
         // Tab references
         this.tab = options.tab ?? 'gather';
         this.subTab = options.subTab ?? null;
-        
+
         const CARD_HEIGHTS = {
             tab: {
                 gather: 200,
@@ -200,7 +200,7 @@ export default class StageCard {
         
         // DISCOVER ONLY
         const availability = this.getAvailability();
-        if (this.tab === 'discover' && availability !== 'locked') {
+        if (this.tab === 'discover') {
             this.discoverUI.availabilityTitle =
                 this.addElement(
                     addText(this.scene,
@@ -1056,6 +1056,7 @@ export default class StageCard {
         // Reset
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);
+        this.discoverUI.availabilityTitle?.setVisible(false);
         
         // Skip if 'enabled' from this.createUpgradesCard
         if (state === 'enabled') {
@@ -1086,6 +1087,7 @@ export default class StageCard {
                 ?.setColor('#ffffff');
             // Discover
             if (this.tab === 'discover') {
+                this.discoverUI.availabilityTitle?.setVisible(true);
                 this.ui.availabilityText?.setVisible(true)
                     .setText('[ IN PROGRESS ]');
             }
@@ -1114,6 +1116,7 @@ export default class StageCard {
         if (state === 'completed') {
             // Discover
             if (this.tab === 'discover') {
+                this.discoverUI.availabilityTitle?.setVisible(true);
                 this.ui.availabilityText?.setVisible(true)
                     .setText('COMPLETED');
                 this.ui.background?.setFillStyle(0x112a12);

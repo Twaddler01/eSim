@@ -1,12 +1,12 @@
 // dataFunctions.js
 import { getItemMax } from '../utils/stageHelpers.js';
+import { stageItems, stageObjectives } from '../data/stageData.js';
 
 export function getCurrentTabCardData(
     tab,
     subTab,
     stageProgress,
-    autoGather,
-    stageItems
+    autoGather
 ) {
 
     if (
@@ -26,11 +26,11 @@ export function getCurrentTabCardData(
 
     if (tab === 'discover') {
 
-        const objectiveCards =
-            stageProgress.getObjectiveData();
+        const discoverCards =
+            getDiscoverCardData(stageProgress);
 
         cards = [
-            ...objectiveCards,
+            ...discoverCards,
             ...cards
         ];
     }
@@ -130,38 +130,39 @@ function sortTabCards(
 
     switch (tab) {
         case 'gather':
-            return sortGatherCards(cards);
+            return sortByAvailability(cards, {
+                active: 0,
+                insufficient: 0,
+                maxed: 0,
+                locked: 1
+            });
 
         case 'create':
             return cards;
             // WIP return sortCreateCards(cards, subTab);
 
         case 'discover':
-            return cards;
-            // WIP return sortDiscoverCards(cards);
+            return sortByAvailability(cards, {
+                active: 0,
+                completed: 1,
+                locked: 2
+            });
 
         default:
             return cards;
     }
 }
 
-// helper ^ sortTabCards
-function sortGatherCards(cards) {
-    return [...cards].sort(
+// AVAILABILITY SORT ^ sortTabCards
+export function sortByAvailability(
+    data,
+    order
+) {
+    return [...data].sort(
         (a, b) =>
-            getGatherOrder(a.availability) -
-            getGatherOrder(b.availability)
+            (order[a.getAvailability()] ?? 999) -
+            (order[b.getAvailability()] ?? 999)
     );
-}
-
-// helper ^ sortGatherCards
-function getGatherOrder(availability) {
-    return {
-        active: 0,
-        insufficient: 0,
-        maxed: 0,
-        locked: 1
-    }[availability] ?? 999;
 }
 
 // ==========================================
@@ -225,42 +226,136 @@ export function getCreateUpgradesCardData(
 // ==========================================
 
 export function getDiscoverCardData(
-    items,
     stageProgress
 ) {
+    const returnData = [];
+    stageObjectives.forEach(obj => {
 
-    return items
-        .filter(
-            item => item.tab === 'discover'
-        )
-        .map(item => ({
+        // Only include these types
+        if (obj.type !== 'objective' &&
+            obj.type !== 'child' &&
+            obj.type !== 'parent') {
+            return;
+        }
+        
+        // New data only
+        const data = {
+            id: obj.id,
+            title: obj.title,
+            tab: 'discover',
+            objectiveText: obj.objectiveText,
+            description: obj.description,
+            
+            required: {
+                items: [],
+                objectives: [],
+                children: []
+            },
 
-            ...item,
+            unlocked: {
+                items: [],
+                objectives: [],
+                children: []
+            }
+        };
 
-            amount:
-                stageProgress.get(item.id),
+        // ==========================================
+        // REQUIRED
+        // ==========================================
 
-            availability:
-                stageProgress.getAvailability(
-                    item,
-                    'discover'
-                )
-        }));
+        if (obj.requirements?.items) {
+            data.required.items =
+                fetchObjData(obj.requirements.items);
+        }
+        
+        if (obj.objectiveText) {
+            data.required.items = [
+                { 
+                    id: 'startsUnlocked',
+                    title: obj.objectiveText,
+                    amt: 0
+                }
+            ];
+        }
+
+        if (obj.requirements?.objectives) {
+            data.required.objectives =
+                fetchObjData(obj.requirements.objectives);
+        }
+
+        // Parent children
+        if (obj.children) {
+            data.required.children =
+                fetchObjData(obj.children);
+        }
+
+        // ==========================================
+        // UNLOCKED
+        // ==========================================
+
+        if (obj.unlocks?.items) {
+            data.unlocked.items =
+                fetchObjData(obj.unlocks.items);
+        }
+
+        if (obj.unlocks?.objectives) {
+            data.unlocked.objectives =
+                fetchObjData(obj.unlocks.objectives);
+        }
+
+        if (obj.unlocks?.children) {
+            data.unlocked.children =
+                fetchObjData(obj.unlocks.children);
+        }
+
+        returnData.push(data);
+
+        // TEST SORT
+        const order = {
+            active: 0,
+            completed: 1,
+            locked: 2
+        };
+    
+        returnData.sort(
+            (a, b) =>
+                order[a.availability] -
+                order[b.availability]
+        );
+
+    });
+
+    return returnData;
 }
 
+// Helper ^ getDiscoverCardData
+function fetchObjData(data) {
+    if (!Array.isArray(data)) return [];
+    return data.flatMap(item => {
+        // ID only
+        if (typeof item === 'string') {
+            return {
+                id: item,
+                title: getTitle(item)
+            };
+        }
+        // ID + amount
+        if (item && typeof item === 'object') {
+            return Object.entries(item).map(([id, amt]) => ({
+                id,
+                title: getTitle(id),
+                amt
+            }));
+        }
+        return [];
+    });
+}
 
-// ==========================================
-// AVAILABILITY SORT
-// ==========================================
-
-export function sortByAvailability(
-    data,
-    order
-) {
-
-    return [...data].sort(
-        (a, b) =>
-            (order[a.availability] ?? 999) -
-            (order[b.availability] ?? 999)
-    );
+// Gwt any title matching id
+function getTitle(id) {
+    const stage = stageItems.find(i => i.id === id);
+    if (stage) return stage.title;
+    const objective = stageObjectives.find(i => i.id === id);
+    if (objective) return objective.title;
+    return id;
 }

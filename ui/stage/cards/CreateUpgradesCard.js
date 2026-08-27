@@ -15,8 +15,6 @@ export default class CreateUpgradesCard {
 
         this.item = options.item ?? null;
         this.amount = options.amount ?? 0;
-        this.lockOverlay = options.lockOverlay ?? null;
-        this.availabilityText = options.availabilityText ?? null;
         this.getAvailability = options.getAvailability ?? (() => 'locked');
         this.getLevel = options.getLevel ?? (() => null);
 

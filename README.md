@@ -22,7 +22,7 @@
 
 # Completed Updates
 08-27-2026
-- Added status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pwuse the game. They will be on timers, along with the conversations.
+- Added status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pause the game. They will be on timers, along with the conversations (which do pause time), to give a smooth before and/or after display.
 
 08-26-2026
 - Added "trigger" for messages display to display the same messages that are in dialogues/conversations.
