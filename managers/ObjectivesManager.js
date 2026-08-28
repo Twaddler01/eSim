@@ -17,8 +17,15 @@ export default class ObjectivesManager {
         this.objectiveState =
             this.state.data.objectives ??= {};
 
+        const hasTrackingData =
+            this.state.data.tracked !== undefined;
+
+        // Objective tracking
         this.tracked =
             this.state.data.tracked ??= {};
+        
+        this.trackingInitialized =
+            this.state.data.trackingInitialized ?? false;
 
         // For discover tab only
         this.objectiveCompletionCounter =
@@ -124,8 +131,16 @@ export default class ObjectivesManager {
         ) ?? null;
     }
 
+    // ==========================================
     // Objective tracking
+    // ==========================================
+    
     initializeObjectiveTracking() {
+        // Already initialized — respect saved tracking state.
+        if (this.trackingInitialized) {
+            return;
+        }
+    
         const stage =
             this.getCurrentStageId();
     
@@ -134,22 +149,32 @@ export default class ObjectivesManager {
                 objective =>
                     objective.stage === stage &&
                     objective.startsUnlocked === true &&
-                    !this.isObjectiveComplete(objective.id)
+                    !this.isObjectiveComplete(
+                        objective.id
+                    )
             );
     
-        if (!startingObjective) {
-            return;
-        }
+        if (startingObjective) {
+            this._setTracked(
+                startingObjective.id,
+                true
+            );
     
-        if (
-            this.isObjectiveTracked(
-                startingObjective.id
-            )
-        ) {
-            return;
+            this.events.emit(
+                'updated',
+                {
+                    type: 'objective-track',
+                    id: startingObjective.id,
+                    tracked: true
+                }
+            );
         }
+
+        // Even if there wasn't a starting objective,
+        // initialization has now happened.
+        this.trackingInitialized = true;
     
-        this.tracked[startingObjective.id] = true;
+        this.state.data.trackingInitialized = true;
     
         this.sync();
     }
@@ -180,6 +205,18 @@ export default class ObjectivesManager {
             return false;
         }
     
+        // Only unlocked, incomplete objectives
+        // can be tracked.
+        if (
+            tracked &&
+            (
+                !this.isObjectiveUnlocked(id) ||
+                this.isObjectiveComplete(id)
+            )
+        ) {
+            return false;
+        }
+    
         this._setTracked(id, tracked);
     
         this.sync();
@@ -198,19 +235,97 @@ export default class ObjectivesManager {
 
     // Regarding this.tracked ^ initializeObjectiveTracking, isObjectiveTracked
     _setTracked(id, tracked) {
+        const state =
+            this.getObjectiveState(id);
+    
         if (tracked) {
+            // Already tracked — don't create a new order.
+            if (this.tracked[id] === true) {
+                return;
+            }
+    
             this.tracked[id] = true;
+    
             this.objectiveTrackingCounter++;
     
-            const state = this.getObjectiveState(id);
-            state.trackingOrder = this.objectiveTrackingCounter;
-            this.objectiveState[id] = state;
+            state.trackingOrder =
+                this.objectiveTrackingCounter;
+    
         } else {
+    
             delete this.tracked[id];
-            const state = this.getObjectiveState(id);
             delete state.trackingOrder;
         }
+    
+        this.objectiveState[id] = state;
     }
+
+    getTrackingOrder(id) {
+        return (
+            this.getObjectiveState(id)
+                .trackingOrder
+            ?? Number.MAX_SAFE_INTEGER
+        );
+    }
+
+    getTrackedObjectives(options = {}) {
+        const objectives =
+            this.getCurrentObjectives()
+                .filter(objective => {
+    
+                    if (
+                        !this.isObjectiveTracked(
+                            objective.id
+                        )
+                    ) {
+                        return false;
+                    }
+    
+                    if (
+                        this.isObjectiveComplete(
+                            objective.id
+                        )
+                    ) {
+                        return false;
+                    }
+    
+                    return true;
+                });
+    
+        if (!options.newestFirst) {
+            return objectives;
+        }
+    
+        return objectives.sort(
+            (a, b) => {
+    
+                // Parents always go to the bottom.
+                if (
+                    a.type === 'parent' &&
+                    b.type !== 'parent'
+                ) {
+                    return 1;
+                }
+    
+                if (
+                    a.type !== 'parent' &&
+                    b.type === 'parent'
+                ) {
+                    return -1;
+                }
+    
+                // Newest tracked first.
+                return (
+                    this.getTrackingOrder(b.id) -
+                    this.getTrackingOrder(a.id)
+                );
+            }
+        );
+    }
+
+    // ==========================================
+    // Complete
+    // ==========================================
 
     completeObjective(id) {
         const objective =
@@ -659,76 +774,6 @@ export default class ObjectivesManager {
             items,
             objectives
         };
-    }
-
-    getTrackingOrder(id) {
-        return (
-            this.getObjectiveState(id)
-                .trackingOrder
-            ?? 0
-        );
-    }
-
-    getTrackedObjectives(options = {}) {
-        const objectives =
-            this.getCurrentObjectives()
-                .filter(objective => {
-    
-                    // Must be tracked
-                    if (!this.isObjectiveTracked(objective.id)) {
-                        return false;
-                    }
-    
-                    // Tracker only shows objectives still in progress
-                    if (this.isObjectiveComplete(objective.id)) {
-                        return false;
-                    }
-    
-                    return true;
-                });
-    
-        if (!options.newestFirst) {
-            return objectives;
-        }
-    
-        // The property order of `tracked` represents
-        // the order objectives were most recently tracked.
-        const trackedOrder =
-            Object.keys(this.tracked);
-    
-        const orderIndex =
-            new Map(
-                trackedOrder.map(
-                    (id, index) =>
-                        [id, index]
-                )
-            );
-    
-        return objectives.sort(
-            (a, b) => {
-    
-                // Parents always go to the bottom.
-                if (
-                    a.type === 'parent' &&
-                    b.type !== 'parent'
-                ) {
-                    return 1;
-                }
-    
-                if (
-                    a.type !== 'parent' &&
-                    b.type === 'parent'
-                ) {
-                    return -1;
-                }
-    
-                // Otherwise newest tracked objective first.
-                return (
-                    orderIndex.get(b.id) -
-                    orderIndex.get(a.id)
-                );
-            }
-        );
     }
 
     // Returns an array of objective required items (from stageItems)

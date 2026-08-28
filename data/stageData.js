@@ -180,7 +180,7 @@ export const stageObjectives = [
         description: '"In the beginning, God created...."',
         requirements: {},
         unlocks: { 
-            objectives: [ 'days_of_creation', "creation_day_1" ],
+            objectives: [ 'days_of_creation', 'creation_day_1', 'gatherUpLight', 'gatherUpDarkness' ],
             items: [ 'darkness' ], // for testing purposes
         },
         triggers: {
@@ -332,6 +332,40 @@ export const stageObjectives = [
         description: 'Day 7 description....',
         requirements: {
             items: [ { oxygen: 5 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { // no unlocks, testing for no active objectivs
+            objectives: [],
+            items: []
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        type: 'objective',
+        id: 'gatherUpLight',
+        title: 'Gather Up: Light',
+        stage: 'creation',
+        tab: 'discover',
+        description: 'Gather 10 light....',
+        requirements: {
+            items: [ { light: 10 } ], // multiple allowed
+            // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
+        },
+        unlocks: { // no unlocks, testing for no active objectivs
+            objectives: [],
+            items: []
+        },
+        actionLabel: 'COMPLETE'
+    },
+    {
+        type: 'objective',
+        id: 'gatherUpDarkness',
+        title: 'Gather Up: Darkness',
+        stage: 'creation',
+        tab: 'discover',
+        description: 'Gather 10 darkness....',
+        requirements: {
+            items: [ { darkness: 10 } ], // multiple allowed
             // other: [] // other types can be required later on, objective requirements will rely on other unlocks.objective
         },
         unlocks: { // no unlocks, testing for no active objectivs

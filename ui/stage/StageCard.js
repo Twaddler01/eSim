@@ -64,6 +64,9 @@ export default class StageCard {
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
 
+        // For tracking objectives in DISCOVER tab
+        this.objectivesManager = options.objectivesManager ?? null;
+
         // Pass data for CreateUpgradesCard
         this.options = this.subTab === 'upgrades' ? options : null;
 
@@ -244,6 +247,22 @@ export default class StageCard {
                 )
             .setOrigin(titleOriginX, 0)
         );
+    }
+
+    updateTracking() {
+        const tracked =
+            this.objectivesManager
+                .isObjectiveTracked(this.id);
+    
+        this.discoverUI.trackStatus?.setText(
+            tracked
+                ? '(TRACKING)'
+                : '(NOT TRACKED)'
+        );
+        
+        const strokeStyleW = tracked ? 5: 1;
+        const strokeStyleC = tracked ? 0xece75f: 0xffffff;
+        this.ui.background?.setStrokeStyle(strokeStyleW, strokeStyleC);
     }
 
 //--------------------------------
@@ -969,14 +988,114 @@ export default class StageCard {
             });
         }
 
-        if (currentY > this.height) {
-            this.refreshHeight(currentY + 10);
+        const contentBottomY = currentY;
+        
+        // Give the card room for the button
+        const buttonHeight = 30;
+        const buttonGap = 10;
+        const bottomPadding = 10;
+        
+        const requiredHeight =
+            contentBottomY +
+            buttonGap +
+            buttonHeight +
+            bottomPadding;
+        
+        if (requiredHeight > this.height) {
+            this.refreshHeight(requiredHeight);
         }
 
+        this.createTrackingUI();
+    }
 
+    createTrackingUI() {
+        this.discoverUI.trackButton =
+            this.addElement(
+                this.scene.add.rectangle(
+                    this.width / 2,
+                    this.height - 30 - 10,
+                    120,
+                    30,
+                    0x000000
+                )
+                .setOrigin(0.5, 0)
+                .setInteractive({
+                    useHandCursor: true
+                })
+                .setStrokeStyle(
+                    1,
+                    0xffffff
+                )
+            );
+
+        this.discoverUI.trackButtonText =
+            this.addElement(
+                addText(
+                    this.scene,
+                    this.width / 2,
+                    this.height - 30 - 5,
+                    'TRACK',
+                    {
+                        fontSize: '16px',
+                        color: '#ece75f'
+                    }
+                )
+                .setOrigin(0.5, 0)
+            );
+
+        this.discoverUI.trackStatus =
+            this.addElement(
+                addText(
+                    this.scene,
+                    this.width - 20,
+                    5,
+                    '',
+                    {
+                        fontSize: '12px',
+                        color: '#ece75f'
+                    }
+                )
+                .setOrigin(1, 0)
+            );
+
+        // LISTEN FOR OBJECTIVE CHANGES
+        this._objectiveHandler = data => {
+            if (data.id !== this.id) {
+                return;
+            }
+        
+            this.update();
+        };
+        
+        this.objectivesManager.events.on(
+            'updated',
+            this._objectiveHandler
+        );
+
+        // INITIAL TRACKING STATE
+        this.updateTracking();
+    
+        this.discoverUI.trackButton.on(
+            'pointerdown',
+            () => {
+        
+                const tracked =
+                    this.objectivesManager
+                        .isObjectiveTracked(
+                            this.id
+                        );
+        
+                this.objectivesManager
+                    .setObjectiveTracked(
+                        this.id,
+                        !tracked
+                    );
+            }
+        );
     }
 
     updateDiscover(data) {
+        this.updateTracking();
         this.updateAvailability(data.availability);
     }
 
@@ -1055,11 +1174,20 @@ export default class StageCard {
     // AVAILABILITY
     updateAvailability(state) {
 
+        // Track UI for only active objectives
+        const canTrack =
+            state !== 'completed' &&
+            state !== 'locked';
+        this.discoverUI.trackStatus?.setVisible(canTrack);
+        if (canTrack) {
+            this.updateTracking();
+        }
+    
         // Reset
         this.ui.lockOverlay?.setVisible(false);
         this.ui.availabilityText?.setVisible(false);
         this.discoverUI.availabilityTitle?.setVisible(false);
-        
+
         // Skip if 'enabled' from this.createUpgradesCard
         if (state === 'enabled') {
             return;
@@ -1155,11 +1283,24 @@ export default class StageCard {
 
     // DESTROY
     destroy() {
+        if (
+            this.objectivesManager &&
+            this._objectiveHandler
+        ) {
+            this.objectivesManager.events.off(
+                'updated',
+                this._objectiveHandler
+            );
+        }
+    
         this.elements.forEach(
             element => element.destroy()
         );
+    
         this.elements = [];
+    
         this.container?.destroy();
+    
         this.ui = {};
         this.gatherUI = {};
         this.createUI = {};

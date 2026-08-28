@@ -19,6 +19,8 @@ export default class StageViewport {
         this.depth =
             this.scene.depths.viewport;
 
+        this.objectivesManager = options.objectivesManager ?? null;
+
         // id -> StageCard
         this.cards = new Map();
 
@@ -128,7 +130,9 @@ export default class StageViewport {
     
                     width: cardWidth,
     
-                    parentContainer: this.container
+                    parentContainer: this.container,
+                    
+                    objectivesManager: this.objectivesManager
                 }
             );
     

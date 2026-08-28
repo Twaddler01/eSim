@@ -127,15 +127,6 @@ export default class StageDiscoveryTracker {
                                 this.objectivesManager,
                             
                             unlocksItems: this.objectivesManager.objectiveUnlockList(objective),
-    
-                            onUntrack:
-                                () => {
-                                    this.objectivesManager
-                                        .setObjectiveTracked(
-                                            objective.id,
-                                            false
-                                        );
-                                }
                         }
                     );
     

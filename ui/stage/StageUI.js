@@ -159,7 +159,8 @@ export default class StageUI {
                         margin * 2 - 5,
                     height:
                         viewportHeight,
-                    tab: this.currentTab
+                    tab: this.currentTab,
+                    objectivesManager: this.objectivesManager
                 }
             );
 
