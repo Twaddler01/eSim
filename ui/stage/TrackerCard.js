@@ -10,7 +10,7 @@ export default class TrackerCard {
 
         this.objective = options.objective ?? null;
 
-        this.stageProgress = options.stageProgress ?? null;
+        this.objectivesManager = options.objectivesManager ?? null;
 
         this.onUntrack = options.onUntrack ?? null;
         
@@ -243,7 +243,7 @@ export default class TrackerCard {
             'pointerdown',
             () => {
         
-                this.stageProgress.completeObjective(
+                this.objectivesManager.completeObjective(
                     this.objective.id
                 );
             }
@@ -409,7 +409,7 @@ export default class TrackerCard {
             childId => {
 
                 const child =
-                    this.stageProgress.getObjective(
+                    this.objectivesManager.getObjective(
                         childId
                     );
 
@@ -448,7 +448,7 @@ export default class TrackerCard {
     // UPDATE
     update() {
         const progress =
-            this.stageProgress.getObjectiveProgressData(
+            this.objectivesManager.getObjectiveProgressData(
                 this.objective.id
             );
     
@@ -507,7 +507,7 @@ export default class TrackerCard {
             requirement => {
 
                 const amount =
-                    this.stageProgress.get(
+                    this.objectivesManager.get(
                         requirement.id
                     );
 
@@ -517,7 +517,7 @@ export default class TrackerCard {
 
 
                 const item =
-                    this.stageProgress.getItem(
+                    this.objectivesManager.getItem(
                         requirement.id
                     );
 
@@ -547,7 +547,7 @@ export default class TrackerCard {
     // UPDATE PARENT
     updateParent() {
         const progress =
-                this.stageProgress.getObjectiveProgressData(
+                this.objectivesManager.getObjectiveProgressData(
                     this.objective.id
                 );
 
@@ -577,7 +577,7 @@ export default class TrackerCard {
             entry => {
 
                 const completed =
-                    this.stageProgress.isObjectiveComplete(
+                    this.objectivesManager.isObjectiveComplete(
                         entry.id
                     );
 

@@ -8,7 +8,7 @@ export default class StageCard {
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
         this.width = options.width ?? 930;
-        
+
         // Tab references
         this.tab = options.tab ?? 'gather';
         this.subTab = options.subTab ?? null;
@@ -53,7 +53,8 @@ export default class StageCard {
         this.getMax = options.getMax ?? (() => null);
         this.getNextMax = options.getNextMax ?? (() => null);
         this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
-        this.getAvailability = options.getAvailability ?? (() => 'locked')
+        this.getAvailability = options.getAvailability ?? (() => 'locked');
+
         this.getLevel = options.getLevel ?? (() => null);
 
         // Callbacks
@@ -199,8 +200,9 @@ export default class StageCard {
         );
         
         // DISCOVER ONLY
-        const availability = this.getAvailability();
         if (this.tab === 'discover') {
+            const availability = this.getAvailability();
+
             this.discoverUI.availabilityTitle =
                 this.addElement(
                     addText(this.scene,

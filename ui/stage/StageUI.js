@@ -18,6 +18,7 @@ export default class StageUI {
         this.autoGather = this.scene.autoGather;
         this.stageProgress = this.scene.stageProgress;
         this.conversationManager = this.scene.conversationManager;
+        this.objectivesManager = this.scene.objectivesManager;
 
         this.width =
             options.width ??
@@ -110,14 +111,16 @@ export default class StageUI {
         );
 
         // Insert messages from conversations
-        this.conversationManager.events.on(
-            'message',
-            message => {
-                this.messageStatus.addMessage(
-                    `${message.speaker}: ${message.text}`
-                );
-            }
-        );
+        this.removeTabListener =
+            listenToEvent(
+                this.conversationManager.events,
+                'message',
+                message => {
+                    this.messageStatus.addMessage(
+                        `${message.speaker}: ${message.text}`
+                    );
+                }
+            );
 
         // Viewport
         const margin = 10;
@@ -194,7 +197,7 @@ export default class StageUI {
 
         // DISCOVERY TRACKER
         this.discoveryTracker =
-            new StageDiscoveryTracker(this.scene, this.stageProgress, {
+            new StageDiscoveryTracker(this.scene, this.objectivesManager, {
                     x: 10 + this.headerBoxWidth + 1 + this.width / 3 - 8 + 1,
                     y: 10 + this.headerTitleHeight + 1,
                     width: this.width / 3 - 7,
@@ -396,7 +399,8 @@ if (DEBUG) {
                 this.currentTab,
                 this.currentSubTab,
                 this.stageProgress,
-                this.autoGather
+                this.autoGather,
+                this.objectivesManager
             );
     
         this.viewport.showCards(cardData);
@@ -408,7 +412,8 @@ if (DEBUG) {
                 this.currentTab,
                 this.currentSubTab,
                 this.stageProgress,
-                this.autoGather
+                this.autoGather,
+                this.objectivesManager
             );
     
         this.viewport.syncCards(cardData);
@@ -418,12 +423,15 @@ if (DEBUG) {
     destroy() {
         this.removeProgressListener?.();
         this.removeTabListener?.();
+        this.removeSubTabListener?.();
 
         this.inventory?.destroy();
         this.viewport?.destroy();
         this.navigation?.destroy();
         this.messageStatus?.destroy();
 
-        this.stageProgress?.destroy();
+        this.stageProgress = null;
+        this.autoGather = null;
+        this.conversationManager = null;
     }
 }

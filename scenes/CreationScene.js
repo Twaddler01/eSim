@@ -7,6 +7,10 @@ import ConversationManager from '../managers/ConversationManager.js';
 import { conversationData } from '../data/conversationData.js';
 import AnnouncementManager from '../managers/AnnouncementManager.js';
 import { announcementData } from '../data/announcementData.js';
+import ObjectivesManager from '../managers/ObjectivesManager.js';
+import StageProgressState from '../managers/StageProgressState.js';
+
+
 
 export default class CreationScene extends Phaser.Scene {
 
@@ -28,10 +32,16 @@ export default class CreationScene extends Phaser.Scene {
         this.gameTimer = 
             this.game.registry.get('gameTimer');
 
-        this.stageProgress =
-            new StageProgressManager(gameData, stageData, stageItems, stageObjectives);
+        this.stageProgressState =
+            new StageProgressState(gameData);
 
-        this.stageProgress.on(
+        this.stageProgress =
+            new StageProgressManager(gameData, stageData, stageItems, stageObjectives, this.stageProgressState);
+
+        this.objectivesManager  =
+            new ObjectivesManager(this.stageProgress, this.stageProgressState);
+
+        this.objectivesManager.on(
             'updated',
             data => {
                 if (data.type === 'objective-complete') {

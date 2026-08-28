@@ -6,7 +6,8 @@ export function getCurrentTabCardData(
     tab,
     subTab,
     stageProgress,
-    autoGather
+    autoGather,
+    objectives
 ) {
 
     if (
@@ -19,15 +20,17 @@ export function getCurrentTabCardData(
         );
     }
 
+    // Gather / Create only
     let cards =
         stageItems.filter(
             item => item.tab === tab
         );
 
+    // Discover
     if (tab === 'discover') {
 
         const discoverCards =
-            getDiscoverCardData(stageProgress);
+            getDiscoverCardData(objectives);
 
         cards = [
             ...discoverCards,
@@ -41,10 +44,11 @@ export function getCurrentTabCardData(
                 item,
                 tab,
                 subTab,
-                stageProgress
+                stageProgress,
+                objectives
             )
         );
-
+    
     return sortTabCards(
         cards,
         tab,
@@ -57,11 +61,13 @@ function buildCardData(
     item,
     tab,
     subTab,
-    stageProgress
+    stageProgress,
+    objectives
 ) {
     return {
         ...item,
 
+        tab: tab ?? null,
         subTab: subTab ?? null,
 
         // LIVE DATA
@@ -87,11 +93,12 @@ function buildCardData(
                 item
             ),
 
-        getAvailability: () =>
-            stageProgress.getAvailability(
-                item,
-                tab
-            ),
+        getAvailability:
+            tab === 'discover'
+                ? () =>
+                objectives.getObjectiveAvailability(item)
+                : () =>
+                stageProgress.getAvailability(item, tab),
 
         getCreateData:
             item.tab === 'create'
@@ -226,7 +233,7 @@ export function getCreateUpgradesCardData(
 // ==========================================
 
 export function getDiscoverCardData(
-    stageProgress
+    objectives
 ) {
     const returnData = [];
     stageObjectives.forEach(obj => {
@@ -245,6 +252,9 @@ export function getDiscoverCardData(
             tab: 'discover',
             objectiveText: obj.objectiveText,
             description: obj.description,
+            
+            getAvailability: () =>
+                objectives.getObjectiveAvailability(obj),
             
             required: {
                 items: [],
@@ -309,20 +319,6 @@ export function getDiscoverCardData(
         }
 
         returnData.push(data);
-
-        // TEST SORT
-        const order = {
-            active: 0,
-            completed: 1,
-            locked: 2
-        };
-    
-        returnData.sort(
-            (a, b) =>
-                order[a.availability] -
-                order[b.availability]
-        );
-
     });
 
     return returnData;

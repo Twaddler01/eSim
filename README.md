@@ -7,7 +7,6 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Refractoring StageProgress class to utilize a separate ObjectivesManager class for objectives only.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Future Updates / Ideas
@@ -22,6 +21,7 @@
 
 # Completed Updates
 08-27-2026
+- Refractored StageProgress class to utilize a separate ObjectivesManager class for objectives only.
 - Added status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pause the game. They will be on timers, along with the conversations (which do pause time), to give a smooth before and/or after display.
 
 08-26-2026

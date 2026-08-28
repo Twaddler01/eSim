@@ -4,10 +4,10 @@ import TrackerCard from './TrackerCard.js';
 
 export default class StageDiscoveryTracker {
 
-    constructor(scene, stageProgress, options = {}) {
+    constructor(scene, objectivesManager, options = {}) {
 
         this.scene = scene;
-        this.stageProgress = stageProgress;
+        this.objectivesManager = objectivesManager;
 
         this.scrollBox = null;
         this.objectives = [];
@@ -22,7 +22,7 @@ export default class StageDiscoveryTracker {
 
         this.removeProgressListener =
             listenToEvent(
-                this.stageProgress,
+                this.objectivesManager,
                 'updated',
                 event => {
                     this.handleProgressUpdate(event);
@@ -60,7 +60,7 @@ export default class StageDiscoveryTracker {
 
     handleProgressUpdate(event) {
         const currentObjectives =
-            this.stageProgress
+            this.objectivesManager
                 .getTrackedObjectives({
                     newestFirst: true
             });
@@ -96,7 +96,7 @@ export default class StageDiscoveryTracker {
     
     refresh() {
         const objectives =
-            this.stageProgress
+            this.objectivesManager
                 .getTrackedObjectives({
                     newestFirst: true
                 });
@@ -123,14 +123,14 @@ export default class StageDiscoveryTracker {
     
                             objective,
     
-                            stageProgress:
-                                this.stageProgress,
+                            objectivesManager:
+                                this.objectivesManager,
                             
-                            unlocksItems: this.stageProgress.objectiveUnlockList(objective),
+                            unlocksItems: this.objectivesManager.objectiveUnlockList(objective),
     
                             onUntrack:
                                 () => {
-                                    this.stageProgress
+                                    this.objectivesManager
                                         .setObjectiveTracked(
                                             objective.id,
                                             false
