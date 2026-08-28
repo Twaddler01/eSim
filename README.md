@@ -1,4 +1,4 @@
-# Recent Updates
+
 ![README updated](https://Twaddler01.github.io/eSim/readme-date.svg)
 
 # About
