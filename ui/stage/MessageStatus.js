@@ -1,12 +1,12 @@
-import { messageData } from '../../data/gameData.js';
 import ScrollBox from '../../utils/ScrollBox.js';
 
 export default class MessageStatus {
 
-    constructor(scene, gameTimer, options = {}) {
-        // old -- width, gameTimer, y
+    constructor(scene, gameTimer, gameData, options = {}) {
 
         this.scene = scene;
+        this.gameTimer = gameTimer;
+        this.messageData = gameData.messageData;
         
         this.x = options.x ?? 10;
         this.y = options.y ?? 10;
@@ -15,7 +15,6 @@ export default class MessageStatus {
         this.depth = options.depth ?? 0;
         this.fontSize = options.fontSize ?? '12px';
         this.fontColor = options.fontColor ?? '#fff';
-        this.gameTimer = gameTimer;
 
         this.messages = [];
 
@@ -126,10 +125,6 @@ export default class MessageStatus {
 
         this.layoutMessages();
 
-
-        // --------------------------------------------------
-        // IMPORTANT:
-        //
         // Put the NEW message at the top of the
         // viewport rather than scrolling to the
         // bottom of the entire message history.
@@ -205,20 +200,20 @@ export default class MessageStatus {
     
         const timestamp = this.getTimestamp();
     
-        messageData.push({
+        this.messageData.push({
             timestamp, message
         });
     
         // Keep only the newest 10
-        if (messageData.length > 10) {
-            messageData.shift();
+        if (this.messageData.length > 10) {
+            this.messageData.shift();
         }
     }
 
     loadMessages() {
-        if (!messageData?.length) return;
+        if (!this.messageData?.length) return;
     
-        messageData.forEach(savedMessage => {
+        this.messageData.forEach(savedMessage => {
     
             this.addMessage(
                 savedMessage.message,

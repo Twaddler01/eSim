@@ -95,6 +95,7 @@ export default class StageUI {
             new MessageStatus(
                 this.scene,
                 this.scene.gameTimer,
+                this.scene.gameData,
                 {
                     x: this.headerBoxX,
                     y: this.belowHeaderY,

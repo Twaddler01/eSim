@@ -17,6 +17,7 @@ export default class CreationScene extends Phaser.Scene {
     constructor() {
         super('CreationScene');
         this.scene = this.game;
+        this.gameData = gameData;
 
         this.depths = {
             background: 0,
@@ -33,10 +34,10 @@ export default class CreationScene extends Phaser.Scene {
             this.game.registry.get('gameTimer');
 
         this.stageProgressState =
-            new StageProgressState(gameData);
+            new StageProgressState(this.gameData);
 
         this.stageProgress =
-            new StageProgressManager(gameData, stageData, stageItems, stageObjectives, this.stageProgressState);
+            new StageProgressManager(this.gameData, stageData, stageItems, stageObjectives, this.stageProgressState);
 
         this.objectivesManager  =
             new ObjectivesManager(this.stageProgress, this.stageProgressState);
