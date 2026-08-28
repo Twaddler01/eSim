@@ -30,14 +30,6 @@ export default class StageProgressManager {
         this.unlocked =
             this.state.data.unlocked ??= {};
 
-        // Stores unlocked, completed only
-        this.objectiveState =
-            gameData.stageProgress?.objectives ?? {};
-
-        // Stores tracked objectives
-        this.tracked =
-            gameData.stageProgress?.tracked ?? {};
-
         // Observable changes
         this.events =
             new Phaser.Events.EventEmitter();

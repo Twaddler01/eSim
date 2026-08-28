@@ -85,11 +85,11 @@ export const stageProgress = {
 
 // Combined data (rootData) for saving, etc
 export const gameData = {
-    objData, // REVAMP: Needs removal
-    playerData, // REVAMP
+    //objData, // REVAMP: Needs removal
+    //playerData, // REVAMP
     messageData,
     elapsedTime: 0,
-    saveFields, // REVAMP: Needs removal
+    //saveFields, // REVAMP: Needs removal
     currentStage,
     stageProgress
 };

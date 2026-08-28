@@ -794,6 +794,7 @@ export default class ObjectivesManager {
     }
 
     destroy() {
+        this.removeProgressListener?.();
         this.events.removeAllListeners();
         this.events.destroy();
     }

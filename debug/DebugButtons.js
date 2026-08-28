@@ -30,10 +30,6 @@ this.addButton('Clear Save Data', () => {
     this.saveManager.clear();
 });
 ////
-this.addButton('Show current savedData', () => {
-    this.saveManager.debug();
-});
-////
 this.addButton('unlock the_void (gather)', () => {
     this.stageProgress.unlock('the_void');
 });
@@ -41,6 +37,10 @@ this.addButton('unlock the_void (gather)', () => {
 this.addButton('LOCK black_hole (create)', () => {
     this.stageProgress.lock('black_hole');
 });*/
+////
+this.addButton('Show current savedData', () => {
+    this.saveManager.debug();
+});
 ////
 this.addButton('getCreateData(item)', () => {
     stageItems.filter(i => i.tab === 'create').forEach(item => {
