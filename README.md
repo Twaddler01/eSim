@@ -21,6 +21,7 @@
 
 # Completed Updates
 08-27-2026
+- Created a basic class (StageProgressState) to manage data that needs to be sync'd and saved for consistency.
 - Refractored StageProgress class to utilize a separate ObjectivesManager class for objectives only.
 - Added status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pause the game. They will be on timers, along with the conversations (which do pause time), to give a smooth before and/or after display.
 
