@@ -9,6 +9,12 @@
 # Work In Progress
 - Need tab titles at top of viewport to better show user navigation.
 
+# Completed Updates
+08-27-2026
+- Created a basic class (StageProgressState) to manage data that needs to be sync'd and saved for consistency.
+- Refractored StageProgress class to utilize a separate ObjectivesManager class for objectives only.
+- Added status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pause the game. They will be on timers, along with the conversations (which do pause time), to give a smooth before and/or after display.
+
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
 - More structural content.
@@ -19,12 +25,7 @@
 - An "In the beginning..." sequence/video when starting a new game.
 - Focused on darkness and light elements: black holes, light photons, etc.
 
-# Completed Updates
-08-27-2026
-- Created a basic class (StageProgressState) to manage data that needs to be sync'd and saved for consistency.
-- Refractored StageProgress class to utilize a separate ObjectivesManager class for objectives only.
-- Added status updates / announcements for certain completion, progression, unlocks, etc, such as "New Objective Available". These are simply overlays and do not pause the game. They will be on timers, along with the conversations (which do pause time), to give a smooth before and/or after display.
-
+# Previous Updates
 08-26-2026
 - Added "trigger" for messages display to display the same messages that are in dialogues/conversations.
 - Added NEW DialogueScene, a scene overlay for progression / milestone messages, which temporarily pause game and give the player a guided experience.
