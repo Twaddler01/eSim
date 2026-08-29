@@ -48,15 +48,17 @@ export function getCurrentTabCardData(
                 objectives
             )
         );
-    
+
     return sortTabCards(
         cards,
         tab,
-        subTab
+        subTab,
+        objectives
     );
 }
 
 // helper ^ getCurrentTabCardData
+// build WITH functions
 function buildCardData(
     item,
     tab,
@@ -132,7 +134,8 @@ function buildCardData(
 function sortTabCards(
     cards,
     tab,
-    subTab
+    subTab,
+    objectives
 ) {
 
     switch (tab) {
@@ -147,13 +150,36 @@ function sortTabCards(
         case 'create':
             return cards;
             // WIP return sortCreateCards(cards, subTab);
+case 'discover': {
 
-        case 'discover':
-            return sortByAvailability(cards, {
-                active: 0,
-                completed: 1,
-                locked: 2
-            });
+    const sorted =
+        sortByAvailability(cards, {
+            active: 0,
+            completed: 1,
+            locked: 2
+        });
+
+    const completed =
+        sorted
+            .filter(card =>
+                card.getAvailability() === 'completed'
+            )
+            .sort((a, b) =>
+                objectives.getCompletionOrder(b.id) -
+                objectives.getCompletionOrder(a.id)
+            );
+
+    let completedIndex = 0;
+
+    return sorted.map(card => {
+
+        if (card.getAvailability() === 'completed') {
+            return completed[completedIndex++];
+        }
+
+        return card;
+    });
+}
 
         default:
             return cards;
@@ -224,7 +250,6 @@ export function getCreateUpgradesCardData(
         },
     }));
 
-    //jp(returnData);
     return returnData;
 }
 
@@ -252,9 +277,6 @@ export function getDiscoverCardData(
             tab: 'discover',
             objectiveText: obj.objectiveText,
             description: obj.description,
-            
-            getAvailability: () =>
-                objectives.getObjectiveAvailability(obj),
             
             required: {
                 items: [],

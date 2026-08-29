@@ -44,28 +44,6 @@ export default class ObjectivesManager {
         // Add initial tracked objective (startsUnlocked)
         this.initializeObjectiveTracking();
         
-        // For bridge
-        this.removeStageProgressListener =
-            listenToEvent(
-                this.stageProgress,
-                'updated',
-                event => {
-                    this.handleStageProgressUpdate(event);
-                }
-            );
-    }
-
-    // Bridge EventEmitter
-    handleStageProgressUpdate(event) {
-        if (
-            event.type === 'amount' ||
-            event.type === 'unlock'
-        ) {
-            this.events.emit(
-                'updated',
-                event
-            );
-        }
     }
 
     // Get amount
@@ -298,22 +276,6 @@ export default class ObjectivesManager {
     
         return objectives.sort(
             (a, b) => {
-    
-                // Parents always go to the bottom.
-                if (
-                    a.type === 'parent' &&
-                    b.type !== 'parent'
-                ) {
-                    return 1;
-                }
-    
-                if (
-                    a.type !== 'parent' &&
-                    b.type === 'parent'
-                ) {
-                    return -1;
-                }
-    
                 // Newest tracked first.
                 return (
                     this.getTrackingOrder(b.id) -
@@ -839,7 +801,6 @@ export default class ObjectivesManager {
     }
 
     destroy() {
-        this.removeProgressListener?.();
         this.events.removeAllListeners();
         this.events.destroy();
     }

@@ -138,10 +138,10 @@ export default class StageProgressManager {
     syncAutoGather() {
         this.autoGather.clear();
     
-        for (const item of this.stageProgress.getGatherItems()) {
+        for (const item of this.getGatherItems()) {
     
             const autoAmt =
-                this.stageProgress.getAutoGatherAmount(
+                this.getAutoGatherAmount(
                     item.id
                 );
     

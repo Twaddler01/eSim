@@ -253,15 +253,29 @@ export default class StageCard {
         const tracked =
             this.objectivesManager
                 .isObjectiveTracked(this.id);
-    
-        this.discoverUI.trackStatus?.setText(
+
+        this.discoverUI.trackIcon
+                ?.setFillStyle(
+                    tracked
+                        ? 0xcc4444
+                        : 0x44aa44
+                );
+        
+            this.discoverUI.trackIconText
+                ?.setText(
+                    tracked
+                        ? '−'
+                        : '+'
+                );
+
+        this.discoverUI.trackButtonText?.setText(
             tracked
-                ? '(TRACKING)'
-                : '(NOT TRACKED)'
+                ? 'UNTRACK'
+                : 'TRACK'
         );
         
         const strokeStyleW = tracked ? 5: 1;
-        const strokeStyleC = tracked ? 0xece75f: 0xffffff;
+        const strokeStyleC = tracked ? 0x44aa44: 0xffffff;
         this.ui.background?.setStrokeStyle(strokeStyleW, strokeStyleC);
     }
 
@@ -1009,53 +1023,61 @@ export default class StageCard {
     }
 
     createTrackingUI() {
+
         this.discoverUI.trackButton =
             this.addElement(
                 this.scene.add.rectangle(
                     this.width / 2,
-                    this.height - 30 - 10,
-                    120,
-                    30,
-                    0x000000
+                    this.height - 40,
+                    140,
+                    32,
+                    0x000055
                 )
-                .setOrigin(0.5, 0)
+                .setOrigin(0.5)
                 .setInteractive({
                     useHandCursor: true
                 })
-                .setStrokeStyle(
-                    1,
-                    0xffffff
+                .setStrokeStyle(1, 0xffffff)
+            );
+        
+        this.discoverUI.trackIcon =
+            this.addElement(
+                this.scene.add.circle(
+                    this.width / 2 - 45,
+                    this.height - 40,
+                    10,
+                    0x44aa44
                 )
             );
-
+        
+        this.discoverUI.trackIconText =
+            this.addElement(
+                addText(
+                    this.scene,
+                    this.width / 2 - 45,
+                    this.height - 40,
+                    '+',
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+                .setOrigin(0.5)
+            );
+        
         this.discoverUI.trackButtonText =
             this.addElement(
                 addText(
                     this.scene,
-                    this.width / 2,
-                    this.height - 30 - 5,
+                    this.width / 2 - 20,
+                    this.height - 40,
                     'TRACK',
                     {
                         fontSize: '16px',
-                        color: '#ece75f'
+                        color: '#ffffff'
                     }
                 )
-                .setOrigin(0.5, 0)
-            );
-
-        this.discoverUI.trackStatus =
-            this.addElement(
-                addText(
-                    this.scene,
-                    this.width - 20,
-                    5,
-                    '',
-                    {
-                        fontSize: '12px',
-                        color: '#ece75f'
-                    }
-                )
-                .setOrigin(1, 0)
+                .setOrigin(0, 0.5)
             );
 
         // LISTEN FOR OBJECTIVE CHANGES
@@ -1178,7 +1200,11 @@ export default class StageCard {
         const canTrack =
             state !== 'completed' &&
             state !== 'locked';
-        this.discoverUI.trackStatus?.setVisible(canTrack);
+        this.discoverUI.trackButton?.setVisible(canTrack);
+        this.discoverUI.trackButtonText?.setVisible(canTrack);
+        this.discoverUI.trackIcon?.setVisible(canTrack);
+        this.discoverUI.trackIconText?.setVisible(canTrack);
+
         if (canTrack) {
             this.updateTracking();
         }

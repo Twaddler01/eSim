@@ -57,7 +57,16 @@ export default class StageUI {
                     this.updateAffectedCards(update);
                 }
             );
-        
+
+        this.removeObjectiveListener =
+            listenToEvent(
+                this.objectivesManager,
+                'updated',
+                update => {
+                    this.updateAffectedCards(update);
+                }
+            );
+
         // For UI tab chsnges
         this.removeTabListener =
             listenToEvent(
@@ -112,7 +121,7 @@ export default class StageUI {
         );
 
         // Insert messages from conversations
-        this.removeTabListener =
+        this.removeConversationListener =
             listenToEvent(
                 this.conversationManager.events,
                 'message',
@@ -199,11 +208,13 @@ export default class StageUI {
 
         // DISCOVERY TRACKER
         this.discoveryTracker =
-            new StageDiscoveryTracker(this.scene, this.objectivesManager, {
+            new StageDiscoveryTracker(this.scene, {
                     x: 10 + this.headerBoxWidth + 1 + this.width / 3 - 8 + 1,
                     y: 10 + this.headerTitleHeight + 1,
                     width: this.width / 3 - 7,
-                    height: this.headerHeight - this.headerTitleHeight - 1
+                    height: this.headerHeight - this.headerTitleHeight - 1,
+                    stageProgress: this.stageProgress,
+                    objectivesManager: this.objectivesManager
                 }
             );
 
@@ -424,8 +435,10 @@ if (DEBUG) {
     // Destroy
     destroy() {
         this.removeProgressListener?.();
+        this.removeObjectiveListener?.();
         this.removeTabListener?.();
         this.removeSubTabListener?.();
+        this.removeConversationListener?.();
 
         this.inventory?.destroy();
         this.viewport?.destroy();

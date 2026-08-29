@@ -4,10 +4,11 @@ import TrackerCard from './TrackerCard.js';
 
 export default class StageDiscoveryTracker {
 
-    constructor(scene, objectivesManager, options = {}) {
+    constructor(scene, options = {}) {
 
         this.scene = scene;
-        this.objectivesManager = objectivesManager;
+        this.stageProgress = options.stageProgress ?? null;
+        this.objectivesManager = options.objectivesManager ?? null;
 
         this.scrollBox = null;
         this.objectives = [];
@@ -21,6 +22,15 @@ export default class StageDiscoveryTracker {
             this.scene.depths?.tracker ?? 10;
 
         this.removeProgressListener =
+            listenToEvent(
+                this.stageProgress,
+                'updated',
+                event => {
+                    this.handleProgressUpdate(event);
+                }
+            );
+        
+        this.removeObjectiveListener =
             listenToEvent(
                 this.objectivesManager,
                 'updated',
@@ -167,7 +177,7 @@ export default class StageDiscoveryTracker {
                 this.x + 10,
                 this.y + 10,
                 'No objectives are currently being tracked.\n\n' +
-                'Visit DISCOVER tab to follow an objective.',
+                'Visit DISCOVER tab to track objectives.',
                 {
                     fontSize: '16px',
                     color: '#ffffff',
@@ -189,6 +199,8 @@ export default class StageDiscoveryTracker {
 
     destroy() {
         this.removeProgressListener?.();
+        this.removeObjectiveListener?.();
+
         this.objectives.forEach(
             card => card.destroy?.()
         );
