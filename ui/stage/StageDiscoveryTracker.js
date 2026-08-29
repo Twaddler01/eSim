@@ -56,7 +56,8 @@ export default class StageDiscoveryTracker {
                 this.objectiveFlow,
                 'updated',
                 event => {
-                    // completeObjective()
+                    // completeObjective() 
+                    // FLOW: this.objectivesManager.processObjectiveUnlocks(id);
                     if (event.type === 'flow-complete') {
                         this.refresh();
                     }

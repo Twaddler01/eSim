@@ -1093,8 +1093,8 @@ export default class StageCard {
                     }
         
                     if (
-                        event.type === 'objective-track' //||
-                        //event.type === 'objective-unlock'
+                        // initializeObjectiveTracking(), setObjectiveTracked()
+                        event.type === 'objective-track'
                     ) {
                         this.updateTracking();
                     }

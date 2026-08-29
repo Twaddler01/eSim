@@ -331,15 +331,28 @@ if (DEBUG) {
 //--------------------------------
     updateAffectedCards(update) {
         const updateTypes = [
-            // StageProgressManager: set()
+            // stageProgress: unlock, lock
+            'item-unlock',
+            
+            // stageProgress: set()
             'item-amount',
             
-            // 
+            // stageProgress: setGatherLevel
             'gather-upgrade',
+            
+            // stageProgress: setAutoGatherLevel
+            'gather-auto-upgrade',
+
+            // objectivesManager: unlockObjective
             'objective-unlock',
+            
+            // objectivesManager: completeObjective
             'objective-complete',
-            'item-unlock',
-            'gather-auto-upgrade'
+            
+            // objectivesManager: initializeObjectiveTracking(), setObjectiveTracked()
+            // StageCard: createTrackingUI
+            'objective-track'
+ 
         ];
     
         if (updateTypes.includes(update.type)) {

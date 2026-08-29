@@ -28,6 +28,7 @@ export default class StageInventory {
         this.removeProgressListener =
             listenToEvent(
                 this.stageProgress,
+                // ALL: gather-auto-upgrade, gather-upgrade, item-amount, item-unlock
                 'updated',
                 () => {
                     this.refresh();
