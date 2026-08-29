@@ -1,3 +1,4 @@
+import { listenToEvent } from '../../utils/stageHelpers.js';
 import CreateUpgradesCard from './cards/CreateUpgradesCard.js';
 
 // FOR GATHER, CREATE, DISCOVER TABS
@@ -1081,18 +1082,24 @@ export default class StageCard {
             );
 
         // LISTEN FOR OBJECTIVE CHANGES
-        this._objectiveHandler = data => {
-            if (data.id !== this.id) {
-                return;
-            }
+        this.removeObjectiveListener =
+            listenToEvent(
+                this.objectivesManager,
+                'updated',
+                event => {
         
-            this.update();
-        };
+                    if (event.id !== this.id) {
+                        return;
+                    }
         
-        this.objectivesManager.events.on(
-            'updated',
-            this._objectiveHandler
-        );
+                    if (
+                        event.type === 'objective-track' //||
+                        //event.type === 'objective-unlock'
+                    ) {
+                        this.updateTracking();
+                    }
+                }
+            );
 
         // INITIAL TRACKING STATE
         this.updateTracking();
@@ -1309,16 +1316,8 @@ export default class StageCard {
 
     // DESTROY
     destroy() {
-        if (
-            this.objectivesManager &&
-            this._objectiveHandler
-        ) {
-            this.objectivesManager.events.off(
-                'updated',
-                this._objectiveHandler
-            );
-        }
-    
+        this.removeObjectiveListener?.();
+  
         this.elements.forEach(
             element => element.destroy()
         );

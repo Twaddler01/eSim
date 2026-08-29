@@ -1,3 +1,5 @@
+import { listenToEvent } from '../../utils/stageHelpers.js';
+
 export default class TrackerCard {
 
     constructor(scene, options = {}) {
@@ -11,6 +13,7 @@ export default class TrackerCard {
         this.objective = options.objective ?? null;
         this.objectivesManager = options.objectivesManager ?? null;
         this.unlocksItems = options.unlocksItems ?? null;
+        this.objectiveFlow = options.objectiveFlow ?? null;
 
         this.height = 0;
 
@@ -22,6 +25,22 @@ export default class TrackerCard {
 
         this.create();
         this.update();
+
+        this.removeObjectiveListener =
+            listenToEvent(
+                this.objectivesManager,
+                'updated',
+                event => {
+                    if (event.id !== this.objective.id) {
+                        return;
+                    }
+                        // unlockObjective()
+                    if (event.type === 'objective-complete'
+                    ) {
+                        this.update();
+                    }
+                }
+            );
     }
 
     // ELEMENT HELPERS
@@ -290,8 +309,7 @@ export default class TrackerCard {
         this.completeButton.on(
             'pointerdown',
             () => {
-        
-                this.objectivesManager.completeObjective(
+                this.objectiveFlow.completeObjective(
                     this.objective.id
                 );
             }
@@ -476,6 +494,33 @@ export default class TrackerCard {
 
     // UPDATE
     update() {
+
+////
+        // Upon immediate objection completion
+        const status =
+            this.objectivesManager
+                .getObjectiveStatus(
+                    this.objective.id
+                );
+    
+        if (status === 'completed') {
+    
+            this.completeButton
+                .disableInteractive()
+                .setVisible(false);
+    
+            this.completeButtonText
+                .setColor('#66ff66')
+                .setText('>> COMPLETED! <<');
+    
+            return;
+        }
+    
+        // Normal active state
+        this.completeButtonText?.setText('COMPLETE');
+
+////
+
         const progress =
             this.objectivesManager.getObjectiveProgressData(
                 this.objective.id
@@ -485,25 +530,25 @@ export default class TrackerCard {
         if (progress.ready) {
     
             this.completeButton
-                .setFillStyle(0x335533)
+                ?.setFillStyle(0x335533)
                 .setStrokeStyle(1, 0x66aa66)
                 .setInteractive({
                     useHandCursor: true
                 });
     
             this.completeButtonText
-                .setColor('#ffffff')
+                ?.setColor('#ffffff')
                 .setText('COMPLETE');
     
         } else {
     
             this.completeButton
-                .setFillStyle(0x222222)
+                ?.setFillStyle(0x222222)
                 .setStrokeStyle(1, 0x000000)
                 .disableInteractive();
     
             this.completeButtonText
-                .setColor('#555555')
+                ?.setColor('#555555')
                 .setText('INCOMPLETE');
         }
     
@@ -513,11 +558,11 @@ export default class TrackerCard {
             progress.percent;
     
         if (progress.total > 0) {
-            this.progressText.setText(
+            this.progressText?.setText(
                 `${progress.completed} / ${progress.total}`
             );
         } else {
-            this.progressText.setText(
+            this.progressText?.setText(
                 'Ready to complete'
             );
         }
@@ -585,14 +630,14 @@ export default class TrackerCard {
         }
 
         // Overall parent progress
-        this.progressTextOverall.setText(
+        this.progressTextOverall?.setText(
             `Progress: ` +
             `${progress.completed} / ` +
             `${progress.total}`
         );
 
 
-        this.progressTextOverall.setColor(
+        this.progressTextOverall?.setColor(
             progress.completed >= progress.total
                 ? '#66ff66'
                 : '#ffffff'
@@ -628,15 +673,19 @@ export default class TrackerCard {
 
     // DESTROY
     destroy() {
+        this.removeObjectiveListener?.()
 
         this.container?.destroy();
-
+    
         this.requirements = [];
         this.childEntries = [];
-
+    
         this.objectiveTextDisplay = null;
         this.progressTextOverall = null;
-
+    
+        this.completeButton = null;
+        this.completeButtonText = null;
+    
         this.container = null;
     }
 }

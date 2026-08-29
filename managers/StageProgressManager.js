@@ -591,10 +591,11 @@ export default class StageProgressManager {
 
         this.sync();
 
+        // StageDiscoveryTracker
         this.events.emit(
             'updated',
             {
-                type: 'amount',
+                type: 'item-amount',
                 id,
                 amount: newAmount
             }
@@ -646,18 +647,22 @@ export default class StageProgressManager {
         }
         this.unlocked[id] = true;
         this.sync();
+        
+        // StageDiscoveryTracker
         this.events.emit('updated', {
             id,
-            type: 'unlock'
+            type: 'item-unlock'
         });
     }
     
     lock(id) {
         delete this.unlocked[id];
         this.sync();
+        
+        // StageDiscoveryTracker
         this.events.emit('updated', {
             id,
-            type: 'unlock'
+            type: 'item-unlock'
         });
     }
 

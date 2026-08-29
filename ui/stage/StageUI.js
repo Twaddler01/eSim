@@ -19,6 +19,7 @@ export default class StageUI {
         this.stageProgress = this.scene.stageProgress;
         this.conversationManager = this.scene.conversationManager;
         this.objectivesManager = this.scene.objectivesManager;
+        this.objectiveFlow = this.scene.objectiveFlow;
 
         this.width =
             options.width ??
@@ -214,7 +215,8 @@ export default class StageUI {
                     width: this.width / 3 - 7,
                     height: this.headerHeight - this.headerTitleHeight - 1,
                     stageProgress: this.stageProgress,
-                    objectivesManager: this.objectivesManager
+                    objectivesManager: this.objectivesManager,
+                    objectiveFlow: this.objectiveFlow
                 }
             );
 
@@ -329,11 +331,14 @@ if (DEBUG) {
 //--------------------------------
     updateAffectedCards(update) {
         const updateTypes = [
-            'amount',
+            // StageProgressManager: set()
+            'item-amount',
+            
+            // 
             'gather-upgrade',
             'objective-unlock',
             'objective-complete',
-            'unlock',
+            'item-unlock',
             'gather-auto-upgrade'
         ];
     

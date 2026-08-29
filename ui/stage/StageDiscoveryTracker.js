@@ -9,6 +9,7 @@ export default class StageDiscoveryTracker {
         this.scene = scene;
         this.stageProgress = options.stageProgress ?? null;
         this.objectivesManager = options.objectivesManager ?? null;
+        this.objectiveFlow = options.objectiveFlow ?? null;
 
         this.scrollBox = null;
         this.objectives = [];
@@ -20,22 +21,45 @@ export default class StageDiscoveryTracker {
 
         this.depth =
             this.scene.depths?.tracker ?? 10;
-
+        
         this.removeProgressListener =
             listenToEvent(
                 this.stageProgress,
                 'updated',
                 event => {
-                    this.handleProgressUpdate(event);
+                        // unlock()
+                    if (event.type === 'item-unlock' ||
+                        // set()
+                        event.type === 'item-amount') {
+                        this.handleProgressUpdate(event);
+                    }
                 }
             );
-        
+
         this.removeObjectiveListener =
             listenToEvent(
                 this.objectivesManager,
                 'updated',
                 event => {
-                    this.handleProgressUpdate(event);
+                        // unlockObjective()
+                    if (event.type === 'objective-unlock' ||
+                        // initializeObjectiveTracking(), setObjectiveTracked()
+                        event.type === 'objective-track'
+                    ) {
+                        this.handleProgressUpdate(event);
+                    }
+                }
+            );
+
+        this.removeFlowListener =
+            listenToEvent(
+                this.objectiveFlow,
+                'updated',
+                event => {
+                    // completeObjective()
+                    if (event.type === 'flow-complete') {
+                        this.refresh();
+                    }
                 }
             );
 
@@ -44,7 +68,6 @@ export default class StageDiscoveryTracker {
     }
 
     create() {
-
         this.background =
             this.scene.add.rectangle(
                 this.x,
@@ -133,10 +156,11 @@ export default class StageDiscoveryTracker {
     
                             objective,
     
-                            objectivesManager:
-                                this.objectivesManager,
+                            objectivesManager: this.objectivesManager,
                             
                             unlocksItems: this.objectivesManager.objectiveUnlockList(objective),
+                            
+                            objectiveFlow: this.objectiveFlow
                         }
                     );
     
@@ -200,6 +224,7 @@ export default class StageDiscoveryTracker {
     destroy() {
         this.removeProgressListener?.();
         this.removeObjectiveListener?.();
+        this.removeFlowListener?.();
 
         this.objectives.forEach(
             card => card.destroy?.()

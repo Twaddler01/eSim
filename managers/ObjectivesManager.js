@@ -138,6 +138,7 @@ export default class ObjectivesManager {
                 true
             );
     
+            // StageDiscoveryTracker
             this.events.emit(
                 'updated',
                 {
@@ -198,7 +199,8 @@ export default class ObjectivesManager {
         this._setTracked(id, tracked);
     
         this.sync();
-    
+        
+        // StageDiscoveryTracker
         this.events.emit(
             'updated',
             {
@@ -331,18 +333,9 @@ export default class ObjectivesManager {
         this.objectiveState[id] =
             state;
     
-        // Unlock child/other objectives
-        (objective.unlocks?.objectives ?? [])
-            .forEach(objectiveId => {
-                this.unlockObjective(objectiveId);
-            });
-    
-        // Unlock items
-        (objective.unlocks?.items ?? [])
-            .forEach(itemId => {
-                this.stageProgress.unlock(itemId);
-            });
-    
+        // Flow
+        //this.processObjectiveUnlocks(id);
+
         this.sync();
     
         this.events.emit(
@@ -354,6 +347,32 @@ export default class ObjectivesManager {
             }
         );
 
+        return true;
+    }
+
+    // helper ^ completeObjective
+    // FLOW: completeObjective ->  processObjectiveUnlocks
+    processObjectiveUnlocks(id) {
+    
+        const objective =
+            this.getObjective(id);
+    
+        if (!objective) {
+            return false;
+        }
+
+        // Unlock objectives
+        (objective.unlocks?.objectives ?? [])
+            .forEach(objectiveId => {
+                this.unlockObjective(objectiveId);
+            });
+    
+        // Unlock items
+        (objective.unlocks?.items ?? [])
+            .forEach(itemId => {
+                this.stageProgress.unlock(itemId);
+            });
+    
         return true;
     }
 
@@ -671,6 +690,7 @@ export default class ObjectivesManager {
     
         this.sync();
     
+        // StageDiscoveryTracker
         this.events.emit(
             'updated',
             {

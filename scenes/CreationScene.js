@@ -9,8 +9,7 @@ import AnnouncementManager from '../managers/AnnouncementManager.js';
 import { announcementData } from '../data/announcementData.js';
 import ObjectivesManager from '../managers/ObjectivesManager.js';
 import StageProgressState from '../managers/StageProgressState.js';
-
-
+import ObjectiveFlow from '../managers/ObjectiveFlow.js';
 
 export default class CreationScene extends Phaser.Scene {
 
@@ -51,6 +50,9 @@ export default class CreationScene extends Phaser.Scene {
         
             }
         );
+        
+        this.objectiveFlow =
+            new ObjectiveFlow(this, this.objectivesManager);
 
         this.announcementManager =
             new AnnouncementManager(this);
