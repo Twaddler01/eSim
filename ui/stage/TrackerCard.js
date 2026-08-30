@@ -11,6 +11,8 @@ export default class TrackerCard {
         this.width = options.width ?? 300;
 
         this.objective = options.objective ?? null;
+        this.objectiveId = this.objective?.id ?? null;
+
         this.objectivesManager = options.objectivesManager ?? null;
         this.unlocksItems = options.unlocksItems ?? null;
         this.objectiveFlow = options.objectiveFlow ?? null;
@@ -31,7 +33,7 @@ export default class TrackerCard {
                 this.objectivesManager,
                 'updated',
                 event => {
-                    if (event.id !== this.objective.id) {
+                    if (event.id !== this.objectiveId) {
                         return;
                     }
                         // unlockObjective()

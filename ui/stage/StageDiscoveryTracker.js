@@ -92,13 +92,118 @@ export default class StageDiscoveryTracker {
             );
     }
 
+    syncObjectives() {
+        const currentObjectives =
+            this.objectivesManager
+                .getTrackedObjectives({
+                    newestFirst: true
+                });
+    
+        // If there are no objectives, use the existing empty-state logic.
+        if (currentObjectives.length === 0) {
+            this.refresh();
+            return;
+        }
+    
+        // Remove empty state if necessary.
+        this.emptyText?.destroy();
+        this.emptyText = null;
+    
+        const cardMap = new Map(
+            this.objectives.map(
+                card => [
+                    card.objective.id,
+                    card
+                ]
+            )
+        );
+    
+        const newCards = [];
+    
+        currentObjectives.forEach(
+            objective => {
+    
+                let card =
+                    cardMap.get(objective.id);
+    
+                // New objective -> create only this card.
+                if (!card) {
+                    card =
+                        new TrackerCard(
+                            this.scene,
+                            {
+                                x: this.x + 10,
+                                y: 0,
+                                width: this.width - 20,
+    
+                                objective,
+    
+                                objectivesManager:
+                                    this.objectivesManager,
+    
+                                unlocksItems:
+                                    this.objectivesManager
+                                        .objectiveUnlockList(
+                                            objective
+                                        ),
+    
+                                objectiveFlow:
+                                    this.objectiveFlow
+                            }
+                        );
+    
+                    this.scrollBox.content.add(
+                        card.container
+                    );
+                }
+    
+                // Update existing card's contents.
+                card.objective = objective;
+                card.update();
+    
+                newCards.push(card);
+            }
+        );
+    
+        // Cards no longer tracked -> destroy only those cards.
+        this.objectives.forEach(
+            card => {
+    
+                const stillTracked =
+                    newCards.includes(card);
+    
+                if (!stillTracked) {
+                    card.destroy?.();
+                }
+            }
+        );
+    
+        this.objectives = newCards;
+    
+        // Reposition existing containers.
+        let y = 10;
+    
+        this.objectives.forEach(
+            card => {
+    
+                card.container.y = y;
+    
+                y += card.height + 10;
+            }
+        );
+    
+        this.scrollBox.setContentHeight(
+            y + 10
+        );
+    }
+    
     handleProgressUpdate(event) {
         const currentObjectives =
             this.objectivesManager
                 .getTrackedObjectives({
                     newestFirst: true
-            });
-
+                });
+    
         const currentIds =
             currentObjectives.map(
                 objective => objective.id
@@ -116,18 +221,22 @@ export default class StageDiscoveryTracker {
                     id === displayedIds[index]
             );
     
-        // Same cards -> only update their contents
         if (sameObjectives) {
+    
+            // Nothing structural changed.
+            // Just update the existing cards.
             this.objectives.forEach(
                 card => card.update()
             );
+    
             return;
         }
     
-        // Different cards, including 0 cards -> rebuild
-        this.refresh();
+        // Structure/order changed.
+        // Synchronize instead of rebuilding everything.
+        this.syncObjectives();
     }
-    
+
     refresh() {
         const objectives =
             this.objectivesManager
