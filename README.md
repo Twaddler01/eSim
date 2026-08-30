@@ -7,6 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Working on a default flow for all completed objectives.
 - Delay(s) for objective completion and new objectives to smooth out conversations/announcements.
 - Need tab titles at top of viewport to better show user navigation.
 

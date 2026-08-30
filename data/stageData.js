@@ -183,7 +183,8 @@ export const stageObjectives = [
             objectives: [ 'days_of_creation', 'creation_day_1', 'gatherUpLight', 'gatherUpDarkness' ],
             items: [ 'darkness' ], // for testing purposes
         },
-        triggers: {
+        hasFlow: true,
+        /*triggers: {
             announcements: [
                 {
                     id: 'obj_done_the_beginning',
@@ -198,7 +199,7 @@ export const stageObjectives = [
                 id: 'the_beginning_complete',
                 delay: 3000
             }
-        },
+        },*/
         actionLabel: 'COMPLETE'
     },
     {
@@ -216,15 +217,15 @@ export const stageObjectives = [
         },
         unlocks: { 
             objectives: [ 'creation_day_2' ], // other objectives can be unlocked too
-// testing water
             items: [ 'light', 'water' ]
         },
-        triggers: {
+        hasFlow: true,
+        /*triggers: {
             conversation: {
                 id: 'creation_day_1_complete',
                 delay: 1200
             }
-        },
+        },*/
         actionLabel: 'COMPLETE'
     },
     {

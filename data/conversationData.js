@@ -1,7 +1,6 @@
 // data/conversationData.js
 export const conversationData = {
-    creation_intro: {
-        id: 'creation_intro',
+    /*creation_intro: {
         messages: [
             {
                 speaker: 'God',
@@ -18,7 +17,6 @@ export const conversationData = {
         ]
     },
     the_beginning_complete: {
-        id: 'the_beginning_complete',
         messages: [
             {
                 speaker: 'God',
@@ -31,12 +29,11 @@ export const conversationData = {
         ]
     },
     creation_day_1_complete: {
-        id: 'creation_day_1_complete',
         messages: [
             {
                 speaker: 'God',
                 text: 'And there was light.'
             }
         ]
-    }
+    }*/
 };

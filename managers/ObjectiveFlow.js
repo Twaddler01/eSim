@@ -1,20 +1,121 @@
+import { listenToEvent } from '../utils/stageHelpers.js';
+
 export default class ObjectiveFlow {
 
-    constructor(scene, objectivesManager) {
+    constructor(scene, options = {}) {
 
         this.scene = scene;
-        this.objectivesManager =
-            objectivesManager;
+        this.objectivesManager = options.objectivesManager ?? null;
+        this.flowData = options.flowData ?? [];
+        
+        this.announcementManager = options.announcementManager ?? null;
+        this.conversationManager = options.conversationManager ?? null;
 
-        this.timer = null;
+        this.unlockTimer = null;
+        this.flowTimer = null;
+        
+        // Delay between objective completion and next unlock
+        this.unlockDelay = 2000;
+
+        // Listen for changes
+        /*this.removeObjectiveListener =
+            listenToEvent(
+                this.objectivesManager,
+                'updated',
+                event => {
+                    if (event.type !== 'objective-complete') {
+                        return;
+                    }
+                    this.startFlow(event.id);
+                }
+            );*/
 
         // Observable flow changes
         this.events =
             new Phaser.Events.EventEmitter();
     }
 
-    completeObjective(id) {
+    announceObjectiveComplete(id) {
+        const def = {
+            complete: true
+        };
+        this.announcementManager?.show(
+            null, def
+        );
+    }
+    
+    announceObjectiveUnlock(id) {
+        const def = {
+            available: true
+        }
+        this.announcementManager?.show(
+            null, def
+        );
+    }
 
+    getFlow(objectiveId) {
+        return this.flowData.find(
+            flow => flow.id === objectiveId
+        ) ?? null;
+    }
+
+    processSteps(steps) {
+        this.steps = steps;
+        this.stepIndex = 0;
+    
+        this.processNextStep();
+    }
+    
+    processNextStep() {
+        if (
+            !this.steps ||
+            this.stepIndex >= this.steps.length
+        ) {
+            return;
+        }
+    
+        const step =
+            this.steps[this.stepIndex];
+    
+        this.flowTimer =
+            this.scene.time.delayedCall(
+                step.delay ?? 0,
+                () => {
+    
+                    switch (step.type) {
+    
+                        case 'announcement':
+                            this.announcementManager
+                                ?.show(step.id);
+                            break;
+                        case 'conversation':
+                            this.conversationManager.start(step.id);
+                            break;
+                    }
+    
+                    this.stepIndex++;
+                    this.flowTimer = null;
+                    this.processNextStep();
+                }
+            );
+    }
+
+    startFlow(objectiveId) {
+        let flow =
+            this.getFlow(objectiveId);
+    
+        // Revert to default
+        if (!flow) {
+            //console.warn('No flow found. Procressing default flow...');
+            //this.completeObjective(objectiveId);
+            
+            return;
+        }
+    
+        this.processSteps(flow.steps);
+    }
+
+    completeObjective(id) {
         const completed =
             this.objectivesManager
                 .completeObjective(id);
@@ -23,26 +124,25 @@ export default class ObjectiveFlow {
             return false;
         }
 
-        this.timer =
+        this.unlockTimer =
             this.scene.time.delayedCall(
-                1500,
+                this.unlockDelay,
                 () => {
 
                     this.objectivesManager
                         .processObjectiveUnlocks(id);
 
-                    this.events.emit(
-                        'updated',
-                        {
-                            type: 'flow-complete',
-                            id
-                        }
-                    );
+        this.events.emit(
+            'updated',
+            {
+                type: 'flow-complete',
+                id
+            }
+        );
 
-                    this.timer = null;
+                    this.unlockTimer = null;
                 }
             );
-
         return true;
     }
 
@@ -55,10 +155,14 @@ export default class ObjectiveFlow {
     }
 
     destroy() {
-
-        this.timer?.remove();
-        this.timer = null;
-
+        this.removeObjectiveListener?.();
+    
+        this.unlockTimer?.remove();
+        this.unlockTimer = null;
+    
+        this.flowTimer?.remove();
+        this.flowTimer = null;
+    
         this.events.removeAllListeners();
         this.events.destroy();
     }

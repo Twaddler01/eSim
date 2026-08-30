@@ -46,6 +46,10 @@ export default class ObjectivesManager {
         
     }
 
+    getAllObjectives() {
+        return this.stageObjectives;
+    }
+
     // Get amount
     get(id) {
         return this.stageProgress.values[id] ?? 0;
@@ -292,6 +296,8 @@ export default class ObjectivesManager {
     // ==========================================
 
     completeObjective(id) {
+jp('completeObjective...');
+
         const objective =
             this.getObjective(id);
     
@@ -346,7 +352,6 @@ export default class ObjectivesManager {
                 objective
             }
         );
-
         return true;
     }
 

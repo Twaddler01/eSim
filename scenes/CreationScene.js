@@ -10,6 +10,7 @@ import { announcementData } from '../data/announcementData.js';
 import ObjectivesManager from '../managers/ObjectivesManager.js';
 import StageProgressState from '../managers/StageProgressState.js';
 import ObjectiveFlow from '../managers/ObjectiveFlow.js';
+import { flowData } from '../data/flowData.js';
 
 export default class CreationScene extends Phaser.Scene {
 
@@ -17,6 +18,10 @@ export default class CreationScene extends Phaser.Scene {
         super('CreationScene');
         this.scene = this.game;
         this.gameData = gameData;
+        this.stageObjectives = stageObjectives;
+        this.flowData = flowData;
+        this.announcementData = announcementData;
+        this.conversationData = conversationData;
 
         this.depths = {
             background: 0,
@@ -36,12 +41,12 @@ export default class CreationScene extends Phaser.Scene {
             new StageProgressState(this.gameData);
 
         this.stageProgress =
-            new StageProgressManager(this.gameData, stageData, stageItems, stageObjectives, this.stageProgressState);
+            new StageProgressManager(this.gameData, stageData, stageItems, this.stageObjectives, this.stageProgressState);
 
         this.objectivesManager  =
             new ObjectivesManager(this.stageProgress, this.stageProgressState);
 
-        this.objectivesManager.on(
+        /*this.objectivesManager.on(
             'updated',
             data => {
                 if (data.type === 'objective-complete') {
@@ -49,16 +54,28 @@ export default class CreationScene extends Phaser.Scene {
                 }
         
             }
-        );
-        
-        this.objectiveFlow =
-            new ObjectiveFlow(this, this.objectivesManager);
+        );*/
 
         this.announcementManager =
-            new AnnouncementManager(this);
+            new AnnouncementManager(this, {
+                    announcementData: this.announcementData,
+                }
+            );
 
         this.conversationManager =
-            new ConversationManager(this);
+            new ConversationManager(this, {
+                    conversationData: this.conversationData
+                }
+            );
+
+        this.objectiveFlow =
+            new ObjectiveFlow(this, {
+                    objectivesManager: this.objectivesManager,
+                    flowData: this.flowData,
+                    announcementManager: this.announcementManager,
+                    conversationManager: this.conversationManager
+                }
+            );
 
         this.autoGather =
             new AutoGatherManager(
@@ -74,7 +91,7 @@ export default class CreationScene extends Phaser.Scene {
             this
         );
     }
-
+/*
     handleObjectiveComplete(data) {
     
         const triggers =
@@ -124,7 +141,7 @@ export default class CreationScene extends Phaser.Scene {
             );
         }
     }
-
+*/
     syncAutoGather() {
         this.autoGather.clear();
         for (const item of this.stageProgress.getGatherItems()) {
