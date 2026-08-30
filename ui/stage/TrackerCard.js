@@ -331,18 +331,20 @@ export default class TrackerCard {
         // Special objective text
         if (this.objective.objectiveText) {
             this.objectiveTextDisplay =
-                addText(
-                    this.scene,
-                    10,
-                    currentY,
-                    this.objective.objectiveText,
-                    {
-                        fontSize: '14px',
-                        color: '#ffffff',
-                        wordWrap: {
-                            width: this.width - 20
+                this.addElement(
+                    addText(
+                        this.scene,
+                        10,
+                        currentY,
+                        this.objective.objectiveText,
+                        {
+                            fontSize: '14px',
+                            color: '#ffffff',
+                            wordWrap: {
+                                width: this.width - 20
+                            }
                         }
-                    }
+                    )
                 );
 
             currentY +=
@@ -399,15 +401,17 @@ export default class TrackerCard {
 
         // Overall progress
         this.progressTextOverall =
-            addText(
-                this.scene,
-                10,
-                currentY,
-                '',
-                {
-                    fontSize: '14px',
-                    color: '#ffffff'
-                }
+            this.addElement(
+                addText(
+                    this.scene,
+                    10,
+                    currentY,
+                    '',
+                    {
+                        fontSize: '14px',
+                        color: '#ffffff'
+                    }
+                )
             );
 
         currentY +=
@@ -679,6 +683,7 @@ export default class TrackerCard {
     
         this.requirements = [];
         this.childEntries = [];
+        this.elements = [];
     
         this.objectiveTextDisplay = null;
         this.progressTextOverall = null;
