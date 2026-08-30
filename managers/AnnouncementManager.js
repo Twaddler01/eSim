@@ -20,10 +20,14 @@ export default class AnnouncementManager {
         ?? null;
     }
 
-    show(id) {
-        const announcement =
+    show(id, data = {}) {
+        let announcement =
             this.getAnnouncement(id);
 
+        if (data && !announcement) {
+            announcement = data[id];
+        }
+            
         if (!announcement) {
             return;
         }

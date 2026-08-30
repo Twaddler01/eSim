@@ -296,7 +296,6 @@ export default class ObjectivesManager {
     // ==========================================
 
     completeObjective(id) {
-jp('completeObjective...');
 
         const objective =
             this.getObjective(id);

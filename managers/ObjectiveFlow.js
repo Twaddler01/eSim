@@ -17,46 +17,37 @@ export default class ObjectiveFlow {
         // Delay between objective completion and next unlock
         this.unlockDelay = 2000;
 
-        // Listen for changes
-        /*this.removeObjectiveListener =
-            listenToEvent(
-                this.objectivesManager,
-                'updated',
-                event => {
-                    if (event.type !== 'objective-complete') {
-                        return;
-                    }
-                    this.startFlow(event.id);
-                }
-            );*/
-
         // Observable flow changes
         this.events =
             new Phaser.Events.EventEmitter();
     }
 
-    announceObjectiveComplete(id) {
-        const def = {
-            complete: true
-        };
-        this.announcementManager?.show(
-            null, def
-        );
-    }
+    announceObjective(id, type) {
+        const data = {};
+        const dataId = type + '_obj_' + id;
     
-    announceObjectiveUnlock(id) {
-        const def = {
-            available: true
+        if (type === 'complete') {
+            data[dataId] = {
+                text: 'OBJECTIVE COMPLETE!',
+                duration: 1200
+            };
+        } else if (type === 'unlock') {
+            data[dataId] = {
+                text: 'NEW OBJECTIVES AVAILABLE!',
+                duration: 1200
+            };
         }
+    
         this.announcementManager?.show(
-            null, def
+            dataId,
+            data
         );
     }
 
     getFlow(objectiveId) {
         return this.flowData.find(
             flow => flow.id === objectiveId
-        ) ?? null;
+        ) ?? false;
     }
 
     processSteps(steps) {
@@ -101,20 +92,17 @@ export default class ObjectiveFlow {
     }
 
     startFlow(objectiveId) {
-        let flow =
+        const flow =
             this.getFlow(objectiveId);
     
-        // Revert to default
         if (!flow) {
-            //console.warn('No flow found. Procressing default flow...');
-            //this.completeObjective(objectiveId);
-            
             return;
         }
     
         this.processSteps(flow.steps);
     }
 
+    // TrackerCard calls
     completeObjective(id) {
         const completed =
             this.objectivesManager
@@ -124,6 +112,14 @@ export default class ObjectiveFlow {
             return false;
         }
 
+        const flow = this.getFlow(id);
+        
+        if (flow) {
+            this.startFlow(id);
+        } else {
+            this.announceObjective(id, 'complete');
+        }
+
         this.unlockTimer =
             this.scene.time.delayedCall(
                 this.unlockDelay,
@@ -131,14 +127,18 @@ export default class ObjectiveFlow {
 
                     this.objectivesManager
                         .processObjectiveUnlocks(id);
-
-        this.events.emit(
-            'updated',
-            {
-                type: 'flow-complete',
-                id
-            }
-        );
+                    
+                    if (!flow) {
+                        this.announceObjective(id, 'unlock');
+                    }
+                    
+                    this.events.emit(
+                        'updated',
+                        {
+                            type: 'flow-complete',
+                            id
+                        }
+                    );
 
                     this.unlockTimer = null;
                 }
