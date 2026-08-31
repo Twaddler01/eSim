@@ -113,6 +113,19 @@ export default class ObjectivesManager {
         ) ?? null;
     }
 
+    hasNewObjective(id) {
+        const objective =
+            this.getObjective(id);
+
+        if (!objective) return;
+
+        if (objective.unlocks.objectives.length) {
+            return true;
+        }
+        
+        return false;
+    }
+
     // ==========================================
     // Objective tracking
     // ==========================================

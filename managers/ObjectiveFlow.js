@@ -32,10 +32,15 @@ export default class ObjectiveFlow {
             new Phaser.Events.EventEmitter();
     }
 
-    announceObjective(id) {
+    announceObjective(id, type) {
         const flow = this.flowData['announceObjective'];
-        const data = flow.steps.find(s => s.id === id);
+        const data = flow.steps.find(s => s.id === type);
+        const unlocksNew = this.objectivesManager.hasNewObjective(id);
 
+        if (type === 'unlock' && !unlocksNew) {
+            return;
+        }
+        
         this.announcementManager?.show(
             data.data
         );
@@ -119,7 +124,7 @@ export default class ObjectiveFlow {
         if (flow) {
             this.startFlow(id);
         } else {
-            this.announceObjective('complete');
+            this.announceObjective(id, 'complete');
         }
 
         this.unlockTimer =
@@ -131,7 +136,7 @@ export default class ObjectiveFlow {
                         .processObjectiveUnlocks(id);
                     
                     if (!flow) {
-                        this.announceObjective('unlock');
+                        this.announceObjective(id, 'unlock');
                     }
                     
                     this.events.emit(
