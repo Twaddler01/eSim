@@ -11,6 +11,7 @@
 
 # Recent Updates
 08-31-2026
+- Updated StageViewport to be fully integrated using ScrollBox class.
 - Added customizable objective flows and default objective flows.
 - Added live delay(s) between objective completion and new objective unlocks to smooth out conversations/announcements.
 - New/complete objectives now update live whenever possible in Tracker instead of destroy/create.
