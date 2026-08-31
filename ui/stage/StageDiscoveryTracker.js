@@ -148,7 +148,10 @@ export default class StageDiscoveryTracker {
                                         ),
     
                                 objectiveFlow:
-                                    this.objectiveFlow
+                                    this.objectiveFlow,
+                                    
+                                scrollBox:
+                                    this.scrollBox
                             }
                         );
     
@@ -270,7 +273,9 @@ export default class StageDiscoveryTracker {
                             
                             unlocksItems: this.objectivesManager.objectiveUnlockList(objective),
                             
-                            objectiveFlow: this.objectiveFlow
+                            objectiveFlow: this.objectiveFlow,
+                            
+                            scrollBox: this.scrollBox
                         }
                     );
     

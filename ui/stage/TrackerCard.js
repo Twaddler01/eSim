@@ -16,6 +16,9 @@ export default class TrackerCard {
         this.objectivesManager = options.objectivesManager ?? null;
         this.unlocksItems = options.unlocksItems ?? null;
         this.objectiveFlow = options.objectiveFlow ?? null;
+        
+        // To disable interactions outside of scroll area
+        this.scrollBox = options.scrollBox ?? null;
 
         this.height = 0;
 
@@ -50,6 +53,14 @@ export default class TrackerCard {
         this.elements.push(element);
         this.container.add(element);
         return element;
+    }
+
+    // For scrollBox
+    isPointerVisible(pointer) {
+        if (!this.scrollBox) {
+            return true;
+        }
+        return this.scrollBox.isPointerInside(pointer);
     }
 
     // CREATE
@@ -105,7 +116,10 @@ export default class TrackerCard {
         
         this.trackStatus.on(
             'pointerdown',
-            () => {
+            pointer => {
+                if (!this.isPointerVisible(pointer)) {
+                    return;
+                }
         
                 this.objectivesManager
                     .setObjectiveTracked(
@@ -310,7 +324,11 @@ export default class TrackerCard {
         
         this.completeButton.on(
             'pointerdown',
-            () => {
+            pointer => {
+                if (!this.isPointerVisible(pointer)) {
+                    return;
+                }
+        
                 this.objectiveFlow.completeObjective(
                     this.objective.id
                 );

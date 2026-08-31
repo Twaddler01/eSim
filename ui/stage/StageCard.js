@@ -391,6 +391,21 @@ export default class StageCard {
             .setOrigin(0.5, 0)
         );
 
+        // Current amount
+        this.gatherUI.amount =
+            this.addElement(
+                addText(this.scene,
+                    this.gatherLeftPanelWidth / 2,
+                    this.ui.title.y + 70,
+                    this.getAmount(),
+                    {
+                        fontSize: '16px',
+                        color: '#ffffff'
+                    }
+                )
+            .setOrigin(0.5, 0)
+        );
+
         // Create gather upgrade area
         this.gatherUI.upgradeBox =
             this.addElement(
@@ -457,6 +472,39 @@ export default class StageCard {
                 );
             }
             
+            // Upgrade cost
+            currentY += 22;
+            this.gatherUI.upradeCostTitle =
+                this.addElement(
+                    addText(this.scene,
+                        this.width - this.upgradeBoxWidth + 10,
+                        currentY,
+                        'Upgrade cost: ',
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            
+            currentY += 22;
+            const amount = this.getAmount();
+            this.gatherUI.upradeCost =
+                this.addElement(
+                    addText(this.scene,
+                        this.width - this.upgradeBoxWidth + 10,
+                        currentY,
+                        amount + ' / ' + Math.round(upgradeData.cost) + ' ' + this.title,
+                        {
+                            fontSize: '16px',
+                            color: amount >= upgradeStats.cost ? '#66ff66' : '#ff6666'
+                        }
+                    )
+                .setOrigin(0)
+            );    
+            
+            
             // Upgrade button
             this.gatherUI.upgradeButton =
                 this.addElement(
@@ -496,7 +544,7 @@ export default class StageCard {
                     }
             
                     this.onUpgrade?.();
-                    this.updateGatherUpgrades?.(upgradeData);
+                    this.update();
                 }
             );
         }
@@ -507,25 +555,32 @@ export default class StageCard {
         this.updateGatherProgress(
             data.amount, data.max
         );
-        this.updateGatherUpgrades(data.upgradeStats);
+        this.updateGatherUpgrades(data.upgradeStats, data.amount);
         this.updateAvailability(data.availability); // multi
         this.updateGatherUpgradeAvailability();
     }
 
     // CURRENT UPGRADE updates
-    updateGatherUpgrades(upgradeStats) {
+    updateGatherUpgrades(upgradeStats, amount) {
         if (!upgradeStats.hasUpgrade) {
             return;
         }
-    
-        // Max updates
-        if (this.gatherUI.maxLabel) this.gatherUI.maxLabel.setText(`Max: ${upgradeStats.current_max}`);
-                
+
+        // Max update
+        this.gatherUI.maxLabel
+            ?.setText(`Max: ${upgradeStats.current_max}`);
+
         // Level update
         this.gatherUI.upgradeText.setText(`Upgrade Level: ${upgradeStats.level}`);
-        
+
         // Gather rate update
         if (upgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${upgradeStats.currentGatherRate}`);
+        
+        if (this.gatherUI.upradeCost) {
+            if (!amount) amount = 0;
+            this.gatherUI.upradeCost.setColor(amount >= upgradeStats.cost ? '#66ff66' : '#ff6666');
+            this.gatherUI.upradeCost.setText(Math.round(amount) + ' / ' + Math.round(upgradeStats.cost) + ' ' + this.title);
+        }
     }
 
     // GATHER PROGRESS updates
@@ -542,7 +597,14 @@ export default class StageCard {
     
             return;
         }
-    
+
+        this.gatherUI.amount
+            ?.setText(Math.round(amount));
+
+        // Max updates
+        this.gatherUI.maxLabel
+            ?.setText(`Max: ${max}`);
+
         this.gatherUI.progressBackground
             .setVisible(true);
     

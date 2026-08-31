@@ -7,7 +7,7 @@ export function getCurrentTabCardData(
     subTab,
     stageProgress,
     autoGather,
-    objectives
+    objectivesManager
 ) {
 
     if (
@@ -30,7 +30,7 @@ export function getCurrentTabCardData(
     if (tab === 'discover') {
 
         const discoverCards =
-            getDiscoverCardData(objectives);
+            getDiscoverCardData(objectivesManager);
 
         cards = [
             ...discoverCards,
@@ -45,7 +45,7 @@ export function getCurrentTabCardData(
                 tab,
                 subTab,
                 stageProgress,
-                objectives
+                objectivesManager
             )
         );
 
@@ -53,7 +53,7 @@ export function getCurrentTabCardData(
         cards,
         tab,
         subTab,
-        objectives
+        objectivesManager
     );
 }
 
@@ -64,7 +64,7 @@ function buildCardData(
     tab,
     subTab,
     stageProgress,
-    objectives
+    objectivesManager
 ) {
     return {
         ...item,
@@ -98,7 +98,7 @@ function buildCardData(
         getAvailability:
             tab === 'discover'
                 ? () =>
-                objectives.getObjectiveAvailability(item)
+                objectivesManager.getObjectiveAvailability(item)
                 : () =>
                 stageProgress.getAvailability(item, tab),
 
@@ -135,7 +135,7 @@ function sortTabCards(
     cards,
     tab,
     subTab,
-    objectives
+    objectivesManager
 ) {
 
     switch (tab) {
@@ -165,8 +165,8 @@ case 'discover': {
                 card.getAvailability() === 'completed'
             )
             .sort((a, b) =>
-                objectives.getCompletionOrder(b.id) -
-                objectives.getCompletionOrder(a.id)
+                objectivesManager.getCompletionOrder(b.id) -
+                objectivesManager.getCompletionOrder(a.id)
             );
 
     let completedIndex = 0;
@@ -258,7 +258,7 @@ export function getCreateUpgradesCardData(
 // ==========================================
 
 export function getDiscoverCardData(
-    objectives
+    objectivesManager
 ) {
     const returnData = [];
     stageObjectives.forEach(obj => {

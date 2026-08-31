@@ -42,14 +42,14 @@ export default class ScrollBox {
         // Mask
         // ---------------------------------------------
 
-        const maskShape =
+        this.maskShape =
             this.scene.make.graphics({
                 add: false
             });
 
-        maskShape.fillStyle(0xffffff);
+        this.maskShape.fillStyle(0xffffff);
 
-        maskShape.fillRect(
+        this.maskShape.fillRect(
             this.x,
             this.y + this.maskPadding,
             this.width,
@@ -58,7 +58,12 @@ export default class ScrollBox {
         );
 
         this.mask =
-            maskShape.createGeometryMask();
+            this.maskShape.createGeometryMask();
+
+        this.maskShape.setPosition(
+            0,
+            0
+        );
 
         this.content.setMask(
             this.mask
@@ -146,6 +151,16 @@ export default class ScrollBox {
         );
     }
 
+    // To disable interactions outside of scroll area
+    isPointerInside(pointer) {
+        return (
+            pointer.x >= this.x &&
+            pointer.x <= this.x + this.width &&
+            pointer.y >= this.y &&
+            pointer.y <= this.y + this.height
+        );
+    }
+
     // ---------------------------------------------
     // Set scroll position
     // ---------------------------------------------
@@ -176,6 +191,14 @@ export default class ScrollBox {
     // Set content height
     // ---------------------------------------------
 
+setContentHeight(height) {
+
+    this.contentHeight = height;
+
+    this.updateScrollLimits();
+}
+
+/*
     setContentHeight(height) {
 
         this.contentHeight =
@@ -198,7 +221,7 @@ export default class ScrollBox {
 
         this.updatePosition();
     }
-
+*/
     // ---------------------------------------------
     // Update content position
     // ---------------------------------------------
@@ -226,6 +249,49 @@ export default class ScrollBox {
         this.setScroll(
             this.maxScrollY
         );
+    }
+
+    // For StageViewport
+    setBounds(y, height) {
+    
+        this.y = y;
+        this.height = height;
+    
+        // Scroll zone follows viewport
+        this.scrollZone
+            ?.setPosition(this.x, this.y)
+            .setSize(this.width, this.height);
+    
+        // Rebuild mask in WORLD coordinates
+        this.maskShape.clear();
+        this.maskShape.fillStyle(0xffffff);
+    
+        this.maskShape.fillRect(
+            this.x,
+            this.y + this.maskPadding,
+            this.width,
+            this.height -
+                this.maskPadding * 2
+        );
+    
+        this.updateScrollLimits();
+    }
+
+    updateScrollLimits() {
+        this.maxScrollY =
+            Math.max(
+                0,
+                this.contentHeight - this.height
+            );
+    
+        this.scrollY =
+            Phaser.Math.Clamp(
+                this.scrollY,
+                0,
+                this.maxScrollY
+            );
+    
+        this.updatePosition();
     }
 
     // ---------------------------------------------
