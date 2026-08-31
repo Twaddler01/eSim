@@ -162,7 +162,7 @@ export default class StageUI {
             new StageViewport(
                 this.scene,
                 {
-                    x: margin + 6,
+                    x: margin,
                     y: this.contentBottomTab,
                     width:
                         this.width -

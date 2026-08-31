@@ -9,6 +9,7 @@ export default class CreateUpgradesCard {
         this.y = options.y ?? 0;
         this.width = options.width ?? 200;
         this.height = options.height ?? 50;
+        this.isPointerVisible = options.isPointerVisible ?? (() => true);
         
         // Use this.x, this.y (inherited)
         this.container = options.container ?? null;
@@ -80,8 +81,12 @@ export default class CreateUpgradesCard {
 
         // Click action
         this.ui.upgradeAutoButton.on(
-            'pointerdown',
-            this._actionHandler
+            'pointerdown', pointer => {
+                if (!this.isPointerVisible(pointer)) {
+                    return;
+                }
+                this._actionHandler();
+            }
         );
 
         this.ui.upgradeAutoButtonText =

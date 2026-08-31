@@ -20,6 +20,9 @@ export default class StageViewport {
         this.depth =
             this.scene.depths.viewport;
 
+        this.cardPaddingX = 20;
+        this.cardGap = 15;
+
         this.objectivesManager = options.objectivesManager ?? null;
 
         // id -> StageCard
@@ -73,16 +76,14 @@ export default class StageViewport {
     // Add card
     addCard(options = {}) {
     
-        const padding = 15;
+        const padding = this.cardPaddingX;
     
         const cardWidth =
-            this.width - padding * 2;
+            this.width - padding;
     
-        const x = padding;
+        const x = this.cardPaddingX;
+        const y = this.contentHeight + this.cardGap;
     
-        const y =
-            this.contentHeight + padding;
-
         const card =
             new StageCard(
                 this.scene,
@@ -205,8 +206,7 @@ export default class StageViewport {
 
     relayoutCards() {
     
-        const padding = 15;
-        let currentY = padding;
+        let currentY = this.cardGap;
     
         this.cards.forEach(card => {
     
@@ -214,7 +214,7 @@ export default class StageViewport {
     
             currentY +=
                 card.height +
-                padding;
+                this.cardGap;
         });
     
         this.contentHeight = currentY;

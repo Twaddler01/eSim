@@ -129,6 +129,7 @@ export default class StageCard {
                             y: 10,
                             width: this.width - 20,
                             height: this.height - 20,
+                            isPointerVisible: pointer => this.isPointerVisible(pointer),
                             // GETTERS
                             getAvailability: this.getAvailability,
                             getLevel: this.getLevel,
