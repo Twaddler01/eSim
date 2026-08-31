@@ -7,14 +7,13 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Working on a default flow for all completed objectives.
-- Delay(s) for objective completion and new objectives to smooth out conversations/announcements.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Recent Updates
-08-29-2026
-- Fixed sorting for discover tab.
-- Tracking objectives work live.
+08-31-2026
+- Added customizable objective flows and default objective flows.
+- Added live delay(s) between objective completion and new objective unlocks to smooth out conversations/announcements.
+- New/complete objectives now update live whenever possible in Tracker instead of destroy/create.
 
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
@@ -27,6 +26,10 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Previous Updates
+08-29-2026
+- Fixed sorting for discover tab.
+- Tracking objectives work live.
+
 08-28-2026
 - Worked on gettimg objective tracking in order.
 - Due to recent adjustments using StageProgressState, simplified SaveManager class to fit cleaner version of simply assiging run-time data to localstorage.

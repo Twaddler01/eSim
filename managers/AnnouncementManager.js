@@ -2,8 +2,6 @@ export default class AnnouncementManager {
 
     constructor(scene, options = {}) {
         this.scene = scene;
-
-        this.announcementData = options.announcementData ?? [];
         this.objectivesManager = options.objectivesManager ?? null;
 
         this.active = false;
@@ -11,27 +9,12 @@ export default class AnnouncementManager {
         this.currentText = null;
     }
 
-    getAllData() {
-        return this.announcementData;
-    }
+    show(announcement = null) {
 
-    getAnnouncement(id) {
-        return this.announcementData[id]
-        ?? null;
-    }
-
-    show(id, data = {}) {
-        let announcement =
-            this.getAnnouncement(id);
-
-        if (data && !announcement) {
-            announcement = data[id];
-        }
-            
         if (!announcement) {
             return;
         }
-
+            
         this.queue.push(announcement);
 
         if (!this.active) {

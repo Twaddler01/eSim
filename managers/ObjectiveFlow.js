@@ -5,16 +5,26 @@ export default class ObjectiveFlow {
     constructor(scene, options = {}) {
 
         this.scene = scene;
-        this.objectivesManager = options.objectivesManager ?? null;
-        this.flowData = options.flowData ?? [];
-        
-        this.announcementManager = options.announcementManager ?? null;
-        this.conversationManager = options.conversationManager ?? null;
+        this.objectivesManager =
+            options.objectivesManager ?? null;
+
+        this.flowData =
+            options.flowData ?? {};
+
+        this.conversationData =
+            options.conversationData ?? {};
+
+        this.announcementManager =
+            options.announcementManager ?? null;
+
+        this.conversationManager =
+            options.conversationManager ?? null;
 
         this.unlockTimer = null;
         this.flowTimer = null;
-        
-        // Delay between objective completion and next unlock
+
+        // Delay between objective completion
+        // and next unlock
         this.unlockDelay = 2000;
 
         // Observable flow changes
@@ -22,32 +32,17 @@ export default class ObjectiveFlow {
             new Phaser.Events.EventEmitter();
     }
 
-    announceObjective(id, type) {
-        const data = {};
-        const dataId = type + '_obj_' + id;
-    
-        if (type === 'complete') {
-            data[dataId] = {
-                text: 'OBJECTIVE COMPLETE!',
-                duration: 1200
-            };
-        } else if (type === 'unlock') {
-            data[dataId] = {
-                text: 'NEW OBJECTIVES AVAILABLE!',
-                duration: 1200
-            };
-        }
-    
+    announceObjective(id) {
+        const flow = this.flowData['announceObjective'];
+        const data = flow.steps.find(s => s.id === id);
+
         this.announcementManager?.show(
-            dataId,
-            data
+            data.data
         );
     }
 
     getFlow(objectiveId) {
-        return this.flowData.find(
-            flow => flow.id === objectiveId
-        ) ?? false;
+        return this.flowData[objectiveId] ?? false;
     }
 
     processSteps(steps) {
@@ -74,18 +69,24 @@ export default class ObjectiveFlow {
                 () => {
     
                     switch (step.type) {
-    
                         case 'announcement':
                             this.announcementManager
-                                ?.show(step.id);
+                                ?.show(
+                                    step.data
+                                );
                             break;
+    
                         case 'conversation':
-                            this.conversationManager.start(step.id);
+                            this.conversationManager
+                                ?.start(
+                                    step.data.id
+                                );
                             break;
                     }
     
                     this.stepIndex++;
                     this.flowTimer = null;
+    
                     this.processNextStep();
                 }
             );
@@ -112,12 +113,13 @@ export default class ObjectiveFlow {
             return false;
         }
 
+        // objective and flow id match
         const flow = this.getFlow(id);
         
         if (flow) {
             this.startFlow(id);
         } else {
-            this.announceObjective(id, 'complete');
+            this.announceObjective('complete');
         }
 
         this.unlockTimer =
@@ -129,7 +131,7 @@ export default class ObjectiveFlow {
                         .processObjectiveUnlocks(id);
                     
                     if (!flow) {
-                        this.announceObjective(id, 'unlock');
+                        this.announceObjective('unlock');
                     }
                     
                     this.events.emit(
