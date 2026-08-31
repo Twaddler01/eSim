@@ -33,6 +33,9 @@ export default class StageCard {
         this.container = this.scene.add.container(this.x, this.y);
         options.parentContainer.add(this.container);
 
+        // Set interactive areas to be limited within scrolling area
+        this.viewport = options.viewport ?? null;
+
         // Gather | Upgrade areas if upgradeStats.enabled
         this.upgradeBoxWidth = 200;
         this.gatherLeftPanelWidth = this.width - this.upgradeBoxWidth;
@@ -91,6 +94,11 @@ export default class StageCard {
 
         this.create();
         this.update(options);
+    }
+
+    isPointerVisible(pointer) {
+        return this.viewport?.scrollBox
+            ?.isPointerInside(pointer) ?? true;
     }
 
     // ELEMENT HELPERS
@@ -374,7 +382,12 @@ export default class StageCard {
         // Click action
         this.gatherUI.gatherButton.on(
             'pointerdown',
-            this._actionHandler
+            pointer => {
+                if (!this.isPointerVisible(pointer)) {
+                    return;
+                }
+                this._actionHandler();
+            }
         );
 
         this.gatherUI.gatherButtonText =
@@ -537,7 +550,10 @@ export default class StageCard {
             
             this.gatherUI.upgradeButton.on(
                 'pointerdown',
-                () => {
+                pointer => {
+                    if (!this.isPointerVisible(pointer)) {
+                        return;
+                    }
             
                     if (!this.canUpgrade()) {
                         return;
@@ -776,7 +792,12 @@ export default class StageCard {
         // Click action
         this.createUI.createButton.on(
             'pointerdown',
-            this._actionHandler
+            pointer => {
+                if (!this.isPointerVisible(pointer)) {
+                    return;
+                }
+                this._actionHandler();
+            }
         );
     }
 
@@ -1168,7 +1189,10 @@ export default class StageCard {
     
         this.discoverUI.trackButton.on(
             'pointerdown',
-            () => {
+            pointer => {
+                if (!this.isPointerVisible(pointer)) {
+                    return;
+                }
         
                 const tracked =
                     this.objectivesManager

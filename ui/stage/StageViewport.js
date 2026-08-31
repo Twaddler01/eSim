@@ -96,7 +96,9 @@ export default class StageViewport {
     
                     parentContainer: this.scrollBox.content,
                     
-                    objectivesManager: this.objectivesManager
+                    objectivesManager: this.objectivesManager,
+                    
+                    viewport: this
                 }
             );
     
