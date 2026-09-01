@@ -7,6 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Reworking card data updates to push minimal data needed for create / live updates (matching CreateUpgradesCard class data setup).
 - Need tab titles at top of viewport to better show user navigation.
 
 # Recent Updates

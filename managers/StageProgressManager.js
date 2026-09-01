@@ -35,17 +35,22 @@ export default class StageProgressManager {
             new Phaser.Events.EventEmitter();
     }
 
-    getReqAmounts(upgrade, requirements) {
+    getReqData(upgrade, requirements) {
         // NOTE: this.getUnlocked(upgrade.item) eeds custom requirements for other tabs
         const isUnlocked = this.getUnlocked(upgrade.item);
+        const getUpgradeStatus = this.getUpgradeStatus(upgrade);
 
         if (!requirements) {
             return {
+                id: upgrade.id,
+                unlocked: isUnlocked,
                 noReq: true,
+                requirements: {},
                 allMet: true,
                 buttonTextColor: isUnlocked ? '#ffffff' : '#777777',
                 buttonFill: isUnlocked ? 0x335533 : 0x222222,
-                buttonStroke: isUnlocked ? 0x66aa66 : 0x555555
+                buttonStroke: isUnlocked ? 0x66aa66 : 0x555555,
+                upgradeStatus: getUpgradeStatus
             };
         }
         
@@ -65,13 +70,13 @@ export default class StageProgressManager {
         
         return {
             id: upgrade.id,
-            // WIP for overlay
             unlocked: isUnlocked,
             requirements: allData,
             allMet: allMet,
             buttonTextColor: allMet ? '#ffffff' : '#777777',
             buttonFill: allMet ? 0x335533 : 0x222222,
-            buttonStroke: allMet ? 0x66aa66 : 0x555555
+            buttonStroke: allMet ? 0x66aa66 : 0x555555,
+            upgradeStatus: getUpgradeStatus
         };
     }
 
@@ -146,7 +151,7 @@ export default class StageProgressManager {
     }
 
     // Availability (create -> upgrades sub tab ... more later)
-    getUpgradeAvailability(item) {
+    getUpgradeStatus(item) {
         if (!item) return;
         
         // Get status of item affected by upgrade (unlocked = active)

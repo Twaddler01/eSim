@@ -243,9 +243,9 @@ export function getCreateUpgradesCardData(
     const returnData = addData.map(upgrade => ({
         ...upgrade,
         
-        reqAmounts:
+        getReqData:
             () => 
-                stageProgress.getReqAmounts(upgrade, upgrade.requirements),
+                stageProgress.getReqData(upgrade, upgrade.requirements),
         
         // Same as level for now (upgrade quantity = level)
         itemAmount:
@@ -254,7 +254,7 @@ export function getCreateUpgradesCardData(
 
         getAvailability:
             () =>
-                stageProgress.getUpgradeAvailability(upgrade),
+                stageProgress.getUpgradeStatus(upgrade),
         
         getLevel: 
             () =>

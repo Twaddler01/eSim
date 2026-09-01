@@ -58,13 +58,11 @@ export default class StageCard {
         this.getNextMax = options.getNextMax ?? (() => null);
         this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
         this.getAvailability = options.getAvailability ?? (() => 'locked');
+        
         // For CreateUpgradesCard
-        this.reqAmounts = options.reqAmounts ?? (() => null);
+        this.getReqData = options.getReqData ?? (() => null);
 
-//const fetch = this.reqAmounts();
-//jp(fetch);
-
-        // WIP: Upgrade amount = level
+        // WIP: Upgrade amount = level?
         this.itemAmount = options.itemAmount ?? (() => 0);
 
         this.getLevel = options.getLevel ?? (() => null);
@@ -140,11 +138,8 @@ export default class StageCard {
                             // GETTERS
                             getAvailability: this.getAvailability,
                             getLevel: this.getLevel,
-                            reqAmounts: this.reqAmounts,
-                            itemAmount: this.itemAmount,
-                            // To grab new state for overlay
-                            onAvailabilityChange: state =>
-                                this.updateAvailability(state)
+                            getReqData: this.getReqData,
+                            updateLockUI: unlocked => this.updateLockUI(unlocked),
                         }
                     );
                 } else {
@@ -1234,10 +1229,11 @@ export default class StageCard {
             max: this.getMax(),
             nextMax: this.getNextMax(),
             upgradeStats: this.getUpgradeStats(),
+            getReqData: this.getReqData(),
             availability: this.getAvailability(),
             createData: this.getCreateData()
         };
-        
+
         this.updateUI(data);
     }
 
@@ -1295,6 +1291,12 @@ export default class StageCard {
 //--------------------------------
 // AVAILABILITY FUNCTIONS (MULTI)
 //--------------------------------
+
+    // LOCKED OVERLAY
+    updateLockUI(unlocked) {
+        this.ui.lockOverlay?.setVisible(!unlocked);
+        this.ui.availabilityText?.setVisible(!unlocked);
+    }
 
     // AVAILABILITY
     updateAvailability(state) {
