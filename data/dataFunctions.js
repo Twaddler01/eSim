@@ -211,20 +211,46 @@ export function getCreateUpgradesCardData(
     
     const gatherItems = stageProgress.getGatherItems();
     gatherItems.forEach(item => {
+        
+        // Return requirements
+        /*const reqData = [];
+        const getRequirements = () => {
+            const autoReqItems = item.autoReq ?? null;
+            if (!autoReqItems) return false;
+            Object.entries(autoReqItems).forEach(([req, amt]) => {
+                const reqItem = gatherItems.find(i => i.id === req);
+                reqData.push({
+                    id: reqItem.id,
+                    title: reqItem.title,
+                    amt: amt
+                });
+            });
+            
+            return reqData;
+        };*/
+        const requirements = getRequirements(item.autoReq, gatherItems);
+        
         addData.push({
             tab: 'create',
             subTab: 'upgrades',
             id: item.id + '_gather_upgrade',
             title: item.title + ' UPGRADES',
-            item: item.id // item upgrade is for
+            item: item.id, // item upgrade is for -- WIP customized
+            requirements: requirements ?? false
         });
     })
 
     const returnData = addData.map(upgrade => ({
         ...upgrade,
         
+        reqAmounts:
+            () => 
+                stageProgress.getReqAmounts(upgrade, upgrade.requirements),
+        
+        // Same as level for now (upgrade quantity = level)
         itemAmount:
-            stageProgress.get(upgrade.item),
+            () =>
+                stageProgress.get(upgrade.item),
 
         getAvailability:
             () =>
@@ -241,7 +267,7 @@ export function getCreateUpgradesCardData(
         onAction: () => {
             const level =
                 stageProgress.upgradeAutoGather(
-                    upgrade.item
+                    upgrade.item, upgrade.requirements
                 );
             autoGather.setActive(
                 upgrade.item,
@@ -252,6 +278,29 @@ export function getCreateUpgradesCardData(
 
     return returnData;
 }
+
+// Returns title with id/cost
+// reqItemsData: expects array of id and title
+// costData: expects key-value pair of matching id and cost
+function getRequirements(reqItemsData, costData) {
+
+    const reqData = [];
+    
+    const reqItems = reqItemsData ?? null;
+    if (!reqItems) return false;
+    Object.entries(reqItems).forEach(([req, amt]) => {
+        const reqItem = costData.find(i => i.id === req);
+        reqData.push({
+            id: reqItem.id,
+            title: reqItem.title,
+            amt: amt
+        });
+    });
+    
+    return reqData;
+}
+// USAGE
+// const requirements = getRequirements(item.autoReq, gatherItems);
 
 // ==========================================
 // DISCOVER

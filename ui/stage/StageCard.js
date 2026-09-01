@@ -58,6 +58,14 @@ export default class StageCard {
         this.getNextMax = options.getNextMax ?? (() => null);
         this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
         this.getAvailability = options.getAvailability ?? (() => 'locked');
+        // For CreateUpgradesCard
+        this.reqAmounts = options.reqAmounts ?? (() => null);
+
+//const fetch = this.reqAmounts();
+//jp(fetch);
+
+        // WIP: Upgrade amount = level
+        this.itemAmount = options.itemAmount ?? (() => 0);
 
         this.getLevel = options.getLevel ?? (() => null);
 
@@ -72,8 +80,7 @@ export default class StageCard {
         this.objectivesManager = options.objectivesManager ?? null;
 
         // Pass data for CreateUpgradesCard
-        this.options = this.subTab === 'upgrades' ? options : null;
-
+        this.options = options;
         // Button event handler
         this._actionHandler = () => {
             if (!this.canAction()) {
@@ -133,6 +140,8 @@ export default class StageCard {
                             // GETTERS
                             getAvailability: this.getAvailability,
                             getLevel: this.getLevel,
+                            reqAmounts: this.reqAmounts,
+                            itemAmount: this.itemAmount,
                             // To grab new state for overlay
                             onAvailabilityChange: state =>
                                 this.updateAvailability(state)

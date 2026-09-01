@@ -35,6 +35,46 @@ export default class StageProgressManager {
             new Phaser.Events.EventEmitter();
     }
 
+    getReqAmounts(upgrade, requirements) {
+        // NOTE: this.getUnlocked(upgrade.item) eeds custom requirements for other tabs
+        const isUnlocked = this.getUnlocked(upgrade.item);
+
+        if (!requirements) {
+            return {
+                noReq: true,
+                allMet: true,
+                buttonTextColor: isUnlocked ? '#ffffff' : '#777777',
+                buttonFill: isUnlocked ? 0x335533 : 0x222222,
+                buttonStroke: isUnlocked ? 0x66aa66 : 0x555555
+            };
+        }
+        
+        const allData = [];
+        requirements.forEach(item => {
+            const amt = this.get(item.id);
+            allData.push({
+                ...item,
+                cnt: amt,
+                output: item.title + ' ' + amt + ' / ' + item.amt,
+                met: amt >= item.amt,
+                color: amt >= item.amt ? '#66ff66' : '#ff6666',
+            });
+        });
+        
+        const allMet = allData.every(item => item.met) && isUnlocked;
+        
+        return {
+            id: upgrade.id,
+            // WIP for overlay
+            unlocked: isUnlocked,
+            requirements: allData,
+            allMet: allMet,
+            buttonTextColor: allMet ? '#ffffff' : '#777777',
+            buttonFill: allMet ? 0x335533 : 0x222222,
+            buttonStroke: allMet ? 0x66aa66 : 0x555555
+        };
+    }
+
     // Availability (items) / for getCardCanAction() ('active' = true)
     getAvailability(item, tab) {
         // CreateUpgrades
@@ -166,7 +206,19 @@ export default class StageProgressManager {
         this.gather(item, autoAmt);
     }
     
-    upgradeAutoGather(itemId) {
+    upgradeAutoGather(itemId, requirements) {
+        
+        // Deduct costs
+        if (requirements) {
+            requirements.forEach(req => {
+                this.remove(
+                    req.id,
+                    req.amt
+                );
+            });
+        }
+        
+        // Set level
         const current =
             this.getAutoGatherAmount(itemId);
     
@@ -614,6 +666,10 @@ export default class StageProgressManager {
 
     // Remove amount
     remove(id, amount = 1) {
+        if (this.get(id) < amount) {
+            console.warn('Negative deduction detected, stageProgress.remove() cancelled. Item: ' + id + ' Amount: ' + amount);
+            return;
+        }
         return this.set(
             id,
             this.get(id) - amount

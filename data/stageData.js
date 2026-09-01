@@ -18,8 +18,18 @@ export const subTabs = {
 export const stageItems = [
 
 // Resources
-    { stage: 'creation', id: 'darkness', title: 'DARKNESS', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER' },
-    { stage: 'creation', id: 'light', title: 'LIGHT', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER' },
+    { stage: 'creation', id: 'darkness', title: 'DARKNESS', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER',
+        autoReq: {
+            darkness: 5,
+            light: 5
+        }
+    },
+    { stage: 'creation', id: 'light', title: 'LIGHT', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER',
+        autoReq: {
+            light: 5,
+            water: 5
+        }
+    },
     { stage: 'creation', id: 'water', title: 'WATER', tab: 'gather', category: 'element', unlocked: false, max: 15, actionLabel: 'GATHER',
         gather: {
             upgrade: {
