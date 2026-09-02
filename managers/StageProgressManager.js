@@ -39,13 +39,15 @@ export default class StageProgressManager {
     getReqData(data, requirements) {
         
         // NOTE: this.getUnlocked(upgrade.item) needs custom requirements for other tabs
-        let isUnlocked = this.getUnlocked(data.item);
+        let isUnlocked, getUpgradeStatus;
+
         if (data.tab === 'create') {
             isUnlocked = this.getCreateAvailability(data, data.tab) !== 'locked';
+            getUpgradeStatus = this.getUpgradeStatus(data);
+        } else {
+            isUnlocked = this.getUnlocked(data.item);
         }
-
-        const getUpgradeStatus = data.subTab === 'upgrades' ? this.getUpgradeStatus(data) : null;
-
+        
         if (!requirements) {
             return {
                 id: data.id,
@@ -59,7 +61,20 @@ export default class StageProgressManager {
                 upgradeStatus: getUpgradeStatus
             };
         }
-        
+
+        const producesItems = [];
+        // Get produce data
+        if (data.produces) {
+            Object.entries(data.produces).forEach(([pro, val]) => {
+                const title = this.getItemTitle(pro) ?? pro;
+                producesItems.push({
+                    id: pro,
+                    title: title,
+                    producesCnt: val
+                });
+            });
+        }
+
         const allData = [];
         requirements.forEach(item => {
             const amt = this.get(item.id);
@@ -82,7 +97,8 @@ export default class StageProgressManager {
             buttonTextColor: allMet ? '#ffffff' : '#777777',
             buttonFill: allMet ? 0x335533 : 0x222222,
             buttonStroke: allMet ? 0x66aa66 : 0x555555,
-            upgradeStatus: getUpgradeStatus
+            upgradeStatus: getUpgradeStatus,
+            produces: producesItems ?? null
         };
     }
 
@@ -578,46 +594,6 @@ export default class StageProgressManager {
         return Object.keys(requirements).every(
             id => this.getUnlocked(id)
         );
-    }
-
-    getCreateData(item) {
-        const requirements = item.requirements;
-        if (!requirements || requirements === undefined) return;
-        const reqItems = [];
-        Object.entries(requirements).forEach(([req, val]) => {
-            const currentCnt = this.get(req);
-            const title = this.getItemTitle(req);
-            if (title) {
-                reqItems.push({
-                    id: req,
-                    title: title,
-                    req: val,
-                    cnt: currentCnt,
-                    reqMet: currentCnt >= val
-                });
-            }
-        });
-        
-        const producesItems = [];
-        // Get produce data
-        if (item.produces) {
-            Object.entries(item.produces).forEach(([pro, val]) => {
-                const title = this.getItemTitle(pro) ?? pro;
-                producesItems.push({
-                    id: pro,
-                    title: title,
-                    producesCnt: val
-                });
-            });
-        }
-        
-        return {
-            id: item.id,
-            //unlocked: ,
-            allReqMet: reqItems.every(requirement => requirement.reqMet),
-            req: reqItems,
-            produces: producesItems
-        };
     }
 
     getCreateItems() {

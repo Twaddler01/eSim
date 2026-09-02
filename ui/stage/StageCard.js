@@ -60,16 +60,14 @@ export default class StageCard {
         this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
         this.getAvailability = options.getAvailability ?? (() => 'locked');
         
-        // For CreateUpgradesCard
+        // For CreateUpgradesCard, WIP CREATE
         this.getReqData = options.getReqData ?? (() => null);
 
         // WIP: Upgrade amount = level?
         this.itemAmount = options.itemAmount ?? (() => 0);
-
         this.getLevel = options.getLevel ?? (() => null);
 
         // Callbacks
-        this.getCreateData = options.getCreateData ?? (() => null);
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
 
@@ -312,10 +310,7 @@ export default class StageCard {
         const yOffset = this.height / 2 - 50;
         this.ui.title.y = yOffset;
         
-        const requirements = this.getCreateData();
-        const allReqMetButtonColor_stro = requirements.allReqMet ? 0x66aa66 : 0x555555;
-        const allReqMetButtonColor_fill = requirements.allReqMet ? 0x335533 : 0x222222;
-        const allReqMetTextColor = requirements.allReqMet ? '#ffffff' : '#555555';
+        const requirements = this.getReqData();
 
         let currentY = yOffset + 35;
         
@@ -377,17 +372,16 @@ export default class StageCard {
         this.createUI.requiresLabels = [];
  
         currentY = yOffset + 35;
-        requirements.req.forEach(require => {
-            const reqMetColor = require.reqMet ? '#66ff66' : '#ff6666';
+        requirements.requirements.forEach(require => {
             const text =
                 this.addElement(
                     addText(this.scene,
                         this.width / 3 + 25,
                         currentY,
-                        require.title + ': ' + require.cnt + ' / ' + require.req,
+                        require.title + ': ' + require.cnt + ' / ' + require.amt,
                         {
                             fontSize: '18px',
-                            color: reqMetColor
+                            color: require.color
                         }
                     )
                 .setOrigin(0)
@@ -405,10 +399,10 @@ export default class StageCard {
                     this.height / 2 - 15,
                     120,
                     30,
-                    allReqMetButtonColor_fill
+                    requirements.buttonFill
                 )
                 .setOrigin(0)
-                .setStrokeStyle(1, allReqMetButtonColor_stro)
+                .setStrokeStyle(1, requirements.buttonStroke)
                 .setInteractive()
             );
         
@@ -420,7 +414,7 @@ export default class StageCard {
                     this.actionLabel,
                     {
                         fontSize: '20px',
-                        color: allReqMetTextColor
+                        color: requirements.buttonTextColor
                     }
                 )
             .setOrigin(0)
@@ -788,7 +782,6 @@ export default class StageCard {
             upgradeStats: this.getUpgradeStats(),
             getReqData: this.getReqData(),
             availability: this.getAvailability(),
-            createData: this.getCreateData()
         };
 
         this.updateUI(data);
@@ -822,8 +815,8 @@ export default class StageCard {
 
     // PRIMARY CREATE UPDATE CALLS
     updateCreate(data) {
-        this.updateCreateRequirements(data.createData);
-        this.updateAvailability(data.availability);
+        this.updateCreateRequirements(data.getReqData);
+        this.updateLockUI(data.getReqData.unlocked);
     }
 
     // Create live updates
@@ -832,7 +825,7 @@ export default class StageCard {
             return;
         }
 
-        data.req.forEach(
+        data.requirements.forEach(
             (require, index) => {
                 const text =
                     this.createUI.requiresLabels[index];
@@ -840,15 +833,8 @@ export default class StageCard {
                     return;
                 }
     
-                text.setText(
-                    `${require.title}: ${require.cnt} / ${require.req}`
-                );
-    
-                text.setColor(
-                    require.reqMet
-                        ? '#66ff66'
-                        : '#ff6666'
-                );
+                text.setText(`${require.title}: ${require.cnt} / ${require.amt}`);
+                text.setColor(require.color);
             }
         );
         
@@ -866,28 +852,12 @@ export default class StageCard {
         );*/
 
         // Update CREATE button
-        const ready =
-            data.allReqMet;
-    
         this.createUI.createButton
-            ?.setFillStyle(
-                ready
-                    ? 0x335533
-                    : 0x222222
-            )
-            .setStrokeStyle(
-                1,
-                ready
-                    ? 0x66aa66
-                    : 0x555555
-            );
+            ?.setFillStyle(data.buttonFill)
+            .setStrokeStyle(1, data.buttonStroke);
     
         this.createUI.createButtonText
-            ?.setColor(
-                ready
-                    ? '#ffffff'
-                    : '#555555'
-            );
+            ?.setColor(data.buttonTextColor);
     }
 
     updateDiscover(data) {
@@ -925,11 +895,6 @@ export default class StageCard {
         this.ui.availabilityText?.setVisible(false);
         this.discoverUI.availabilityTitle?.setVisible(false);
 
-        // Skip if 'enabled' from this.createUpgradesCard
-        if (state === 'enabled') {
-            return;
-        }
-
         // Discover updates
         const requireText = state === 'completed' ? 'Required:' : 'Requires:';
         this.discoverUI.requireLabel?.setText(requireText);
@@ -939,19 +904,6 @@ export default class StageCard {
 
         // ACTIVE
         if (state === 'active') {
-            // Gather
-            this.gatherUI.gatherButton
-                ?.setFillStyle(0x333333)
-                .setStrokeStyle(1, 0xffffff);
-            this.gatherUI.gatherButtonText
-                ?.setText(this.actionLabel)
-                .setColor('#ffffff');
-            // Create
-            this.createUI.createButton
-                ?.setFillStyle(0x335533)
-                .setStrokeStyle(1, 0x66aa66);
-            this.createUI.createButtonText
-                ?.setColor('#ffffff');
             // Discover
             if (this.tab === 'discover') {
                 this.discoverUI.availabilityTitle?.setVisible(true);
@@ -961,24 +913,7 @@ export default class StageCard {
             
             return;
         }
-    
-        // UNLOCKED
-        if (state === 'unlocked') {
-            // Gather
-            this.gatherUI.gatherButton?.setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-            this.gatherUI.gatherButtonText?.setText('LOCKED')
-                .setColor('#777777');
-            // Create
-            this.createUI.createButton
-                ?.setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-            this.createUI.createButtonText
-                ?.setColor('#777777');
 
-            return;
-        }
-    
         // COMPLETED
         if (state === 'completed') {
             // Discover
@@ -990,32 +925,10 @@ export default class StageCard {
             }
             return;
         }
-    
-        // MAXED
-        if (state === 'maxed') {
-            // Gather only
-            this.gatherUI.gatherButton?.setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-            this.gatherUI.gatherButtonText?.setText('MAXED')
-                .setColor('#777777');
-        
-            return;
-        }
-    
+
         // LOCKED
         this.ui.lockOverlay?.setVisible(true);
         this.ui.availabilityText?.setVisible(true);
-        // Gather
-        this.gatherUI.gatherButton?.setFillStyle(0x222222)
-            .setStrokeStyle(1, 0x555555);
-        this.gatherUI.gatherButtonText?.setText('LOCKED')
-            .setColor('#777777');
-        // Create
-        this.createUI.createButton
-            ?.setFillStyle(0x222222)
-            .setStrokeStyle(1, 0x555555);
-        this.createUI.createButtonText
-            ?.setColor('#777777');
     }
 
     setY(y) {

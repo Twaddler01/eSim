@@ -216,7 +216,7 @@ export default class CreateUpgradesCard {
         
         // Update requirements
         this.updateRequirements(data.reqData);
-    
+
         // For status and purchase button
         this.updateAvailability(data);
 

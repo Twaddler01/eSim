@@ -113,18 +113,10 @@ function buildCardData(
             // Imcludes 'upgrades' subTab
             data.getAvailability = () =>
                 stageProgress.getCreateAvailability(item, tab);
-// WIP REPLACE...
-data.getCreateData = () =>
-    stageProgress.getCreateData(item);
-// WIP WITH...
-const requiredItems = stageProgress.getAllItems();
-const requirements = getRequirements(item.requirements, requiredItems);
-data.getReqData = () => 
-    stageProgress.getReqData(item, requirements);
-
-const test = data.getReqData();
-jp(test);
-
+            const requiredItems = stageProgress.getAllItems();
+            const requirements = getRequirements(item.requirements, requiredItems);
+            data.getReqData = () => 
+                stageProgress.getReqData(item, requirements);
             break;
         case 'discover':
             data.getAvailability = () =>
