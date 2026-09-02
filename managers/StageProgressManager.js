@@ -35,14 +35,20 @@ export default class StageProgressManager {
             new Phaser.Events.EventEmitter();
     }
 
-    getReqData(upgrade, requirements) {
-        // NOTE: this.getUnlocked(upgrade.item) eeds custom requirements for other tabs
-        const isUnlocked = this.getUnlocked(upgrade.item);
-        const getUpgradeStatus = this.getUpgradeStatus(upgrade);
+    // data: card item (output)
+    getReqData(data, requirements) {
+        
+        // NOTE: this.getUnlocked(upgrade.item) needs custom requirements for other tabs
+        let isUnlocked = this.getUnlocked(data.item);
+        if (data.tab === 'create') {
+            isUnlocked = this.getCreateAvailability(data, data.tab) !== 'locked';
+        }
+
+        const getUpgradeStatus = data.subTab === 'upgrades' ? this.getUpgradeStatus(data) : null;
 
         if (!requirements) {
             return {
-                id: upgrade.id,
+                id: data.id,
                 unlocked: isUnlocked,
                 noReq: true,
                 requirements: {},
@@ -69,7 +75,7 @@ export default class StageProgressManager {
         const allMet = allData.every(item => item.met) && isUnlocked;
         
         return {
-            id: upgrade.id,
+            id: data.id,
             unlocked: isUnlocked,
             requirements: allData,
             allMet: allMet,
@@ -80,37 +86,8 @@ export default class StageProgressManager {
         };
     }
 
-    // Availability (items) / for getCardCanAction() ('active' = true)
-    getAvailability(item, tab) {
-        // CreateUpgrades
-        if (item.tab === 'create' && item.subTab === 'upgrades') {
-            const isActive = this.isCreateUpgradesActive(item.item);
-            if (isActive) {
-                return 'active';
-            } else {
-                return 'locked';
-            }
-        }
-
-        // CREATE ITEMS
-        if (item.tab === 'create') {
-            if (!this.isCreateItemUnlocked(item)) {
-                return 'locked';
-            }
-    
-            const requirementsMet =
-                Object.entries(item.requirements ?? {})
-                    .every(([id, required]) => {
-                        return this.get(id) >= required;
-                    });
-    
-            if (!requirementsMet) {
-                return 'unlocked';
-            }
-    
-            return 'active';
-        }
-
+    // Availability (gather) / for getCardCanAction() ('active' = true)
+    getGatherAvailability(item, tab) {
         // GATHER ITEM
         const unlocked =
             item.startsUnlocked ||
@@ -133,24 +110,40 @@ export default class StageProgressManager {
             return 'maxed';
         }
     
+        return 'active';
+    }
+
+    // Availability (create) / for getCardCanAction() ('active' = true)
+    getCreateAvailability(item, tab) {
+        // CreateUpgrades
+        if (item.subTab === 'upgrades') {
+            const isActive = this.isCreateUpgradesActive(item.item);
+            if (isActive) {
+                return 'active';
+            } else {
+                return 'locked';
+            }
+        }
+
+        // CREATE -> ITEMS
+        if (!this.isCreateItemUnlocked(item)) {
+            return 'locked';
+        }
+
         const requirementsMet =
             Object.entries(item.requirements ?? {})
                 .every(([id, required]) => {
-    
-                    const current =
-                        this.get(id);
-    
-                    return current >= required;
+                    return this.get(id) >= required;
                 });
-    
+
         if (!requirementsMet) {
-            return 'insufficient';
+            return 'unlocked';
         }
 
         return 'active';
     }
 
-    // Availability (create -> upgrades sub tab ... more later)
+    // Availability (create -> upgrades)
     getUpgradeStatus(item) {
         if (!item) return;
         
@@ -345,7 +338,12 @@ export default class StageProgressManager {
     }
 
     getCardCanAction(item) {
-        return this.getAvailability(item, item.tab) === 'active';
+        if (item.tab === 'gather') {
+            return this.getGatherAvailability(item, item.tab) === 'active';
+        }
+        if (item.tab === 'create') {
+            return this.getCreateAvailability(item, item.tab) === 'active';
+        }
     }
     
     handleCardAction(item, tab) {
@@ -615,6 +613,7 @@ export default class StageProgressManager {
         
         return {
             id: item.id,
+            //unlocked: ,
             allReqMet: reqItems.every(requirement => requirement.reqMet),
             req: reqItems,
             produces: producesItems
@@ -623,6 +622,10 @@ export default class StageProgressManager {
 
     getCreateItems() {
         return this.stageItems.filter(item => item.tab === 'create');
+    }
+
+    getAllItems() {
+        return this.stageItems;
     }
 
     // --------------------------------------------------

@@ -1,5 +1,6 @@
 import { listenToEvent } from '../../utils/stageHelpers.js';
 import CreateUpgradesCard from './cards/CreateUpgradesCard.js';
+import CreateGatherCard from './cards/CreateGatherCard.js';
 
 // FOR GATHER, CREATE, DISCOVER TABS
 export default class StageCard {
@@ -69,8 +70,6 @@ export default class StageCard {
 
         // Callbacks
         this.getCreateData = options.getCreateData ?? (() => null);
-        this.canUpgrade = options.canUpgrade ?? (() => false);
-        this.onUpgrade = options.onUpgrade ?? null;
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
 
@@ -121,7 +120,21 @@ export default class StageCard {
 
         switch (this.tab) {
             case 'gather':
-                this.createGather();
+                //this.createGather();
+                this.CreateGatherCard =
+                    new CreateGatherCard(this.scene, {
+                        ...this.options,
+                        container: this.container,
+                        x: 10,
+                        y: 10,
+                        width: this.width - 20,
+                        height: this.height - 20,
+                        titleY: this.ui.title.y + 70,
+                        // Functions needed
+                        isPointerVisible: pointer => this.isPointerVisible(pointer),
+                        updateLockUI: unlocked => this.updateLockUI(unlocked)
+                    }
+                );
                 break;
             case 'create':
                 // Move into new class
@@ -134,11 +147,8 @@ export default class StageCard {
                             y: 10,
                             width: this.width - 20,
                             height: this.height - 20,
+                            // Functions needed
                             isPointerVisible: pointer => this.isPointerVisible(pointer),
-                            // GETTERS
-                            getAvailability: this.getAvailability,
-                            getLevel: this.getLevel,
-                            getReqData: this.getReqData,
                             updateLockUI: unlocked => this.updateLockUI(unlocked),
                         }
                     );
@@ -294,384 +304,6 @@ export default class StageCard {
     }
 
 //--------------------------------
-// GATHER TAB
-//--------------------------------
-
-    createGather() {
-        // Gain label -- uses this.upgradeStats
-        const upgradeStats = this.getUpgradeStats();
-        let gatherY = 67; // +55
-        let currentGatherRate = 1;
-        if (upgradeStats.hasRateUpgrade) currentGatherRate = upgradeStats.currentGatherRate;
-        this.gatherUI.gainLabel =
-            this.addElement(
-                addText(this.scene,
-                    15,
-                    gatherY,
-                    'Gather Rate: +' + currentGatherRate,
-                    {
-                        fontSize: '12px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        gatherY += 50;
-        
-        // Progress (based on max)
-        const padding = 1;
-        let barWidth = this.width - this.upgradeBoxWidth - padding * 2;
-        const barHeight = 10;
-        this.gatherUI.progressBackground =
-            this.addElement(
-                this.scene.add.rectangle(
-                    padding,
-                    gatherY,
-                    barWidth,
-                    barHeight,
-                    0x222222
-                )
-                .setOrigin(0)
-            );
-        
-        // Stored progress value
-        this.gatherBarWidth = barWidth;
-        this.gatherUI.progressFill =
-            this.addElement(
-                this.scene.add.rectangle(
-                    padding,
-                    gatherY,
-                    0,
-                    barHeight,
-                    0x44aa44
-                )
-                .setOrigin(0)
-            );
-        gatherY += 15; // +10 bar +5 padding
-        
-        // Current max display
-        this.gatherUI.maxLabel =
-            this.addElement(
-                addText(this.scene,
-                    15 + barWidth - 80,
-                    gatherY,
-                    'Max: ' + this.max,
-                    {
-                        fontSize: '12px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        
-        // Gather button
-        const gatherButtonStroke = 1;
-        const gatherButtonHeght = 30;
-        this.gatherUI.gatherButton =
-            this.addElement(
-                this.scene.add.rectangle(
-                    this.gatherLeftPanelWidth / 2 - 60,
-                    this.height - gatherButtonHeght - 10,
-                    120,
-                    gatherButtonHeght,
-                    0x335533
-                )
-                .setOrigin(0)
-                .setStrokeStyle(
-                    gatherButtonStroke,
-                    0x66aa66
-                )
-                .setInteractive()
-            );
-
-        // Click action
-        this.gatherUI.gatherButton.on(
-            'pointerdown',
-            pointer => {
-                if (!this.isPointerVisible(pointer)) {
-                    return;
-                }
-                this._actionHandler();
-            }
-        );
-
-        this.gatherUI.gatherButtonText =
-            this.addElement(
-                addText(this.scene,
-                    this.gatherLeftPanelWidth / 2,
-                    this.height - gatherButtonHeght / 2 - (gatherButtonHeght / 2 + 2 * gatherButtonStroke) / 2 - 10,
-                    'GATHER',
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0.5, 0)
-        );
-
-        // Current amount
-        this.gatherUI.amount =
-            this.addElement(
-                addText(this.scene,
-                    this.gatherLeftPanelWidth / 2,
-                    this.ui.title.y + 70,
-                    this.getAmount(),
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0.5, 0)
-        );
-
-        // Create gather upgrade area
-        this.gatherUI.upgradeBox =
-            this.addElement(
-                this.scene.add.rectangle(
-                    this.width - this.upgradeBoxWidth,
-                    0, 
-                    this.upgradeBoxWidth,
-                    this.height,
-                    0x000055
-                )
-                .setOrigin(0)
-                .setStrokeStyle(1, 0xffffff)
-            );
-    
-        this.gatherUI.upgradeText =
-            this.addElement(
-                addText(this.scene,
-                    this.width - this.upgradeBoxWidth + 10,
-                    10,
-                    'No upgrades available.',
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        
-        let currentY = 10;
-        const upgradeData = this.getUpgradeStats();
-        if (upgradeData.hasUpgrade) {
-            this.gatherUI.upgradeText.setText('Upgrade Level: ' + upgradeData.level);
-            
-            if (upgradeData.hasMaxUpgrade) {
-                currentY += 22;
-                this.gatherUI.upradeMaxIncreaseText =
-                    this.addElement(
-                        addText(this.scene,
-                            this.width - this.upgradeBoxWidth + 10,
-                            currentY,
-                            'Next Max Increase: +' + upgradeData.maxIncrease,
-                            {
-                                fontSize: '16px',
-                                color: '#ffffff'
-                            }
-                        )
-                    .setOrigin(0)
-                );
-            }
-            if (upgradeData.hasRateUpgrade) {
-                currentY += 22;
-                this.gatherUI.upradeRateText =
-                    this.addElement(
-                        addText(this.scene,
-                            this.width - this.upgradeBoxWidth + 10,
-                            currentY,
-                            'Next Rate Increase: +' + upgradeData.rateIncrease,
-                            {
-                                fontSize: '16px',
-                                color: '#ffffff'
-                            }
-                        )
-                    .setOrigin(0)
-                );
-            }
-            
-            // Upgrade cost
-            currentY += 22;
-            this.gatherUI.upradeCostTitle =
-                this.addElement(
-                    addText(this.scene,
-                        this.width - this.upgradeBoxWidth + 10,
-                        currentY,
-                        'Upgrade cost: ',
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    )
-                .setOrigin(0)
-            );
-            
-            currentY += 22;
-            const amount = this.getAmount();
-            this.gatherUI.upradeCost =
-                this.addElement(
-                    addText(this.scene,
-                        this.width - this.upgradeBoxWidth + 10,
-                        currentY,
-                        amount + ' / ' + Math.round(upgradeData.cost) + ' ' + this.title,
-                        {
-                            fontSize: '16px',
-                            color: amount >= upgradeStats.cost ? '#66ff66' : '#ff6666'
-                        }
-                    )
-                .setOrigin(0)
-            );    
-            
-            
-            // Upgrade button
-            this.gatherUI.upgradeButton =
-                this.addElement(
-                    this.scene.add.rectangle(
-                        this.width - this.upgradeBoxWidth + 10,
-                        this.height - 45,
-                        this.upgradeBoxWidth - 20,
-                        30,
-                        0x333333
-                    )
-                    .setOrigin(0)
-                    .setStrokeStyle(1, 0x666666)
-                    .setInteractive()
-                );
-
-            this.gatherUI.upgradeButtonText =
-                this.addElement(
-                    addText(
-                        this.scene,
-                        this.gatherUI.upgradeButton.x + this.gatherUI.upgradeButton.width / 2,
-                        this.height - 30,
-                        'UPGRADE',
-                        {
-                            fontSize: '16px',
-                            color: '#777777'
-                        }
-                    )
-                )
-                .setOrigin(0.5);
-            
-            this.gatherUI.upgradeButton.on(
-                'pointerdown',
-                pointer => {
-                    if (!this.isPointerVisible(pointer)) {
-                        return;
-                    }
-            
-                    if (!this.canUpgrade()) {
-                        return;
-                    }
-            
-                    this.onUpgrade?.();
-                    this.update();
-                }
-            );
-        }
-    }
-
-    // PRIMARY GATHER UPDATE CALLS
-    updateGather(data) {
-        this.updateGatherProgress(
-            data.amount, data.max
-        );
-        this.updateGatherUpgrades(data.upgradeStats, data.amount);
-        this.updateAvailability(data.availability); // multi
-        this.updateGatherUpgradeAvailability();
-    }
-
-    // CURRENT UPGRADE updates
-    updateGatherUpgrades(upgradeStats, amount) {
-        if (!upgradeStats.hasUpgrade) {
-            return;
-        }
-
-        // Max update
-        this.gatherUI.maxLabel
-            ?.setText(`Max: ${upgradeStats.current_max}`);
-
-        // Level update
-        this.gatherUI.upgradeText.setText(`Upgrade Level: ${upgradeStats.level}`);
-
-        // Gather rate update
-        if (upgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${upgradeStats.currentGatherRate}`);
-        
-        if (this.gatherUI.upradeCost) {
-            if (!amount) amount = 0;
-            this.gatherUI.upradeCost.setColor(amount >= upgradeStats.cost ? '#66ff66' : '#ff6666');
-            this.gatherUI.upradeCost.setText(Math.round(amount) + ' / ' + Math.round(upgradeStats.cost) + ' ' + this.title);
-        }
-    }
-
-    // GATHER PROGRESS updates
-    updateGatherProgress(amount, max) {
-        if (
-            max == null ||
-            max <= 0
-        ) {
-            this.gatherUI.progressBackground
-                .setVisible(false);
-    
-            this.gatherUI.progressFill
-                .setVisible(false);
-    
-            return;
-        }
-
-        this.gatherUI.amount
-            ?.setText(Math.round(amount));
-
-        // Max updates
-        this.gatherUI.maxLabel
-            ?.setText(`Max: ${max}`);
-
-        this.gatherUI.progressBackground
-            .setVisible(true);
-    
-        this.gatherUI.progressFill
-            .setVisible(true);
-    
-        const percent =
-            Phaser.Math.Clamp(
-                amount / max,
-                0,
-                1
-            );
-    
-        this.gatherUI.progressFill.width  =
-            this.gatherBarWidth * percent;
-    }
-
-    updateGatherUpgradeAvailability() {
-        if (!this.gatherUI.upgradeButton) {
-            return;
-        }
-    
-        const upgradeAvailable =
-            this.canUpgrade();
-    
-        if (upgradeAvailable) {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x335533)
-                .setStrokeStyle(1, 0x66aa66);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#ffffff');
-    
-        } else {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#777777');
-        }
-    }
-
-//--------------------------------
 // CREATE TAB
 //--------------------------------
 
@@ -806,78 +438,8 @@ export default class StageCard {
         );
     }
 
-    // PRIMARY CREATE UPDATE CALLS
-    updateCreate(data) {
-        this.updateCreateRequirements(data.createData);
-        this.updateAvailability(data.availability);
-    }
-
-    // Create live updates
-    updateCreateRequirements(data) {
-        if (!data) {
-            return;
-        }
-
-        data.req.forEach(
-            (require, index) => {
-                const text =
-                    this.createUI.requiresLabels[index];
-                if (!text) {
-                    return;
-                }
-    
-                text.setText(
-                    `${require.title}: ${require.cnt} / ${require.req}`
-                );
-    
-                text.setColor(
-                    require.reqMet
-                        ? '#66ff66'
-                        : '#ff6666'
-                );
-            }
-        );
-        
-        // Update rates WIP -- dynsmic in the future?
-        /*data.produces.forEach(
-            (prod, index) => {
-                const text =
-                    this.createUI.producesLabels[index];
-                if (!text) {
-                    return;
-                }
-    
-                text.setText('- Create: +' + prod.producesCnt + ' ' + prod.title);
-            }
-        );*/
-
-        // Update CREATE button
-        const ready =
-            data.allReqMet;
-    
-        this.createUI.createButton
-            ?.setFillStyle(
-                ready
-                    ? 0x335533
-                    : 0x222222
-            )
-            .setStrokeStyle(
-                1,
-                ready
-                    ? 0x66aa66
-                    : 0x555555
-            );
-    
-        this.createUI.createButtonText
-            ?.setColor(
-                ready
-                    ? '#ffffff'
-                    : '#555555'
-            );
-    }
-
 //--------------------------------
-//ddd DISCOVER TAB
+// DISCOVER TAB
 //--------------------------------
 
     createDiscover() {
@@ -1214,13 +776,8 @@ export default class StageCard {
         );
     }
 
-    updateDiscover(data) {
-        this.updateTracking();
-        this.updateAvailability(data.availability);
-    }
-
 //--------------------------------
-// UI UPDATES FOR ALL CARDS [ StageViewport ]
+// PROCESS UI UPDATES [ StageViewport ]
 //--------------------------------
 
     update() {
@@ -1240,7 +797,8 @@ export default class StageCard {
     updateUI(data) {
         switch (this.tab) {
             case 'gather':
-                this.updateGather(data);
+                //this.updateGather(data);
+                this.CreateGatherCard?.update(data);
                 break;
             case 'create':
                 // Default
@@ -1258,34 +816,83 @@ export default class StageCard {
         }
     }
 
-    setY(y) {
-        this.y = y;
-        this.container.y = y;
+//--------------------------------
+// OTHER UPDATES
+//--------------------------------
+
+    // PRIMARY CREATE UPDATE CALLS
+    updateCreate(data) {
+        this.updateCreateRequirements(data.createData);
+        this.updateAvailability(data.availability);
     }
 
-    // Dynamic height WIP (OLD?)
-    refreshHeight(newHeight) {
-        if (this.height === newHeight) {
-            return false;
+    // Create live updates
+    updateCreateRequirements(data) {
+        if (!data) {
+            return;
         }
+
+        data.req.forEach(
+            (require, index) => {
+                const text =
+                    this.createUI.requiresLabels[index];
+                if (!text) {
+                    return;
+                }
     
-        this.height = newHeight;
+                text.setText(
+                    `${require.title}: ${require.cnt} / ${require.req}`
+                );
     
-        this.ui.background?.setSize(
-            this.width,
-            this.height
+                text.setColor(
+                    require.reqMet
+                        ? '#66ff66'
+                        : '#ff6666'
+                );
+            }
         );
+        
+        // Update rates WIP -- dynsmic in the future?
+        /*data.produces.forEach(
+            (prod, index) => {
+                const text =
+                    this.createUI.producesLabels[index];
+                if (!text) {
+                    return;
+                }
     
-        this.ui.lockOverlay?.setSize(
-            this.width,
-            this.height
-        );
+                text.setText('- Create: +' + prod.producesCnt + ' ' + prod.title);
+            }
+        );*/
+
+        // Update CREATE button
+        const ready =
+            data.allReqMet;
     
-        this.ui.availabilityText?.setY(
-            this.height / 2
-        );
+        this.createUI.createButton
+            ?.setFillStyle(
+                ready
+                    ? 0x335533
+                    : 0x222222
+            )
+            .setStrokeStyle(
+                1,
+                ready
+                    ? 0x66aa66
+                    : 0x555555
+            );
     
-        return true;
+        this.createUI.createButtonText
+            ?.setColor(
+                ready
+                    ? '#ffffff'
+                    : '#555555'
+            );
+    }
+
+    updateDiscover(data) {
+        this.updateTracking();
+        this.updateAvailability(data.availability);
     }
 
 //--------------------------------
@@ -1300,7 +907,6 @@ export default class StageCard {
 
     // AVAILABILITY
     updateAvailability(state) {
-
         // Track UI for only active objectives
         const canTrack =
             state !== 'completed' &&
@@ -1410,6 +1016,36 @@ export default class StageCard {
             .setStrokeStyle(1, 0x555555);
         this.createUI.createButtonText
             ?.setColor('#777777');
+    }
+
+    setY(y) {
+        this.y = y;
+        this.container.y = y;
+    }
+
+    // Dynamic height WIP (OLD?)
+    refreshHeight(newHeight) {
+        if (this.height === newHeight) {
+            return false;
+        }
+    
+        this.height = newHeight;
+    
+        this.ui.background?.setSize(
+            this.width,
+            this.height
+        );
+    
+        this.ui.lockOverlay?.setSize(
+            this.width,
+            this.height
+        );
+    
+        this.ui.availabilityText?.setY(
+            this.height / 2
+        );
+    
+        return true;
     }
 
     // DESTROY

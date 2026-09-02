@@ -219,7 +219,7 @@ export default class CreateUpgradesCard {
     
         // For status and purchase button
         this.updateAvailability(data);
-        
+
         this.updateLockUI(data.reqData.unlocked);
     }
 

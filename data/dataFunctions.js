@@ -10,6 +10,7 @@ export function getCurrentTabCardData(
     objectivesManager
 ) {
 
+    // Custom array
     if (
         tab === 'create' &&
         subTab === 'upgrades'
@@ -20,13 +21,13 @@ export function getCurrentTabCardData(
         );
     }
 
-    // Gather / Create only
+    // Gather / Create only (stageItems)
     let cards =
         stageItems.filter(
             item => item.tab === tab
         );
 
-    // Discover
+    // Discover (stageObjectives)
     if (tab === 'discover') {
 
         const discoverCards =
@@ -66,10 +67,10 @@ function buildCardData(
     stageProgress,
     objectivesManager
 ) {
-    return {
+    const data = {
         ...item,
 
-        tab: tab ?? null,
+        // Assign subTab id for CREATE -> ITEMS (subTab default)
         subTab: subTab ?? null,
 
         // LIVE DATA
@@ -77,17 +78,10 @@ function buildCardData(
             stageProgress.get(item.id),
 
         getMax: () =>
-            getItemMax(
-                item,
-                stageProgress
-            ),
+            getItemMax(item, stageProgress),
 
         getNextMax: () =>
-            getItemMax(
-                item,
-                stageProgress,
-                'next'
-            ),
+            getItemMax(item, stageProgress, 'next'),
 
         getUpgradeStats: () =>
             stageProgress.getGatherUpgradeStats(
@@ -95,39 +89,50 @@ function buildCardData(
                 item
             ),
 
-        getAvailability:
-            tab === 'discover'
-                ? () =>
-                objectivesManager.getObjectiveAvailability(item)
-                : () =>
-                stageProgress.getAvailability(item, tab),
-
-        getCreateData:
-            item.tab === 'create'
-                ? () =>
-                stageProgress.getCreateData(item)
-                : null,
-
         // ACTIONS
-        canUpgrade:
-            () =>
-                stageProgress.gatherUpgradeAvailable(item),
+        canUpgrade: () =>
+            stageProgress.gatherUpgradeAvailable(item),
 
-        onUpgrade:
-            () =>
-                stageProgress.upgradeGather(item),
+        onUpgrade: () =>
+            stageProgress.upgradeGather(item),
 
-        canAction:
-            () =>
-                stageProgress.getCardCanAction(item),
+        canAction: () =>
+            stageProgress.getCardCanAction(item),
 
-        onAction:
-            () =>
-                stageProgress.handleCardAction(
-                    item,
-                    tab
-                )
+        onAction: () =>
+            stageProgress.handleCardAction(item, tab),
     };
+
+    // SPECIAL CASES
+    switch (tab) {
+        case 'gather':
+            data.getAvailability = () =>
+                stageProgress.getGatherAvailability(item, tab);
+            break;
+        case 'create':
+            // Imcludes 'upgrades' subTab
+            data.getAvailability = () =>
+                stageProgress.getCreateAvailability(item, tab);
+// WIP REPLACE...
+data.getCreateData = () =>
+    stageProgress.getCreateData(item);
+// WIP WITH...
+const requiredItems = stageProgress.getAllItems();
+const requirements = getRequirements(item.requirements, requiredItems);
+data.getReqData = () => 
+    stageProgress.getReqData(item, requirements);
+
+const test = data.getReqData();
+jp(test);
+
+            break;
+        case 'discover':
+            data.getAvailability = () =>
+                objectivesManager.getObjectiveAvailability(item);
+            break;
+    }
+
+    return data;
 }
 
 // helper ^ getCurrentTabCardData
@@ -150,36 +155,35 @@ function sortTabCards(
         case 'create':
             return cards;
             // WIP return sortCreateCards(cards, subTab);
-case 'discover': {
-
-    const sorted =
-        sortByAvailability(cards, {
-            active: 0,
-            completed: 1,
-            locked: 2
-        });
-
-    const completed =
-        sorted
-            .filter(card =>
-                card.getAvailability() === 'completed'
-            )
-            .sort((a, b) =>
-                objectivesManager.getCompletionOrder(b.id) -
-                objectivesManager.getCompletionOrder(a.id)
-            );
-
-    let completedIndex = 0;
-
-    return sorted.map(card => {
-
-        if (card.getAvailability() === 'completed') {
-            return completed[completedIndex++];
+        case 'discover': {
+            const sorted =
+                sortByAvailability(cards, {
+                    active: 0,
+                    completed: 1,
+                    locked: 2
+                });
+        
+            const completed =
+                sorted
+                    .filter(card =>
+                        card.getAvailability() === 'completed'
+                    )
+                    .sort((a, b) =>
+                        objectivesManager.getCompletionOrder(b.id) -
+                        objectivesManager.getCompletionOrder(a.id)
+                    );
+        
+            let completedIndex = 0;
+        
+            return sorted.map(card => {
+        
+                if (card.getAvailability() === 'completed') {
+                    return completed[completedIndex++];
+                }
+        
+                return card;
+            });
         }
-
-        return card;
-    });
-}
 
         default:
             return cards;
@@ -211,27 +215,12 @@ export function getCreateUpgradesCardData(
     
     const gatherItems = stageProgress.getGatherItems();
     gatherItems.forEach(item => {
-        
-        // Return requirements
-        /*const reqData = [];
-        const getRequirements = () => {
-            const autoReqItems = item.autoReq ?? null;
-            if (!autoReqItems) return false;
-            Object.entries(autoReqItems).forEach(([req, amt]) => {
-                const reqItem = gatherItems.find(i => i.id === req);
-                reqData.push({
-                    id: reqItem.id,
-                    title: reqItem.title,
-                    amt: amt
-                });
-            });
-            
-            return reqData;
-        };*/
+
         const requirements = getRequirements(item.autoReq, gatherItems);
         
         addData.push({
             tab: 'create',
+            // Must be assigned for default tab
             subTab: 'upgrades',
             id: item.id + '_gather_upgrade',
             title: item.title + ' UPGRADES',
@@ -280,16 +269,16 @@ export function getCreateUpgradesCardData(
 }
 
 // Returns title with id/cost
-// reqItemsData: expects array of id and title
-// costData: expects key-value pair of matching id and cost
-function getRequirements(reqItemsData, costData) {
+// reqItemsData: expects array with id and title
+// requiredItems: expects key-value pair of matching id and cost
+function getRequirements(reqItemsData, requiredItems) {
 
     const reqData = [];
     
     const reqItems = reqItemsData ?? null;
     if (!reqItems) return false;
     Object.entries(reqItems).forEach(([req, amt]) => {
-        const reqItem = costData.find(i => i.id === req);
+        const reqItem = requiredItems.find(i => i.id === req);
         reqData.push({
             id: reqItem.id,
             title: reqItem.title,

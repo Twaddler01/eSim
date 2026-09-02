@@ -415,7 +415,7 @@ if (DEBUG) {
         }
     
         this.currentSubTab = id;
-    
+
         this.refreshCurrentTab();
     }
 
