@@ -82,12 +82,6 @@ function buildCardData(
         getNextMax: () =>
             getItemMax(item, stageProgress, 'next'),
 
-        getUpgradeStats: () =>
-            stageProgress.getGatherUpgradeStats(
-                item.id,
-                item
-            ),
-
         // ACTIONS
         canAction: () =>
             stageProgress.getCardCanAction(item),
@@ -110,7 +104,10 @@ function buildCardData(
         case 'gather':
             data.getAvailability = () =>
                 stageProgress.getGatherAvailability(item);
-            
+
+            data.getUpgradeStats = () =>
+                stageProgress.getGatherUpgradeStats(item.id, item);
+
             data.canUpgrade = () =>
                 stageProgress.gatherUpgradeAvailable(item);
             

@@ -401,16 +401,17 @@ export default class CreateGatherCard {
 // moved
 // updateGatherProgress
 
-    updateGatherUpgradeAvailability() {
+    updateGatherUpgradeAvailability(state) {
         if (!this.gatherUI.upgradeButton) {
             return;
         }
     
         const upgradeAvailable =
             this.canUpgrade();
-        const active = upgradeAvailable ? 'active' : 'notReady';
+        let availability = upgradeAvailable ? 'active' : 'notReady';
+        if (state === 'locked') availability = 'locked';
         
-        this.helpers.actionButtonState(active, {
+        this.helpers.actionButtonState(availability, {
             rectangle: this.gatherUI.upgradeButton,
             text: this.gatherUI.upgradeButtonText
         }, 'UPGRADE');
@@ -435,7 +436,7 @@ export default class CreateGatherCard {
         
         // WIP integrate within getCurrentTabCardData
         this.updateGatherUpgrades(data.upgradeStats, data.amount);
-        this.updateGatherUpgradeAvailability();
+        this.updateGatherUpgradeAvailability(data.availability);
 
         // For gather button
         this.helpers.actionButtonState(data.availability, {

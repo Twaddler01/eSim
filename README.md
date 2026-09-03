@@ -7,15 +7,12 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
-- Reworking card data updates to push minimal data needed for create / live updates (matching CreateUpgradesCard class data setup).
+- Reworking StageCard to use individual classes for each tab.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Recent Updates
-08-31-2026
-- Updated StageViewport to be fully integrated using ScrollBox class.
-- Added customizable objective flows and default objective flows.
-- Added live delay(s) between objective completion and new objective unlocks to smooth out conversations/announcements.
-- New/complete objectives now update live whenever possible in Tracker instead of destroy/create.
+09-03-2026
+- Reworked card data updates to push minimal data needed for create / live updates (matching CreateUpgradesCard class data setup).
 
 # Future Updates / Ideas
 - Add an auto-gather/creator - e.g. "element collector", etc.
@@ -28,6 +25,12 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # Previous Updates
+08-31-2026
+- Updated StageViewport to be fully integrated using ScrollBox class.
+- Added customizable objective flows and default objective flows.
+- Added live delay(s) between objective completion and new objective unlocks to smooth out conversations/announcements.
+- New/complete objectives now update live whenever possible in Tracker instead of destroy/create.
+
 08-29-2026
 - Fixed sorting for discover tab.
 - Tracking objectives work live.

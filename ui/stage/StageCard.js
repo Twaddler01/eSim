@@ -57,7 +57,6 @@ export default class StageCard {
         this.getAmount = options.getAmount ?? (() => 0);
         this.getMax = options.getMax ?? (() => null);
         this.getNextMax = options.getNextMax ?? (() => null);
-        this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
         this.getAvailability = options.getAvailability ?? (() => 'locked');
 
         // For CreateUpgradesCard, WIP CREATE
@@ -306,7 +305,6 @@ export default class StageCard {
 //--------------------------------
 
     createCreate() {
-        //console.log('Creating create card');
         const yOffset = this.height / 2 - 50;
         this.ui.title.y = yOffset;
         
@@ -779,7 +777,6 @@ export default class StageCard {
             amount: this.getAmount(),
             max: this.getMax(),
             nextMax: this.getNextMax(),
-            upgradeStats: this.getUpgradeStats(),
             getReqData: this.getReqData(),
             availability: this.getAvailability(),
         };
