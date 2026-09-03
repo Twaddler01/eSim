@@ -398,7 +398,7 @@ function getTitle(id) {
     return id;
 }
 
-function actionButtonState(state, element = {}) {
+function actionButtonState(state, element = {}, activeText, inactiveText) {
     const newState = {
         locked: {
             id: 'locked',
@@ -418,10 +418,27 @@ function actionButtonState(state, element = {}) {
         
         active: {
             id: 'active',
-            display: 'GATHER',
+            display: activeText ?? 'GATHER',
             text: '#ffffff',
             fill: 0x335533,
             stroke: 0x66aa66
+        },
+
+        enabled: {
+            id: 'enabled',
+            display: 'UPGRADE',
+            text: '#ffffff',
+            fill: 0x335533,
+            stroke: 0x66aa66
+        },
+
+        // Gather upgrades
+        notReady: {
+            id: 'notReady',
+            display: inactiveText ?? 'NOT READY',
+            text: '#777777',
+            fill: 0x222222,
+            stroke: 0x555555
         }
     };
     

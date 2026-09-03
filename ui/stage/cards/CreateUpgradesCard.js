@@ -23,9 +23,14 @@ export default class CreateUpgradesCard {
 
         this.canAction = options.canAction ?? (() => false);
         this.onAction = options.onAction ?? null;
-        
+
+        // HELPERS
+        this.helpers = options.helpers ?? {};
+        // actionButtonState
+
         // Data
         this.getReqData = options.getReqData ?? (() => null);
+        this.getAvailability = options.getAvailability ?? (() => 'locked');
 
         this._actionHandler = () => {
             const reqs = this.getReqData();
@@ -205,7 +210,8 @@ export default class CreateUpgradesCard {
     update() {
         const data = {
             level: this.getLevel(),
-            reqData: this.getReqData()
+            reqData: this.getReqData(),
+            availability: this.getAvailability()
         };
     
         this.updateUI(data);
@@ -257,12 +263,13 @@ export default class CreateUpgradesCard {
             this.ui.upgradeAutoStatus.setText(upgradeStatus.text);
             this.ui.upgradeAutoStatus.setColor(upgradeStatus.color);
             this.ui.upgradeAutoLevel.setVisible(upgradeStatus.visible);
-      
-            this.ui.upgradeAutoButton
-                ?.setFillStyle(data.reqData.buttonFill)
-                .setStrokeStyle(1, data.reqData.buttonStroke);
-            this.ui.upgradeAutoButtonText
-                ?.setColor(data.reqData.buttonTextColor);
+        }
+        
+        if (data.availability) {
+            this.helpers.actionButtonState(data.availability, {
+                rectangle: this.ui.upgradeAutoButton,
+                text: this.ui.upgradeAutoButtonText
+            }, 'UPGRADE');
         }
     }
 

@@ -408,25 +408,12 @@ export default class CreateGatherCard {
     
         const upgradeAvailable =
             this.canUpgrade();
-    
-        if (upgradeAvailable) {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x335533)
-                .setStrokeStyle(1, 0x66aa66);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#ffffff');
-    
-        } else {
-    
-            this.gatherUI.upgradeButton
-                .setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-    
-            this.gatherUI.upgradeButtonText
-                ?.setColor('#777777');
-        }
+        const active = upgradeAvailable ? 'active' : 'notReady';
+        
+        this.helpers.actionButtonState(active, {
+            rectangle: this.gatherUI.upgradeButton,
+            text: this.gatherUI.upgradeButtonText
+        }, 'UPGRADE');
     }
 
     // PRIMARY GATHER UPDATE CALLS
@@ -450,7 +437,7 @@ export default class CreateGatherCard {
         this.updateGatherUpgrades(data.upgradeStats, data.amount);
         this.updateGatherUpgradeAvailability();
 
-        // For purchase button
+        // For gather button
         this.helpers.actionButtonState(data.availability, {
             rectangle: this.gatherUI.gatherButton,
             text: this.gatherUI.gatherButtonText
