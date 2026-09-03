@@ -32,6 +32,10 @@ export default class CreateGatherCard {
         this.canAction = options.canAction ?? (() => false);
         this.onAction = options.onAction ?? null;
         
+        // HELPERS
+        this.helpers = options.helpers ?? {};
+        // actionButtonState
+        
         // Data
         this.actionLabel = options.actionLabel ?? 'GATHER';
         this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
@@ -436,7 +440,6 @@ export default class CreateGatherCard {
         };
         
         this.updateUI(data);
-
     }
 
     // WIP Rework
@@ -448,50 +451,13 @@ export default class CreateGatherCard {
         this.updateGatherUpgradeAvailability();
 
         // For purchase button
-        this.updateGatherButton(data.availability);
-        
+        this.helpers.actionButtonState(data.availability, {
+            rectangle: this.gatherUI.gatherButton,
+            text: this.gatherUI.gatherButtonText
+        });
+
         const unlocked = data.availability !== 'locked';
         this.updateLockUI(unlocked);
-    }
-
-    updateGatherButton(state) {
-
-        // ACTIVE
-        if (state === 'active') {
-            // Gather
-            this.gatherUI.gatherButton
-                ?.setFillStyle(0x333333)
-                .setStrokeStyle(1, 0xffffff);
-            this.gatherUI.gatherButtonText
-                ?.setText(this.actionLabel)
-                .setColor('#ffffff');
-            return;
-        }
-    
-        // UNLOCKED
-        if (state === 'unlocked') {
-            // Gather
-            this.gatherUI.gatherButton?.setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-            this.gatherUI.gatherButtonText?.setText('LOCKED')
-                .setColor('#777777');
-            return;
-        }
-
-        // MAXED
-        if (state === 'maxed') {
-            // Gather only
-            this.gatherUI.gatherButton?.setFillStyle(0x222222)
-                .setStrokeStyle(1, 0x555555);
-            this.gatherUI.gatherButtonText?.setText('MAXED')
-                .setColor('#777777');
-            return;
-        }
-    
-        this.gatherUI.gatherButton?.setFillStyle(0x222222)
-            .setStrokeStyle(1, 0x555555);
-        this.gatherUI.gatherButtonText?.setText('LOCKED')
-            .setColor('#777777');
     }
 
     // DESTROY

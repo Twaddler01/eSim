@@ -59,7 +59,7 @@ export default class StageCard {
         this.getNextMax = options.getNextMax ?? (() => null);
         this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
         this.getAvailability = options.getAvailability ?? (() => 'locked');
-        
+
         // For CreateUpgradesCard, WIP CREATE
         this.getReqData = options.getReqData ?? (() => null);
 

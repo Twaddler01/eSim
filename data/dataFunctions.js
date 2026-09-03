@@ -101,18 +101,23 @@ function buildCardData(
 
         onAction: () =>
             stageProgress.handleCardAction(item, tab),
+
+        // UI HELPERS
+        helpers: {
+            actionButtonState
+        }
     };
 
     // SPECIAL CASES
     switch (tab) {
         case 'gather':
             data.getAvailability = () =>
-                stageProgress.getGatherAvailability(item, tab);
+                stageProgress.getGatherAvailability(item);
             break;
         case 'create':
             // Imcludes 'upgrades' subTab
             data.getAvailability = () =>
-                stageProgress.getCreateAvailability(item, tab);
+                stageProgress.getCreateAvailability(item);
             const requiredItems = stageProgress.getAllItems();
             const requirements = getRequirements(item.requirements, requiredItems);
             data.getReqData = () => 
@@ -235,7 +240,7 @@ export function getCreateUpgradesCardData(
 
         getAvailability:
             () =>
-                stageProgress.getUpgradeStatus(upgrade),
+                stageProgress.getCreateUpgradesStatus(upgrade),
         
         getLevel: 
             () =>
@@ -407,3 +412,47 @@ function getTitle(id) {
     if (objective) return objective.title;
     return id;
 }
+
+function actionButtonState(state, element = {}) {
+    const newState = {
+        locked: {
+            id: 'locked',
+            display: 'LOCKED',
+            text: '#777777',
+            fill: 0x222222,
+            stroke: 0x555555
+        },
+        
+        maxed: {
+            id: 'maxed',
+            display: 'MAXED',
+            text: '#777777',
+            fill: 0x222222,
+            stroke: 0x555555
+        },
+        
+        active: {
+            id: 'active',
+            display: 'GATHER',
+            text: '#ffffff',
+            fill: 0x335533,
+            stroke: 0x66aa66
+        }
+    };
+    
+    const ui = newState[state];
+
+    element.rectangle
+        ?.setFillStyle(ui.fill)
+        .setStrokeStyle(1, ui.stroke);
+
+    element.text
+        ?.setText(ui.display)
+        .setColor(ui.text);
+}
+/* USAGE;
+this.actionButtonState(data.availability, {
+    rectangle: this.gatherUI.gatherButton,
+    text: this.gatherUI.gatherButtonText
+});
+*/

@@ -39,11 +39,11 @@ export default class StageProgressManager {
     getReqData(data, requirements) {
         
         // NOTE: this.getUnlocked(upgrade.item) needs custom requirements for other tabs
-        let isUnlocked, getUpgradeStatus;
+        let isUnlocked, getCreateUpgradesStatus;
 
         if (data.tab === 'create') {
             isUnlocked = this.getCreateAvailability(data, data.tab) !== 'locked';
-            getUpgradeStatus = this.getUpgradeStatus(data);
+            getCreateUpgradesStatus = this.getCreateUpgradesStatus(data);
         } else {
             isUnlocked = this.getUnlocked(data.item);
         }
@@ -58,7 +58,7 @@ export default class StageProgressManager {
                 buttonTextColor: isUnlocked ? '#ffffff' : '#777777',
                 buttonFill: isUnlocked ? 0x335533 : 0x222222,
                 buttonStroke: isUnlocked ? 0x66aa66 : 0x555555,
-                upgradeStatus: getUpgradeStatus
+                upgradeStatus: getCreateUpgradesStatus
             };
         }
 
@@ -97,20 +97,21 @@ export default class StageProgressManager {
             buttonTextColor: allMet ? '#ffffff' : '#777777',
             buttonFill: allMet ? 0x335533 : 0x222222,
             buttonStroke: allMet ? 0x66aa66 : 0x555555,
-            upgradeStatus: getUpgradeStatus,
+            upgradeStatus: getCreateUpgradesStatus,
             produces: producesItems ?? null
         };
     }
 
     // Availability (gather) / for getCardCanAction() ('active' = true)
-    getGatherAvailability(item, tab) {
-        // GATHER ITEM
+    getGatherAvailability(item) {
+        let state = 'locked';
+        
         const unlocked =
             item.startsUnlocked ||
             this.getUnlocked(item.id);
 
-        if (!unlocked) {
-            return 'locked';
+        if (unlocked) {
+            state = 'active';
         }
 
         const amount =
@@ -123,14 +124,14 @@ export default class StageProgressManager {
             max != null &&
             amount >= max
         ) {
-            return 'maxed';
+            state = 'maxed';
         }
-    
-        return 'active';
+        
+        return state;
     }
 
     // Availability (create) / for getCardCanAction() ('active' = true)
-    getCreateAvailability(item, tab) {
+    getCreateAvailability(item) {
         // CreateUpgrades
         if (item.subTab === 'upgrades') {
             const isActive = this.isCreateUpgradesActive(item.item);
@@ -160,7 +161,7 @@ export default class StageProgressManager {
     }
 
     // Availability (create -> upgrades)
-    getUpgradeStatus(item) {
+    getCreateUpgradesStatus(item) {
         if (!item) return;
         
         // Get status of item affected by upgrade (unlocked = active)
@@ -355,10 +356,10 @@ export default class StageProgressManager {
 
     getCardCanAction(item) {
         if (item.tab === 'gather') {
-            return this.getGatherAvailability(item, item.tab) === 'active';
+            return this.getGatherAvailability(item) === 'active';
         }
         if (item.tab === 'create') {
-            return this.getCreateAvailability(item, item.tab) === 'active';
+            return this.getCreateAvailability(item) === 'active';
         }
     }
     
