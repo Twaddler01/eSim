@@ -10,22 +10,18 @@ export function getCurrentTabCardData(
     objectivesManager
 ) {
 
-    // Custom array
+    let cards = stageItems.filter(item => item.tab === tab);
+    
+    // Custom array: createUpgrades
     if (
         tab === 'create' &&
         subTab === 'upgrades'
     ) {
-        return getCreateUpgradesCardData(
+        cards = getCreateUpgradesCardData(
             stageProgress,
             autoGather
         );
     }
-
-    // Gather / Create only (stageItems)
-    let cards =
-        stageItems.filter(
-            item => item.tab === tab
-        );
 
     // Discover (stageObjectives)
     if (tab === 'discover') {
@@ -46,6 +42,7 @@ export function getCurrentTabCardData(
                 tab,
                 subTab,
                 stageProgress,
+                autoGather,
                 objectivesManager
             )
         );
@@ -65,8 +62,10 @@ function buildCardData(
     tab,
     subTab,
     stageProgress,
+    autoGather,
     objectivesManager
 ) {
+    // FOR ALL TABS
     const data = {
         ...item,
 
@@ -90,12 +89,6 @@ function buildCardData(
             ),
 
         // ACTIONS
-        canUpgrade: () =>
-            stageProgress.gatherUpgradeAvailable(item),
-
-        onUpgrade: () =>
-            stageProgress.upgradeGather(item),
-
         canAction: () =>
             stageProgress.getCardCanAction(item),
 
@@ -108,11 +101,21 @@ function buildCardData(
         }
     };
 
+    if (tab === 'create' && subTab === 'upgrades') {
+        tab = 'create-upgrwdes';
+    }
+
     // SPECIAL CASES
     switch (tab) {
         case 'gather':
             data.getAvailability = () =>
                 stageProgress.getGatherAvailability(item);
+            
+            data.canUpgrade = () =>
+                stageProgress.gatherUpgradeAvailable(item);
+            
+            data.onUpgrade = () =>
+                stageProgress.upgradeGather(item);
             break;
         case 'create':
             // Imcludes 'upgrades' subTab
@@ -120,8 +123,26 @@ function buildCardData(
                 stageProgress.getCreateAvailability(item);
             const requiredItems = stageProgress.getAllItems();
             const requirements = getRequirements(item.requirements, requiredItems);
+            
             data.getReqData = () => 
                 stageProgress.getReqData(item, requirements);
+            break;
+        case 'create-upgrwdes':
+            data.getReqData = () => 
+                stageProgress.getReqData(item, item.requirements);
+            
+            // Same as level for now (upgrade quantity = level)
+            data.itemAmount = () =>
+                stageProgress.get(item.item);
+
+            data.getAvailability = () =>
+                stageProgress.getCreateUpgradesStatus(item);
+        
+            data.getLevel = () =>
+                stageProgress.getAutoGatherAmount(item.item);
+
+            data.onAction = () => 
+                onAction_createUpgrades(item, stageProgress, autoGather);
             break;
         case 'discover':
             data.getAvailability = () =>
@@ -208,14 +229,14 @@ export function getCreateUpgradesCardData(
     stageProgress,
     autoGather
 ) {
-    const addData = [];
+    const data = [];
     
     const gatherItems = stageProgress.getGatherItems();
     gatherItems.forEach(item => {
 
         const requirements = getRequirements(item.autoReq, gatherItems);
         
-        addData.push({
+        data.push({
             tab: 'create',
             // Must be assigned for default tab
             subTab: 'upgrades',
@@ -224,45 +245,9 @@ export function getCreateUpgradesCardData(
             item: item.id, // item upgrade is for -- WIP customized
             requirements: requirements ?? false
         });
-    })
+    });
 
-    const returnData = addData.map(upgrade => ({
-        ...upgrade,
-        
-        getReqData:
-            () => 
-                stageProgress.getReqData(upgrade, upgrade.requirements),
-        
-        // Same as level for now (upgrade quantity = level)
-        itemAmount:
-            () =>
-                stageProgress.get(upgrade.item),
-
-        getAvailability:
-            () =>
-                stageProgress.getCreateUpgradesStatus(upgrade),
-        
-        getLevel: 
-            () =>
-                stageProgress.getAutoGatherAmount(upgrade.item),
-        
-        canAction:
-            () =>
-                stageProgress.getCardCanAction(upgrade),
-        
-        onAction: () => {
-            const level =
-                stageProgress.upgradeAutoGather(
-                    upgrade.item, upgrade.requirements
-                );
-            autoGather.setActive(
-                upgrade.item,
-                level
-            );
-        },
-    }));
-
-    return returnData;
+    return data;
 }
 
 // Returns title with id/cost
@@ -456,3 +441,14 @@ this.actionButtonState(data.availability, {
     text: this.gatherUI.gatherButtonText
 });
 */
+
+function onAction_createUpgrades(item, stageProgress, autoGather) {
+    const level =
+        stageProgress.upgradeAutoGather(
+            item.item, item.requirements
+        );
+    autoGather.setActive(
+        item.item,
+        level
+    );
+}
