@@ -7,11 +7,13 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In Progress
+- Creating an "exluded" status to completely hide/not display certain cards.
 - Reworking StageCard to use individual classes for each tab.
 - Need tab titles at top of viewport to better show user navigation.
 
 # Recent Updates
 09-03-2026
+- Cleaned up GetCurrentTabCardData and other functions to better organize them.  
 - Reworked card data updates to push minimal data needed for create / live updates (matching CreateUpgradesCard class data setup).
 
 # Future Updates / Ideas
