@@ -2,11 +2,12 @@ import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
 
 export default class DebugButtons {
 
-    constructor(scene, stageProgress) {
+    constructor(scene) {
         this.scene = scene;
         this.saveManager = this.scene.registry.get('saveManager');
         
-        this.stageProgress = stageProgress;
+        this.stageProgress = this.scene.stageProgress;
+        this.objectivesManager = this.scene.objectivesManager;
 
         this.container = this.scene.add.container();
         // Place on top of everything
@@ -35,11 +36,18 @@ this.addButton('unlock the_void (gather)', () => {
 });*/
 ////
 this.addSelectButton(
-    'UNLOCK',
+    'UNLOCK ITEMS',
     this.getUnlockIds(),
     id => {
-        jp(id);
         this.stageProgress.unlock(id);
+    }
+);
+////
+this.addSelectButton(
+    'UNLOCK OBJECTIVES',
+    this.getObjectiveUnlockIds(),
+    id => {
+        this.objectivesManager.unlockObjective(id);
     }
 );
 ////
@@ -198,15 +206,28 @@ this.addButton('gameTimer', () => {
 
     // DEBUG BUTTON HELPERS
     getUnlockIds() {
-        let allCardIds = 
+        let cards = 
             this.stageProgress.getAllCardIds();
-        
-        allCardIds = allCardIds.map(item => ({
+
+        cards = cards.map(item => ({
                 id: item.id,
-                title: item.title
+                title: item.title,
+                tab: item.tab
+            })).filter(item => item.tab !== 'discover');
+        
+        return cards;
+    }
+
+    getObjectiveUnlockIds() {
+        let cards = 
+            this.objectivesManager.getAllObjectives();
+
+        cards = cards.map(item => ({
+                id: item.id,
+                title: item.title,
             }));
         
-        return allCardIds;
+        return cards;
     }
 
     addSelectButton(label, options, onSelect) {
@@ -238,11 +259,16 @@ this.addButton('gameTimer', () => {
 
         options.forEach((option, index) => {
     
-            const y = index * 45;
-    
+            const rows = 21;
+            const column = Math.floor(index / rows);
+            const row = index % rows;
+        
+            const x = column * 305;
+            const y = row * 45;
+
             const background =
                 this.scene.add.rectangle(
-                    0,
+                    x,
                     y,
                     300,
                     40,
@@ -253,7 +279,7 @@ this.addButton('gameTimer', () => {
     
             const text =
                 this.scene.add.text(
-                    10,
+                    x + 10,
                     y + 10,
                     option.title,
                     {

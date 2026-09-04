@@ -24,14 +24,10 @@ export function getCurrentTabCardData(
 
     // Discover (stageObjectives)
     if (tab === 'discover') {
-
         const discoverCards =
             getDiscoverCardData(objectivesManager);
 
-        cards = [
-            ...discoverCards,
-            ...cards
-        ];
+        cards = discoverCards;
     }
 
     cards = cards

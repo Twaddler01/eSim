@@ -54,7 +54,6 @@ export default class StageProgressManager {
         if (!requirements) {
             return {
                 id: data.id,
-                unlocked: isUnlocked,
                 noReq: true,
                 requirements: {},
                 allMet: true,
@@ -94,7 +93,6 @@ export default class StageProgressManager {
         
         return {
             id: data.id,
-            unlocked: isUnlocked,
             requirements: allData,
             allMet: allMet,
             buttonTextColor: allMet ? '#ffffff' : '#777777',
@@ -115,6 +113,39 @@ export default class StageProgressManager {
         
         return 'locked';
     }
+
+// WIP new? 
+getCardState(item) {
+    
+    let tab = item.tab;
+    const subTab = item.subTab;
+    
+    if (subTab === 'upgrades') {
+        tab = 'create-upgrades';
+    }
+    
+    let state = 'locked'
+    switch (tab) {
+        case 'gather':
+            let gatherState = this.getGatherAvailability(item);
+            
+            return {
+                gather: gatherState,
+                upgrade: null
+            };
+            break;
+        case 'create':
+            
+            break;
+        case 'create-items':
+            
+            break;
+        case 'discover':
+            
+            break;
+    }
+    
+}
 
     // Availability (gather) / for getCardCanAction() ('active' = true)
     getGatherAvailability(item) {

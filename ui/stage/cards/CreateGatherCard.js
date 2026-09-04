@@ -46,7 +46,6 @@ export default class CreateGatherCard {
         // Data
         this.actionLabel = options.actionLabel ?? 'GATHER';
         this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
-        this.unlocked = options.unlocked ?? (() => false);
 
         // Button event handler
         this._actionHandler = () => {
