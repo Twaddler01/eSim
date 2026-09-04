@@ -35,7 +35,7 @@ export default class CreateUpgradesCard {
         
         // For create button (stageProgress.getCreateUpgradesStatus)
         // enabled, active, locked
-        this.getAvailability = options.getAvailability ?? (() => 'locked');
+        this.getCardState = options.getCardState ?? (() => 'locked');
 
         this._actionHandler = () => {
             const reqs = this.getReqData();
@@ -216,7 +216,7 @@ export default class CreateUpgradesCard {
         const data = {
             level: this.getLevel(),
             reqData: this.getReqData(),
-            availability: this.getAvailability()
+            state: this.getCardState()
         };
     
         this.updateUI(data);
@@ -271,8 +271,8 @@ export default class CreateUpgradesCard {
             this.ui.upgradeAutoLevel.setVisible(upgradeStatus.visible);
         }
         
-        if (data.availability) {
-            this.helpers.actionButtonState(data.availability, {
+        if (data.state) {
+            this.helpers.actionButtonState(data.state, {
                 rectangle: this.ui.upgradeAutoButton,
                 text: this.ui.upgradeAutoButtonText
             }, 'UPGRADE');

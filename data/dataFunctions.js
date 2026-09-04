@@ -11,7 +11,7 @@ export function getCurrentTabCardData(
 ) {
     let cards = stageItems.filter(item => item.tab === tab);
 
-    // Custom array: createUpgrades
+    // Custom array: create-upgrades tab
     if (
         tab === 'create' &&
         subTab === 'upgrades'
@@ -102,8 +102,8 @@ function buildCardData(
     // SPECIAL CASES
     switch (tab) {
         case 'gather':
-            data.getAvailability = () =>
-                stageProgress.getGatherAvailability(item);
+            data.getCardState = () =>
+                stageProgress.getCardState(item);
 
             data.getUpgradeStats = () =>
                 stageProgress.getGatherUpgradeStats(item.id, item);
@@ -116,16 +116,15 @@ function buildCardData(
             break;
         case 'create':
             // Imcludes 'upgrades' subTab
-            data.getAvailability = () =>
-                stageProgress.getCreateAvailability(item);
+            data.getCardState = () =>
+                stageProgress.getCardState(item);
+            
             const requiredItems = stageProgress.getAllItems();
             const requirements = getRequirements(item.requirements, requiredItems);
-            
             data.getReqData = () => 
                 stageProgress.getReqData(item, requirements);
             break;
         case 'create-upgrwdes':
-            
             data.getReqData = () => // Calculates unlock
                 stageProgress.getReqData(item, item.requirements);
             
@@ -133,8 +132,8 @@ function buildCardData(
             data.itemAmount = () =>
                 stageProgress.get(item.item);
 
-            data.getAvailability = () =>
-                stageProgress.getCreateUpgradesStatus(item);
+            data.getCardState = () =>
+                stageProgress.getCardState(item);
         
             data.getLevel = () =>
                 stageProgress.getAutoGatherAmount(item.item);
@@ -143,7 +142,7 @@ function buildCardData(
                 onAction_createUpgrades(item, stageProgress, autoGather);
             break;
         case 'discover':
-            data.getAvailability = () =>
+            data.getCardState = () =>
                 objectivesManager.getObjectiveAvailability(item);
             break;
     }
@@ -182,7 +181,7 @@ function sortTabCards(
             const completed =
                 sorted
                     .filter(card =>
-                        card.getAvailability() === 'completed'
+                        card.getCardState() === 'completed'
                     )
                     .sort((a, b) =>
                         objectivesManager.getCompletionOrder(b.id) -
@@ -193,7 +192,7 @@ function sortTabCards(
         
             return sorted.map(card => {
         
-                if (card.getAvailability() === 'completed') {
+                if (card.getCardState() === 'completed') {
                     return completed[completedIndex++];
                 }
         
@@ -213,8 +212,8 @@ export function sortByAvailability(
 ) {
     return [...data].sort(
         (a, b) =>
-            (order[a.getAvailability()] ?? 999) -
-            (order[b.getAvailability()] ?? 999)
+            (order[a.getCardState()] ?? 999) -
+            (order[b.getCardState()] ?? 999)
     );
 }
 
@@ -397,6 +396,11 @@ function getTitle(id) {
 }
 
 function actionButtonState(state, element = {}, activeText, inactiveText) {
+    
+    const stateId = typeof state === 'object'
+        ? state.state
+        : state;
+
     const newState = {
         locked: {
             id: 'locked',
@@ -422,14 +426,6 @@ function actionButtonState(state, element = {}, activeText, inactiveText) {
             stroke: 0x66aa66
         },
 
-        enabled: {
-            id: 'enabled',
-            display: 'UPGRADE',
-            text: '#ffffff',
-            fill: 0x335533,
-            stroke: 0x66aa66
-        },
-
         // Gather upgrades
         notReady: {
             id: 'notReady',
@@ -440,7 +436,7 @@ function actionButtonState(state, element = {}, activeText, inactiveText) {
         }
     };
     
-    const ui = newState[state];
+    const ui = newState[stateId];
 
     element.rectangle
         ?.setFillStyle(ui.fill)

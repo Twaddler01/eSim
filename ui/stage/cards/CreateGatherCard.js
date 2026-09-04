@@ -27,10 +27,7 @@ export default class CreateGatherCard {
         this.onUpgrade = options.onUpgrade ?? null;
         this.getMax = options.getMax ?? (() => null);
         this.getNextMax = options.getNextMax ?? (() => null);
-        
-        // For gather button (stageProgress.getGatherAvailability)
-        // locked / active / maxed
-        this.getAvailability = options.getAvailability ?? (() => 'locked');
+        this.getCardState = options.getCardState ?? (() => 'locked');
         
         this.updateLockUI = options.updateLockUI ?? (() => {});
         // For lock overlay (discover tab)  or filter in other tabs
@@ -430,7 +427,7 @@ export default class CreateGatherCard {
             max: this.getMax(),
             nextMax: this.getNextMax(),
             upgradeStats: this.getUpgradeStats(),
-            availability: this.getAvailability(),
+            state: this.getCardState(),
         };
         
         this.updateUI(data);
@@ -442,10 +439,10 @@ export default class CreateGatherCard {
         
         // WIP integrate within getCurrentTabCardData
         this.updateGatherUpgrades(data.upgradeStats, data.amount);
-        this.updateGatherUpgradeAvailability(data.availability);
+        this.updateGatherUpgradeAvailability(data.state);
 
         // For gather button
-        this.helpers.actionButtonState(data.availability, {
+        this.helpers.actionButtonState(data.state, {
             rectangle: this.gatherUI.gatherButton,
             text: this.gatherUI.gatherButtonText
         });

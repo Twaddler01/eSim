@@ -115,7 +115,7 @@ export default class StageProgressManager {
     }
 
 // WIP new? 
-getCardState(item) {
+getCardState(item, requirements) {
     
     let tab = item.tab;
     const subTab = item.subTab;
@@ -124,22 +124,73 @@ getCardState(item) {
         tab = 'create-upgrades';
     }
     
+    const isActive = this.getUnlocked(item.id);
+    let requirementsMet = false;
     let state = 'locked'
     switch (tab) {
         case 'gather':
-            let gatherState = this.getGatherAvailability(item);
-            
-            return {
-                gather: gatherState,
-                upgrade: null
-            };
-            break;
+            state = this.getGatherAvailability(item);
+            // Data driven, needs different function?
+            //const upgradeState = this.getGatherUpgradeStats(item.id, item);
+            return state;
         case 'create':
+            // this.getCreateAvailability(item);
             
-            break;
-        case 'create-items':
+            //// new TEST_UNLOCK: requires only unlock
+            if (isActive) {
+                state = 'active';
+            }
+            ////
+    
+            // Auto unlocks based on requirements
+            // CREATE -> ITEMS
+            /*if (!this.isCreateItemUnlocked(item)) {
+                return 'locked';
+            }*/
+    
+            requirementsMet =
+                Object.entries(item.requirements ?? {})
+                    .every(([id, required]) => {
+                        return this.get(id) >= required;
+                    });
+    
+            if (isActive && !requirementsMet) {
+                state = 'notReady';
+            }
+    
+            return state;
+        case 'create-upgrades':
+            // this.getCreateUpgradesStatus(item);
+            //const isActive = this.isCreateUpgradesActive(item.item);
+            let enabledState = false
+    
+            if (isActive) {
+                const level = this.autoGatherLevels[item.item];
+    
+                if (level > 0) {
+                    // Auto gather UI status 
+                    enabledState = true;
+                }
+                state = 'active';
+            }
+
+            if (item.requirements) {
+                requirementsMet = item.requirements
+                    .every(req => this.get(req.id) >= req.amt);
+            }
             
-            break;
+            if (isActive && !requirementsMet) {
+                state = 'notReady';
+            }
+
+            if (enabledState) {
+                return {
+                    state,
+                    enabledState
+                };
+            }
+        
+            return state;
         case 'discover':
             
             break;

@@ -63,7 +63,7 @@ export default class StageCard {
         // WIP Need renamimg/revamping of 'availiability' for all cards.
         // active, locked, unlocked (stageProgress.getCreateAvailability)
         // locked, active, completed objectives (objectivesManager.getObjectiveAvailability)
-        this.getAvailability = options.getAvailability ?? (() => 'locked');
+        this.getCardState = options.getCardState ?? (() => 'locked');
 
         // For CreateUpgradesCard, WIP CREATE
         this.getReqData = options.getReqData ?? (() => null);
@@ -75,6 +75,10 @@ export default class StageCard {
         // Callbacks
         this.canAction = options.canAction ?? (() => true);
         this.onAction = options.onAction ?? null;
+
+        // HELPERS
+        this.helpers = options.helpers ?? {};
+        // actionButtonState
 
         // For tracking objectives in DISCOVER tab
         this.objectivesManager = options.objectivesManager ?? null;
@@ -461,7 +465,7 @@ export default class StageCard {
             .setOrigin(0)
         );
         
-        const availability = this.getAvailability();
+        const availability = this.getCardState();
         const requireText = availability === 'completed' ? 'Required:' : 'Requires:';
         this.discoverUI.requireLabel =
             this.addElement(
@@ -785,8 +789,8 @@ export default class StageCard {
             amount: this.getAmount(),
             max: this.getMax(),
             nextMax: this.getNextMax(),
-            getReqData: this.getReqData(),
-            availability: this.getAvailability(),
+            reqData: this.getReqData(),
+            state: this.getCardState(),
         };
 
         this.updateUI(data);
@@ -820,18 +824,15 @@ export default class StageCard {
 
     // PRIMARY CREATE UPDATE CALLS
     updateCreate(data) {
-        this.updateCreateRequirements(data.getReqData);
+        this.updateCreateRequirements(data);
         const lockedState = this.getLockState();
         this.updateLockUI(lockedState === 'locked');
     }
 
     // Create live updates
     updateCreateRequirements(data) {
-        if (!data) {
-            return;
-        }
 
-        data.requirements.forEach(
+        data.reqData.requirements.forEach(
             (require, index) => {
                 const text =
                     this.createUI.requiresLabels[index];
@@ -858,18 +859,18 @@ export default class StageCard {
         );*/
 
         // Update CREATE button
-        this.createUI.createButton
-            ?.setFillStyle(data.buttonFill)
-            .setStrokeStyle(1, data.buttonStroke);
-    
-        this.createUI.createButtonText
-            ?.setColor(data.buttonTextColor);
+        if (data.state) {
+            this.helpers.actionButtonState(data.state, {
+                rectangle: this.createUI.createButton,
+                text: this.createUI.createButtonText
+            }, 'CREATE');
+        }
     }
 
     updateDiscover(data) {
         this.updateTracking();
         // Replaces this.getLockState() / updateLockUI not needed
-        this.updateAvailability(data.availability);
+        this.updateAvailability(data.state);
     }
 
 //--------------------------------
