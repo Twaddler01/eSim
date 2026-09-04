@@ -39,15 +39,18 @@ export default class StageProgressManager {
     getReqData(data, requirements) {
         
         // NOTE: this.getUnlocked(upgrade.item) needs custom requirements for other tabs
+        // ONLY for ui updates
         let isUnlocked, getCreateUpgradesStatus;
 
         if (data.tab === 'create') {
+            // UI only
             isUnlocked = this.getCreateAvailability(data, data.tab) !== 'locked';
+            // Actual card unlock status
             getCreateUpgradesStatus = this.getCreateUpgradesStatus(data);
         } else {
             isUnlocked = this.getUnlocked(data.item);
         }
-        
+
         if (!requirements) {
             return {
                 id: data.id,
@@ -102,6 +105,17 @@ export default class StageProgressManager {
         };
     }
 
+    // Lock state
+    getLockState(item) {
+        const unlocked = item.startsUnlocked || this.getUnlocked(item.id);
+        
+        if (unlocked) {
+            return 'unlocked';
+        }
+        
+        return 'locked';
+    }
+
     // Availability (gather) / for getCardCanAction() ('active' = true)
     getGatherAvailability(item) {
         let state = 'locked';
@@ -134,13 +148,23 @@ export default class StageProgressManager {
     getCreateAvailability(item) {
         // CreateUpgrades
         if (item.subTab === 'upgrades') {
-            const isActive = this.isCreateUpgradesActive(item.item);
+
+            // TEST_UNLOCK: requires only unlock --  OVERLAY ONLY 
+            const isActive = this.getUnlocked(item.id);
+            //const isActive = this.isCreateUpgradesActive(item.item);
+            
             if (isActive) {
                 return 'active';
             } else {
                 return 'locked';
             }
         }
+
+        //// new TEST_UNLOCK: requires only unlock
+        if (this.getUnlocked(item.id)) {
+            return 'active';
+        }
+        ////
 
         // CREATE -> ITEMS
         if (!this.isCreateItemUnlocked(item)) {
@@ -165,7 +189,9 @@ export default class StageProgressManager {
         if (!item) return;
         
         // Get status of item affected by upgrade (unlocked = active)
-        const isActive = this.isCreateUpgradesActive(item.item);
+        // TEST_UNLOCK: requires only unlock
+        const isActive = this.getUnlocked(item.id);
+        //const isActive = this.isCreateUpgradesActive(item.item);
 
         if (isActive) {
             const level = this.autoGatherLevels[item.item];
@@ -605,11 +631,40 @@ export default class StageProgressManager {
         return this.stageItems;
     }
 
+    getAllCardIds() {
+        // Gather and Create tab
+        const stageGather_Create = this.stageItems;
+        
+        // Create -> Upgrades tab
+        const stageCreateUpgrades = [];
+        // See fn.getCreateUpgradesCardData
+        const gatherItems = this.getGatherItems();
+        gatherItems.forEach(item => {
+            stageCreateUpgrades.push({
+                id: item.id + '_gather_upgrade',
+                title: item.title + ' UPGRADES',
+                tab: 'create',
+                subTab: 'upgrades' ?? null
+            });
+        });
+
+        // Discover tab
+        const stageDiscover = this.objectives;
+
+        const returnData = [
+            ...stageGather_Create,
+            ...stageCreateUpgrades,
+            ...stageDiscover
+        ];
+        
+        return returnData;
+    }
+
     // --------------------------------------------------
     // GETTERS AND SETTERS
     // --------------------------------------------------
 
-    getAll() {
+    getAllValues() {
         return { ...this.values };
     }
 
@@ -682,7 +737,7 @@ export default class StageProgressManager {
         return this.unlocked[id] === true;
     }
     
-    unlock(id) {
+    unlock(id, type) {
         if (this.unlocked[id]) {
             return;
         }
@@ -696,7 +751,7 @@ export default class StageProgressManager {
         });
     }
     
-    lock(id) {
+    lock(id, type) {
         delete this.unlocked[id];
         this.sync();
         

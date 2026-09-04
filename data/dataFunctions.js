@@ -9,9 +9,8 @@ export function getCurrentTabCardData(
     autoGather,
     objectivesManager
 ) {
-
     let cards = stageItems.filter(item => item.tab === tab);
-    
+
     // Custom array: createUpgrades
     if (
         tab === 'create' &&
@@ -35,8 +34,8 @@ export function getCurrentTabCardData(
         ];
     }
 
-    cards =
-        cards.map(item =>
+    cards = cards
+        .map(item =>
             buildCardData(
                 item,
                 tab,
@@ -45,7 +44,8 @@ export function getCurrentTabCardData(
                 autoGather,
                 objectivesManager
             )
-        );
+            // WIP
+        ); //.filter(card => card.getAvailability() !== 'locked' || card.tab === 'discover');
 
     return sortTabCards(
         cards,
@@ -71,6 +71,10 @@ function buildCardData(
 
         // Assign subTab id for CREATE -> ITEMS (subTab default)
         subTab: subTab ?? null,
+
+        // Lock state
+        getLockState: () =>
+            stageProgress.getLockState(item),
 
         // LIVE DATA
         getAmount: () =>
@@ -125,7 +129,8 @@ function buildCardData(
                 stageProgress.getReqData(item, requirements);
             break;
         case 'create-upgrwdes':
-            data.getReqData = () => 
+            
+            data.getReqData = () => // Calculates unlock
                 stageProgress.getReqData(item, item.requirements);
             
             // Same as level for now (upgrade quantity = level)
@@ -465,4 +470,37 @@ function onAction_createUpgrades(item, stageProgress, autoGather) {
         item.item,
         level
     );
+}
+
+export function getTabAvailability(
+    tab,
+    stageProgress,
+    autoGather,
+    objectivesManager
+) {
+    // Discover is always available
+    if (tab === 'discover') {
+        return 'active';
+    }
+
+    const cards = stageItems.filter(
+        item => item.tab === tab
+    );
+
+    const hasUnlockedCard = cards.some(item => {
+        const card = buildCardData(
+            item,
+            tab,
+            null,
+            stageProgress,
+            autoGather,
+            objectivesManager
+        );
+
+        return card.getAvailability() !== 'locked';
+    });
+
+    return hasUnlockedCard
+        ? 'active'
+        : 'locked';
 }

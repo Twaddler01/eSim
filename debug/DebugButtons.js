@@ -8,7 +8,7 @@ export default class DebugButtons {
         
         this.stageProgress = stageProgress;
 
-        this.container = scene.add.container();
+        this.container = this.scene.add.container();
         // Place on top of everything
         this.container.setDepth(1000);
 
@@ -32,11 +32,21 @@ this.addButton('Clear Save Data', () => {
 ////
 this.addButton('unlock the_void (gather)', () => {
     this.stageProgress.unlock('the_void');
-});
-////
-this.addButton('LOCK black_hole (create)', () => {
-    this.stageProgress.lock('black_hole');
 });*/
+////
+this.addSelectButton(
+    'UNLOCK',
+    this.getUnlockIds(),
+    id => {
+        jp(id);
+        this.stageProgress.unlock(id);
+    }
+);
+////
+this.addButton('SHOW UNLOCKED', () => {
+    const unlocked = this.stageProgress.getAllUnlocked();
+    jp(unlocked);
+});
 ////
 this.addButton('Show current savedData', () => {
     this.saveManager.debug();
@@ -185,4 +195,90 @@ this.addButton('gameTimer', () => {
 
         this.y += this.buttonHeight + this.spacing;
     }
+
+    // DEBUG BUTTON HELPERS
+    getUnlockIds() {
+        let allCardIds = 
+            this.stageProgress.getAllCardIds();
+        
+        allCardIds = allCardIds.map(item => ({
+                id: item.id,
+                title: item.title
+            }));
+        
+        return allCardIds;
+    }
+
+    addSelectButton(label, options, onSelect) {
+        const button = this.addButton(label, () => {
+            this.showSelect(
+                options,
+                onSelect
+            );
+        });
+    
+        return button;
+    }
+
+    showSelect(options, onSelect) {
+        // Don't create another selector
+        if (this.activeSelect) {
+            this.closeSelect();
+            return;
+        }
+    
+        const container = this.scene.add.container(
+            20,
+            300
+        );
+    
+        this.activeSelect = container;
+        this.activeSelect.setDepth(99999);
+        this.scene.children.bringToTop(this.activeSelect);
+
+        options.forEach((option, index) => {
+    
+            const y = index * 45;
+    
+            const background =
+                this.scene.add.rectangle(
+                    0,
+                    y,
+                    300,
+                    40,
+                    0x222222
+                )
+                .setOrigin(0)
+                .setInteractive();
+    
+            const text =
+                this.scene.add.text(
+                    10,
+                    y + 10,
+                    option.title,
+                    {
+                        fontSize: '18px',
+                        color: '#ffffff'
+                    }
+                );
+    
+            background.on('pointerdown', () => {
+    
+                onSelect(option.id);
+    
+                this.closeSelect();
+            });
+    
+            container.add([
+                background,
+                text
+            ]);
+        });
+    }
+
+    closeSelect() {
+        this.activeSelect?.destroy();
+        this.activeSelect = null;
+    }
+
 }

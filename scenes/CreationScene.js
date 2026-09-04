@@ -1,3 +1,5 @@
+import DebugButtons from '../debug/DebugButtons.js';
+import { DEBUG } from '../config.js';
 import StageUI from '../ui/stage/StageUI.js';
 import { gameData } from '../data/gameData.js';
 import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
@@ -39,6 +41,13 @@ export default class CreationScene extends Phaser.Scene {
 
         this.stageProgress =
             new StageProgressManager(this.gameData, stageData, stageItems, this.stageObjectives, this.stageProgressState);
+
+//// Debugging
+if (DEBUG) {
+    this.debugButtons = 
+        new DebugButtons(this, this.stageProgress);
+}
+////
 
         this.objectivesManager  =
             new ObjectivesManager(this.stageProgress, this.stageProgressState);

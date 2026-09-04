@@ -20,6 +20,8 @@ export default class CreateUpgradesCard {
 
         // From StageCard
         this.updateLockUI = options.updateLockUI ?? (() => {});
+        // For lock overlay (discover tab)  or filter in other tabs
+        this.getLockState = options.getLockState ?? (() => 'locked');
 
         this.canAction = options.canAction ?? (() => false);
         this.onAction = options.onAction ?? null;
@@ -30,6 +32,9 @@ export default class CreateUpgradesCard {
 
         // Data
         this.getReqData = options.getReqData ?? (() => null);
+        
+        // For create button (stageProgress.getCreateUpgradesStatus)
+        // enabled, active, locked
         this.getAvailability = options.getAvailability ?? (() => 'locked');
 
         this._actionHandler = () => {
@@ -226,7 +231,8 @@ export default class CreateUpgradesCard {
         // For status and purchase button
         this.updateAvailability(data);
 
-        this.updateLockUI(data.reqData.unlocked);
+        const lockedState = this.getLockState();
+        this.updateLockUI(lockedState === 'locked');
     }
 
     updateRequirements(reqData) {

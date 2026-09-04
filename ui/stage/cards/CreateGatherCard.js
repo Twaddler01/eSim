@@ -27,8 +27,15 @@ export default class CreateGatherCard {
         this.onUpgrade = options.onUpgrade ?? null;
         this.getMax = options.getMax ?? (() => null);
         this.getNextMax = options.getNextMax ?? (() => null);
+        
+        // For gather button (stageProgress.getGatherAvailability)
+        // locked / active / maxed
         this.getAvailability = options.getAvailability ?? (() => 'locked');
+        
         this.updateLockUI = options.updateLockUI ?? (() => {});
+        // For lock overlay (discover tab)  or filter in other tabs
+        this.getLockState = options.getLockState ?? (() => 'locked');
+
         this.canAction = options.canAction ?? (() => false);
         this.onAction = options.onAction ?? null;
         
@@ -444,8 +451,8 @@ export default class CreateGatherCard {
             text: this.gatherUI.gatherButtonText
         });
 
-        const unlocked = data.availability !== 'locked';
-        this.updateLockUI(unlocked);
+        const lockedState = this.getLockState();
+        this.updateLockUI(lockedState === 'locked');
     }
 
     // DESTROY

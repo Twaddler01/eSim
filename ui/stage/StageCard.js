@@ -14,6 +14,8 @@ export default class StageCard {
         // Tab references
         this.tab = options.tab ?? 'gather';
         this.subTab = options.subTab ?? null;
+        // For lock overlay (discover tab)  or filter in other tabs
+        this.getLockState = options.getLockState ?? (() => 'locked');
 
         const CARD_HEIGHTS = {
             tab: {
@@ -57,6 +59,10 @@ export default class StageCard {
         this.getAmount = options.getAmount ?? (() => 0);
         this.getMax = options.getMax ?? (() => null);
         this.getNextMax = options.getNextMax ?? (() => null);
+        
+        // WIP Need renamimg/revamping of 'availiability' for all cards.
+        // active, locked, unlocked (stageProgress.getCreateAvailability)
+        // locked, active, completed objectives (objectivesManager.getObjectiveAvailability)
         this.getAvailability = options.getAvailability ?? (() => 'locked');
 
         // For CreateUpgradesCard, WIP CREATE
@@ -129,7 +135,7 @@ export default class StageCard {
                         titleY: this.ui.title.y + 70,
                         // Functions needed
                         isPointerVisible: pointer => this.isPointerVisible(pointer),
-                        updateLockUI: unlocked => this.updateLockUI(unlocked)
+                        updateLockUI: locked => this.updateLockUI(locked)
                     }
                 );
                 break;
@@ -146,7 +152,7 @@ export default class StageCard {
                             height: this.height - 20,
                             // Functions needed
                             isPointerVisible: pointer => this.isPointerVisible(pointer),
-                            updateLockUI: unlocked => this.updateLockUI(unlocked),
+                            updateLockUI: locked => this.updateLockUI(locked),
                         }
                     );
                 } else {
@@ -193,6 +199,8 @@ export default class StageCard {
     }
 
     createStatusOverlay() {
+        const lockedState = this.getLockState();
+
         // Locked overlay
         this.ui.lockOverlay =
             this.addElement(
@@ -206,8 +214,9 @@ export default class StageCard {
                 )
             .setOrigin(0)
             .setStrokeStyle(1, 0xffffff)
+            .setVisible(lockedState === 'locked')
         );
-                
+
         // Availability message
         this.ui.availabilityText =
             this.addElement(
@@ -221,18 +230,17 @@ export default class StageCard {
                     }
                 )
             .setOrigin(0.5)
+            .setVisible(lockedState === 'locked')
         );
         
         // DISCOVER ONLY
         if (this.tab === 'discover') {
-            const availability = this.getAvailability();
-
             this.discoverUI.availabilityTitle =
                 this.addElement(
                     addText(this.scene,
                         this.width / 2,
                         this.height / 2 - this.ui.availabilityText.height - 5,
-                        'STATUS:',
+                        '',
                         {
                             fontSize: '22px',
                             color: '#ffff00'
@@ -813,7 +821,8 @@ export default class StageCard {
     // PRIMARY CREATE UPDATE CALLS
     updateCreate(data) {
         this.updateCreateRequirements(data.getReqData);
-        this.updateLockUI(data.getReqData.unlocked);
+        const lockedState = this.getLockState();
+        this.updateLockUI(lockedState === 'locked');
     }
 
     // Create live updates
@@ -859,6 +868,7 @@ export default class StageCard {
 
     updateDiscover(data) {
         this.updateTracking();
+        // Replaces this.getLockState() / updateLockUI not needed
         this.updateAvailability(data.availability);
     }
 
@@ -867,9 +877,9 @@ export default class StageCard {
 //--------------------------------
 
     // LOCKED OVERLAY
-    updateLockUI(unlocked) {
-        this.ui.lockOverlay?.setVisible(!unlocked);
-        this.ui.availabilityText?.setVisible(!unlocked);
+    updateLockUI(locked) {
+        this.ui.lockOverlay?.setVisible(locked);
+        this.ui.availabilityText?.setVisible(locked);
     }
 
     // AVAILABILITY

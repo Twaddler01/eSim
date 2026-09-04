@@ -6,8 +6,8 @@
 - Strictly client-side (Node.js not utilized)
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
-# Work In Progress
-- Creating an "exluded" status to completely hide/not display certain cards.
+# Work In progress
+- Need renamimg/revamping of 'availiability' functions for all cards to address unlock inconsistencies -- possibly one central method? (card states)
 - Reworking StageCard to use individual classes for each tab.
 - Need tab titles at top of viewport to better show user navigation.
 
