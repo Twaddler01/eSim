@@ -31,16 +31,15 @@ export default class CreateUpgradesCard {
         // actionButtonState
 
         // Data
-        this.getReqData = options.getReqData ?? (() => null);
+        this.getCardUpdates = options.getCardUpdates ?? (() => null);
         
         // For create button (stageProgress.getCreateUpgradesStatus)
         // enabled, active, locked
         this.getCardState = options.getCardState ?? (() => 'locked');
 
         this._actionHandler = () => {
-            const reqs = this.getReqData();
-
-            if (reqs && !reqs.allMet) {
+            const canAction = this.canAction();
+            if (!canAction) {
                 return;
             }
             this.onAction?.(this.item);
@@ -116,7 +115,7 @@ export default class CreateUpgradesCard {
             .setVisible(false)
         );
         
-        const reqData = this.getReqData();
+        const cardUpdates = this.getCardUpdates();
 
         // Upgrade auto button
         const upgradeButtonStroke = 1;
@@ -129,12 +128,12 @@ export default class CreateUpgradesCard {
                     this.height / 2 + 25 + 15/2,
                     upgradeButtonWidth,
                     upgradeButtonHeght,
-                    reqData?.buttonFill
+                    cardUpdates?.buttonFill
                 )
                 .setOrigin(0, 0.5)
                 .setStrokeStyle(
                     upgradeButtonStroke,
-                    reqData?.buttonStroke
+                    cardUpdates?.buttonStroke
                 )
                 .setInteractive()
             );
@@ -157,13 +156,13 @@ export default class CreateUpgradesCard {
                     'UPGRADE',
                     {
                         fontSize: '16px',
-                        color: reqData?.buttonTextColor
+                        color: cardUpdates?.buttonTextColor
                     }
                 )
             .setOrigin(0.5, 0)
         );
 
-        if (reqData.noReq) return;
+        if (cardUpdates.noReq) return;
         
         upgradeY += this.ui.upgradeAutoLabel.height + 10;
         this.ui.upgradeRequiresTitle =
@@ -184,7 +183,7 @@ export default class CreateUpgradesCard {
 
         this.ui.upgradeRequirements = [];
 
-        reqData.requirements.forEach(item => {
+        cardUpdates.requirements.forEach(item => {
             const text = this.addElement(
                 addText(this.scene, titleX + 5, requiresY,
                     `${item.title} ${item.cnt} / ${item.amt}`,
@@ -211,11 +210,15 @@ export default class CreateUpgradesCard {
         return element;
     }
 
+//--------------------------------
+// UPDATES
+//--------------------------------
+
     // Started from StageCard
     update() {
         const data = {
             level: this.getLevel(),
-            reqData: this.getReqData(),
+            cardUpdates: this.getCardUpdates(),
             state: this.getCardState()
         };
     
@@ -223,24 +226,26 @@ export default class CreateUpgradesCard {
     }
 
     updateUI(data) {
+        // Update level ui
         this.ui.upgradeAutoLevel.setText('Level: ' + data.level);
         
-        // Update requirements
-        this.updateRequirements(data.reqData);
+        // Update requirements ui
+        this.updateRequirements(data.cardUpdates);
 
-        // For status and purchase button
-        this.updateAvailability(data);
-
+        // For status and purchase button ui
+        this.updateStatus(data.state);
+        
+        // Update lock ui
         const lockedState = this.getLockState();
         this.updateLockUI(lockedState === 'locked');
     }
 
-    updateRequirements(reqData) {
-        if (!reqData || !this.ui.upgradeRequirements) {
+    updateRequirements(cardUpdates) {
+        if (!cardUpdates || !this.ui.upgradeRequirements) {
             return;
         }
     
-        reqData.requirements.forEach((item, index) => {
+        cardUpdates.requirements.forEach((item, index) => {
             const requirement =
                 this.ui.upgradeRequirements[index];
     
@@ -255,28 +260,25 @@ export default class CreateUpgradesCard {
     }
 
     // Separate from StageCard
-    updateAvailability(data) {
+    updateStatus(data) {
         if (!data) return;
-        
-        if (data.reqData) {
-            const enabled = data.reqData.upgradeStatus === 'enabled';
-            const upgradeStatus = {
-                text: enabled ? 'Active' : 'Inactive',
-                color: enabled ? '#66ff66' : '#ff6666',
-                visible: enabled ? true : false
-            };
 
-            this.ui.upgradeAutoStatus.setText(upgradeStatus.text);
-            this.ui.upgradeAutoStatus.setColor(upgradeStatus.color);
-            this.ui.upgradeAutoLevel.setVisible(upgradeStatus.visible);
-        }
+        const enabled = data.enabledState;
         
-        if (data.state) {
-            this.helpers.actionButtonState(data.state, {
-                rectangle: this.ui.upgradeAutoButton,
-                text: this.ui.upgradeAutoButtonText
-            }, 'UPGRADE');
-        }
+        const upgradeStatus = {
+            text: enabled ? 'Active' : 'Inactive',
+            color: enabled ? '#66ff66' : '#ff6666',
+            visible: enabled ? true : false
+        };
+
+        this.ui.upgradeAutoStatus.setText(upgradeStatus.text);
+        this.ui.upgradeAutoStatus.setColor(upgradeStatus.color);
+        this.ui.upgradeAutoLevel.setVisible(upgradeStatus.visible);
+
+        this.helpers.actionButtonState(data, {
+            rectangle: this.ui.upgradeAutoButton,
+            text: this.ui.upgradeAutoButtonText
+        }, 'UPGRADE');
     }
 
     // DESTROY

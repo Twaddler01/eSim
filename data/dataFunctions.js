@@ -84,7 +84,7 @@ function buildCardData(
 
         // ACTIONS
         canAction: () =>
-            stageProgress.getCardCanAction(item),
+            stageProgress.getCardState(item) === 'active',
 
         onAction: () =>
             stageProgress.handleCardAction(item, tab),
@@ -105,7 +105,7 @@ function buildCardData(
             data.getCardState = () =>
                 stageProgress.getCardState(item);
 
-            data.getUpgradeStats = () =>
+            data.getGatherUpgradeStats = () =>
                 stageProgress.getGatherUpgradeStats(item.id, item);
 
             data.canUpgrade = () =>
@@ -121,12 +121,12 @@ function buildCardData(
             
             const requiredItems = stageProgress.getAllItems();
             const requirements = getRequirements(item.requirements, requiredItems);
-            data.getReqData = () => 
-                stageProgress.getReqData(item, requirements);
+            data.getCardUpdates = () => 
+                stageProgress.getCardUpdates(item, requirements);
             break;
         case 'create-upgrwdes':
-            data.getReqData = () => // Calculates unlock
-                stageProgress.getReqData(item, item.requirements);
+            data.getCardUpdates = () => // Calculates unlock
+                stageProgress.getCardUpdates(item, item.requirements);
             
             // Same as level for now (upgrade quantity = level)
             data.itemAmount = () =>

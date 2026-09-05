@@ -36,31 +36,16 @@ export default class StageProgressManager {
     }
 
     // data: card item (output)
-    getReqData(data, requirements) {
+    getCardUpdates(data, requirements) {
         
-        // NOTE: this.getUnlocked(upgrade.item) needs custom requirements for other tabs
         // ONLY for ui updates
-        let isUnlocked, getCreateUpgradesStatus;
-
-        if (data.tab === 'create') {
-            // UI only
-            isUnlocked = this.getCreateAvailability(data, data.tab) !== 'locked';
-            // Actual card unlock status
-            getCreateUpgradesStatus = this.getCreateUpgradesStatus(data);
-        } else {
-            isUnlocked = this.getUnlocked(data.item);
-        }
+        const isUnlocked = this.getCardState(data) !== 'locked';
 
         if (!requirements) {
             return {
                 id: data.id,
                 noReq: true,
                 requirements: {},
-                allMet: true,
-                buttonTextColor: isUnlocked ? '#ffffff' : '#777777',
-                buttonFill: isUnlocked ? 0x335533 : 0x222222,
-                buttonStroke: isUnlocked ? 0x66aa66 : 0x555555,
-                upgradeStatus: getCreateUpgradesStatus
             };
         }
 
@@ -89,16 +74,9 @@ export default class StageProgressManager {
             });
         });
         
-        const allMet = allData.every(item => item.met) && isUnlocked;
-        
         return {
             id: data.id,
             requirements: allData,
-            allMet: allMet,
-            buttonTextColor: allMet ? '#ffffff' : '#777777',
-            buttonFill: allMet ? 0x335533 : 0x222222,
-            buttonStroke: allMet ? 0x66aa66 : 0x555555,
-            upgradeStatus: getCreateUpgradesStatus,
             produces: producesItems ?? null
         };
     }
@@ -114,116 +92,104 @@ export default class StageProgressManager {
         return 'locked';
     }
 
-// WIP new? 
-getCardState(item, requirements) {
-    
-    let tab = item.tab;
-    const subTab = item.subTab;
-    
-    if (subTab === 'upgrades') {
-        tab = 'create-upgrades';
-    }
-    
-    const isActive = this.getUnlocked(item.id);
-    let requirementsMet = false;
-    let state = 'locked'
-    switch (tab) {
-        case 'gather':
-            state = this.getGatherAvailability(item);
-            // Data driven, needs different function?
-            //const upgradeState = this.getGatherUpgradeStats(item.id, item);
-            return state;
-        case 'create':
-            // this.getCreateAvailability(item);
-            
-            //// new TEST_UNLOCK: requires only unlock
-            if (isActive) {
-                state = 'active';
-            }
-            ////
-    
-            // Auto unlocks based on requirements
-            // CREATE -> ITEMS
-            /*if (!this.isCreateItemUnlocked(item)) {
-                return 'locked';
-            }*/
-    
-            requirementsMet =
-                Object.entries(item.requirements ?? {})
-                    .every(([id, required]) => {
-                        return this.get(id) >= required;
-                    });
-    
-            if (isActive && !requirementsMet) {
-                state = 'notReady';
-            }
-    
-            return state;
-        case 'create-upgrades':
-            // this.getCreateUpgradesStatus(item);
-            //const isActive = this.isCreateUpgradesActive(item.item);
-            let enabledState = false
-    
-            if (isActive) {
-                const level = this.autoGatherLevels[item.item];
-    
-                if (level > 0) {
-                    // Auto gather UI status 
-                    enabledState = true;
-                }
-                state = 'active';
-            }
+// WIP Replacing most availability functions
+    getCardState(item) {
+        // DISCOVER: objectivesManager.getObjectiveAvailability(item)
+        if (item.tab === 'discover') {
+            return;
+        }
 
-            if (item.requirements) {
-                requirementsMet = item.requirements
-                    .every(req => this.get(req.id) >= req.amt);
-            }
-            
-            if (isActive && !requirementsMet) {
-                state = 'notReady';
-            }
-
-            if (enabledState) {
-                return {
-                    state,
-                    enabledState
-                };
-            }
+        let tab = item.tab;
+        const subTab = item.subTab;
         
-            return state;
-        case 'discover':
-            
-            break;
-    }
-    
-}
-
-    // Availability (gather) / for getCardCanAction() ('active' = true)
-    getGatherAvailability(item) {
+        if (subTab === 'upgrades') {
+            tab = 'create-upgrades';
+        }
+        
+        const isUnlocked = this.getUnlocked(item.id);
+        let requirementsMet = false;
         let state = 'locked';
+        switch (tab) {
+            case 'gather':
+                const unlocked =
+                    item.startsUnlocked ||
+                    this.getUnlocked(item.id);
         
-        const unlocked =
-            item.startsUnlocked ||
-            this.getUnlocked(item.id);
-
-        if (unlocked) {
-            state = 'active';
-        }
-
-        const amount =
-            this.get(item.id);
-    
-        const max =
-            getItemMax(item, this);
-    
-        if (
-            max != null &&
-            amount >= max
-        ) {
-            state = 'maxed';
-        }
+                if (unlocked) {
+                    state = 'active';
+                }
         
-        return state;
+                const amount =
+                    this.get(item.id);
+            
+                const max =
+                    getItemMax(item, this);
+            
+                if (
+                    max != null &&
+                    amount >= max
+                ) {
+                    state = 'maxed';
+                }
+
+                return state;
+            case 'create':
+                // this.getCreateAvailability(item);
+                
+                if (isUnlocked) {
+                    state = 'active';
+                }
+        
+                // Auto unlocks based on requirements
+                // CREATE -> ITEMS
+                /*if (!this.isCreateItemUnlocked(item)) {
+                    return 'locked';
+                }*/
+        
+                requirementsMet =
+                    Object.entries(item.requirements ?? {})
+                        .every(([id, required]) => {
+                            return this.get(id) >= required;
+                        });
+        
+                if (isUnlocked && !requirementsMet) {
+                    state = 'notReady';
+                }
+        
+                return state;
+            case 'create-upgrades':
+                // getCreateAvailability(item)
+                let enabledState = false
+        
+                if (isUnlocked) {
+                    const level = this.autoGatherLevels[item.item];
+        
+                    if (level > 0) {
+                        // Auto gather UI status 
+                        enabledState = true;
+                    }
+                    state = 'active';
+                }
+    
+                if (item.requirements) {
+                    requirementsMet = item.requirements
+                        .every(req => this.get(req.id) >= req.amt);
+                } else {
+                    requirementsMet = true;
+                }
+                
+                if (isUnlocked && !requirementsMet) {
+                    state = 'notReady';
+                }
+    
+                if (enabledState) {
+                    return {
+                        state,
+                        enabledState
+                    };
+                }
+                return state;
+        }
     }
 
     // Availability (create) / for getCardCanAction() ('active' = true)
@@ -462,15 +428,6 @@ getCardState(item, requirements) {
             });
     }
 
-    getCardCanAction(item) {
-        if (item.tab === 'gather') {
-            return this.getGatherAvailability(item) === 'active';
-        }
-        if (item.tab === 'create') {
-            return this.getCreateAvailability(item) === 'active';
-        }
-    }
-    
     handleCardAction(item, tab) {
         // Gather
         if (tab === 'gather') {

@@ -53,24 +53,10 @@ export default class StageCard {
         this.tab = options.tab ?? 'gather';
         this.required = options.required ?? null;
         this.unlocked = options.unlocked ?? null;
-        this.objectiveText = options.objectiveText ?? null;
 
-        // LIVE DATA GETTERS
-        this.getAmount = options.getAmount ?? (() => 0);
-        this.getMax = options.getMax ?? (() => null);
-        this.getNextMax = options.getNextMax ?? (() => null);
-        
-        // WIP Need renamimg/revamping of 'availiability' for all cards.
-        // active, locked, unlocked (stageProgress.getCreateAvailability)
-        // locked, active, completed objectives (objectivesManager.getObjectiveAvailability)
+        // Button state and card updates
         this.getCardState = options.getCardState ?? (() => 'locked');
-
-        // For CreateUpgradesCard, WIP CREATE
-        this.getReqData = options.getReqData ?? (() => null);
-
-        // WIP: Upgrade amount = level?
-        this.itemAmount = options.itemAmount ?? (() => 0);
-        this.getLevel = options.getLevel ?? (() => null);
+        this.getCardUpdates = options.getCardUpdates ?? (() => null);
 
         // Callbacks
         this.canAction = options.canAction ?? (() => true);
@@ -83,11 +69,13 @@ export default class StageCard {
         // For tracking objectives in DISCOVER tab
         this.objectivesManager = options.objectivesManager ?? null;
 
-        // Pass data for CreateUpgradesCard
+        // Pass all data for class cards
         this.options = options;
+        
         // Button event handler
         this._actionHandler = () => {
-            if (!this.canAction()) {
+            const canAction = this.canAction();
+            if (!canAction) {
                 return;
             }
             this.onAction?.();
@@ -244,7 +232,7 @@ export default class StageCard {
                     addText(this.scene,
                         this.width / 2,
                         this.height / 2 - this.ui.availabilityText.height - 5,
-                        '',
+                        'STATUS',
                         {
                             fontSize: '22px',
                             color: '#ffff00'
@@ -320,7 +308,7 @@ export default class StageCard {
         const yOffset = this.height / 2 - 50;
         this.ui.title.y = yOffset;
         
-        const requirements = this.getReqData();
+        const requirements = this.getCardUpdates();
 
         let currentY = yOffset + 35;
         
@@ -786,10 +774,7 @@ export default class StageCard {
 
     update() {
         const data = {
-            amount: this.getAmount(),
-            max: this.getMax(),
-            nextMax: this.getNextMax(),
-            reqData: this.getReqData(),
+            cardUpdates: this.getCardUpdates(),
             state: this.getCardState(),
         };
 
@@ -832,7 +817,7 @@ export default class StageCard {
     // Create live updates
     updateCreateRequirements(data) {
 
-        data.reqData.requirements.forEach(
+        data.cardUpdates.requirements.forEach(
             (require, index) => {
                 const text =
                     this.createUI.requiresLabels[index];

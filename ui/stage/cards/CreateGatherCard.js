@@ -42,7 +42,7 @@ export default class CreateGatherCard {
         
         // Data
         this.actionLabel = options.actionLabel ?? 'GATHER';
-        this.getUpgradeStats = options.getUpgradeStats ?? (() => null);
+        this.getGatherUpgradeStats = options.getGatherUpgradeStats ?? (() => null);
 
         // Button event handler
         this._actionHandler = () => {
@@ -60,7 +60,7 @@ export default class CreateGatherCard {
 
     createGather() {
         // Gain label -- uses this.upgradeStats
-        const upgradeStats = this.getUpgradeStats();
+        const upgradeStats = this.getGatherUpgradeStats();
         let gatherY = 67; // +55
         let currentGatherRate = 1;
         if (upgradeStats.hasRateUpgrade) currentGatherRate = upgradeStats.currentGatherRate;
@@ -214,7 +214,7 @@ export default class CreateGatherCard {
         );
         
         let currentY = 10;
-        const upgradeData = this.getUpgradeStats();
+        const upgradeData = this.getGatherUpgradeStats();
         if (upgradeData.hasUpgrade) {
             this.gatherUI.upgradeText.setText('Upgrade Level: ' + upgradeData.level);
             
@@ -379,25 +379,25 @@ export default class CreateGatherCard {
     }
 
     // CURRENT UPGRADE updates
-    updateGatherUpgrades(upgradeStats, amount) {
-        if (!upgradeStats.hasUpgrade) {
+    updateGatherUpgrades(gatherUpgradeStats, amount) {
+        if (!gatherUpgradeStats.hasUpgrade) {
             return;
         }
 
         // Max update
         this.gatherUI.maxLabel
-            ?.setText(`Max: ${upgradeStats.current_max}`);
+            ?.setText(`Max: ${gatherUpgradeStats.current_max}`);
 
         // Level update
-        this.gatherUI.upgradeText.setText(`Upgrade Level: ${upgradeStats.level}`);
+        this.gatherUI.upgradeText.setText(`Upgrade Level: ${gatherUpgradeStats.level}`);
 
         // Gather rate update
-        if (upgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${upgradeStats.currentGatherRate}`);
+        if (gatherUpgradeStats.hasRateUpgrade) this.gatherUI.gainLabel.setText(`Gather Rate: +${gatherUpgradeStats.currentGatherRate}`);
         
         if (this.gatherUI.upradeCost) {
             if (!amount) amount = 0;
-            this.gatherUI.upradeCost.setColor(amount >= upgradeStats.cost ? '#66ff66' : '#ff6666');
-            this.gatherUI.upradeCost.setText(Math.round(amount) + ' / ' + Math.round(upgradeStats.cost) + ' ' + this.title);
+            this.gatherUI.upradeCost.setColor(amount >= gatherUpgradeStats.cost ? '#66ff66' : '#ff6666');
+            this.gatherUI.upradeCost.setText(Math.round(amount) + ' / ' + Math.round(gatherUpgradeStats.cost) + ' ' + this.title);
         }
     }
 
@@ -426,7 +426,7 @@ export default class CreateGatherCard {
             amount: this.getAmount(),
             max: this.getMax(),
             nextMax: this.getNextMax(),
-            upgradeStats: this.getUpgradeStats(),
+            gatherUpgradeStats: this.getGatherUpgradeStats(),
             state: this.getCardState(),
         };
         
@@ -438,7 +438,7 @@ export default class CreateGatherCard {
         this.updateGatherProgress(data.amount, data.max);
         
         // WIP integrate within getCurrentTabCardData
-        this.updateGatherUpgrades(data.upgradeStats, data.amount);
+        this.updateGatherUpgrades(data.gatherUpgradeStats, data.amount);
         this.updateGatherUpgradeAvailability(data.state);
 
         // For gather button
