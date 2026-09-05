@@ -127,10 +127,6 @@ function buildCardData(
         case 'create-upgrwdes':
             data.getCardUpdates = () => // Calculates unlock
                 stageProgress.getCardUpdates(item, item.requirements);
-            
-            // Same as level for now (upgrade quantity = level)
-            data.itemAmount = () =>
-                stageProgress.get(item.item);
 
             data.getCardState = () =>
                 stageProgress.getCardState(item);
@@ -396,10 +392,6 @@ function getTitle(id) {
 }
 
 function actionButtonState(state, element = {}, activeText, inactiveText) {
-    
-    const stateId = typeof state === 'object'
-        ? state.state
-        : state;
 
     const newState = {
         locked: {
@@ -436,7 +428,7 @@ function actionButtonState(state, element = {}, activeText, inactiveText) {
         }
     };
     
-    const ui = newState[stateId];
+    const ui = newState[state];
 
     element.rectangle
         ?.setFillStyle(ui.fill)

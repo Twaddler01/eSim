@@ -162,7 +162,7 @@ export default class CreateUpgradesCard {
             .setOrigin(0.5, 0)
         );
 
-        if (cardUpdates.noReq) return;
+        if (!cardUpdates.requirements) return;
         
         upgradeY += this.ui.upgradeAutoLabel.height + 10;
         this.ui.upgradeRequiresTitle =
@@ -226,14 +226,11 @@ export default class CreateUpgradesCard {
     }
 
     updateUI(data) {
-        // Update level ui
-        this.ui.upgradeAutoLevel.setText('Level: ' + data.level);
-        
         // Update requirements ui
         this.updateRequirements(data.cardUpdates);
 
         // For status and purchase button ui
-        this.updateStatus(data.state);
+        this.updateStatus(data);
         
         // Update lock ui
         const lockedState = this.getLockState();
@@ -263,8 +260,9 @@ export default class CreateUpgradesCard {
     updateStatus(data) {
         if (!data) return;
 
-        const enabled = data.enabledState;
+        this.ui.upgradeAutoLevel.setText('Level: ' + data.level);
         
+        const enabled = data.level > 0;
         const upgradeStatus = {
             text: enabled ? 'Active' : 'Inactive',
             color: enabled ? '#66ff66' : '#ff6666',
@@ -275,7 +273,7 @@ export default class CreateUpgradesCard {
         this.ui.upgradeAutoStatus.setColor(upgradeStatus.color);
         this.ui.upgradeAutoLevel.setVisible(upgradeStatus.visible);
 
-        this.helpers.actionButtonState(data, {
+        this.helpers.actionButtonState(data.state, {
             rectangle: this.ui.upgradeAutoButton,
             text: this.ui.upgradeAutoButtonText
         }, 'UPGRADE');

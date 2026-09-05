@@ -37,17 +37,6 @@ export default class StageProgressManager {
 
     // data: card item (output)
     getCardUpdates(data, requirements) {
-        
-        // ONLY for ui updates
-        const isUnlocked = this.getCardState(data) !== 'locked';
-
-        if (!requirements) {
-            return {
-                id: data.id,
-                noReq: true,
-                requirements: {},
-            };
-        }
 
         const producesItems = [];
         // Get produce data
@@ -63,17 +52,23 @@ export default class StageProgressManager {
         }
 
         const allData = [];
-        requirements.forEach(item => {
-            const amt = this.get(item.id);
-            allData.push({
-                ...item,
-                cnt: amt,
-                output: item.title + ' ' + amt + ' / ' + item.amt,
-                met: amt >= item.amt,
-                color: amt >= item.amt ? '#66ff66' : '#ff6666',
+        if (requirements) {
+            requirements.forEach(item => {
+                const amt = this.get(item.id);
+                allData.push({
+                    ...item,
+                    cnt: amt,
+                    output: item.title + ' ' + amt + ' / ' + item.amt,
+                    met: amt >= item.amt,
+                    color: amt >= item.amt ? '#66ff66' : '#ff6666',
+                });
             });
-        });
-        
+        }
+
+        if (allData.length === 0) {
+            return false;
+        }
+
         return {
             id: data.id,
             requirements: allData,
@@ -92,7 +87,6 @@ export default class StageProgressManager {
         return 'locked';
     }
 
-// WIP Replacing most availability functions
     getCardState(item) {
         // DISCOVER: objectivesManager.getObjectiveAvailability(item)
         if (item.tab === 'discover') {
@@ -111,6 +105,7 @@ export default class StageProgressManager {
         let state = 'locked';
         switch (tab) {
             case 'gather':
+
                 const unlocked =
                     item.startsUnlocked ||
                     this.getUnlocked(item.id);
@@ -134,18 +129,11 @@ export default class StageProgressManager {
 
                 return state;
             case 'create':
-                // this.getCreateAvailability(item);
-                
+    
                 if (isUnlocked) {
                     state = 'active';
                 }
-        
-                // Auto unlocks based on requirements
-                // CREATE -> ITEMS
-                /*if (!this.isCreateItemUnlocked(item)) {
-                    return 'locked';
-                }*/
-        
+
                 requirementsMet =
                     Object.entries(item.requirements ?? {})
                         .every(([id, required]) => {
@@ -158,16 +146,9 @@ export default class StageProgressManager {
         
                 return state;
             case 'create-upgrades':
-                // getCreateAvailability(item)
-                let enabledState = false
         
                 if (isUnlocked) {
                     const level = this.autoGatherLevels[item.item];
-        
-                    if (level > 0) {
-                        // Auto gather UI status 
-                        enabledState = true;
-                    }
                     state = 'active';
                 }
     
@@ -181,82 +162,8 @@ export default class StageProgressManager {
                 if (isUnlocked && !requirementsMet) {
                     state = 'notReady';
                 }
-    
-                if (enabledState) {
-                    return {
-                        state,
-                        enabledState
-                    };
-                }
                 return state;
         }
-    }
-
-    // Availability (create) / for getCardCanAction() ('active' = true)
-    getCreateAvailability(item) {
-        // CreateUpgrades
-        if (item.subTab === 'upgrades') {
-
-            // TEST_UNLOCK: requires only unlock --  OVERLAY ONLY 
-            const isActive = this.getUnlocked(item.id);
-            //const isActive = this.isCreateUpgradesActive(item.item);
-            
-            if (isActive) {
-                return 'active';
-            } else {
-                return 'locked';
-            }
-        }
-
-        //// new TEST_UNLOCK: requires only unlock
-        if (this.getUnlocked(item.id)) {
-            return 'active';
-        }
-        ////
-
-        // CREATE -> ITEMS
-        if (!this.isCreateItemUnlocked(item)) {
-            return 'locked';
-        }
-
-        const requirementsMet =
-            Object.entries(item.requirements ?? {})
-                .every(([id, required]) => {
-                    return this.get(id) >= required;
-                });
-
-        if (!requirementsMet) {
-            return 'unlocked';
-        }
-
-        return 'active';
-    }
-
-    // Availability (create -> upgrades)
-    getCreateUpgradesStatus(item) {
-        if (!item) return;
-        
-        // Get status of item affected by upgrade (unlocked = active)
-        // TEST_UNLOCK: requires only unlock
-        const isActive = this.getUnlocked(item.id);
-        //const isActive = this.isCreateUpgradesActive(item.item);
-
-        if (isActive) {
-            const level = this.autoGatherLevels[item.item];
-
-            if (level > 0) {
-                // Auto gather UI status 
-                return 'enabled';
-            }
-            return 'active';
-        }
-        
-        return 'locked';
-    }
-    
-    // helper ^
-    isCreateUpgradesActive(id) {
-        return this.getUnlocked(id);
     }
 
 //--------------------------------
@@ -648,23 +555,13 @@ export default class StageProgressManager {
 //ccc functions for CREATE
 //--------------------------------
 
-    isCreateItemUnlocked(item) {
-        const requirements = item.requirements ?? {};
-    
-        // No requirements = unlocked
-        if (Object.keys(requirements).length === 0) {
-            return true;
-        }
-        
-        // Every required item must be unlocked
-        return Object.keys(requirements).every(
-            id => this.getUnlocked(id)
-        );
-    }
-
     getCreateItems() {
         return this.stageItems.filter(item => item.tab === 'create');
     }
+
+    // --------------------------------------------------
+    // GETTERS AND SETTERS
+    // --------------------------------------------------
 
     getAllItems() {
         return this.stageItems;
@@ -698,10 +595,6 @@ export default class StageProgressManager {
         
         return returnData;
     }
-
-    // --------------------------------------------------
-    // GETTERS AND SETTERS
-    // --------------------------------------------------
 
     getAllValues() {
         return { ...this.values };
