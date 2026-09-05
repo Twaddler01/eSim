@@ -1,6 +1,30 @@
 // dataFunctions.js
 import { getItemMax } from '../utils/stageHelpers.js';
 import { stageItems, stageObjectives } from '../data/stageData.js';
+import { 
+    gatherCards, 
+    createItemsCards,
+    createUpgradesCards,
+    discoverCards
+} from '../data/stageData.js';
+
+function getCards(tab, subTab) {
+    const cardsByTab = {
+        gather: gatherCards,
+        create: {
+            items: createItemsCards,
+            upgrades: createUpgradesCards
+        },
+        discover: discoverCards
+    };
+
+    return cardsByTab[tab]?.[subTab]
+        ?? cardsByTab[tab]
+        ?? [];
+}
+
+// DEBUG
+let runOnce = true;
 
 export function getCurrentTabCardData(
     tab,
@@ -9,6 +33,15 @@ export function getCurrentTabCardData(
     autoGather,
     objectivesManager
 ) {
+    if (!runOnce) {
+        //runOnce = false;
+
+        const cardsTest = getCards(tab, subTab);
+        cardsTest.forEach(item => {
+            jp(item.id);
+        });
+    }
+
     let cards = stageItems.filter(item => item.tab === tab);
 
     // Custom array: create-upgrades tab
@@ -17,8 +50,7 @@ export function getCurrentTabCardData(
         subTab === 'upgrades'
     ) {
         cards = getCreateUpgradesCardData(
-            stageProgress,
-            autoGather
+            stageProgress
         );
     }
 
@@ -219,8 +251,7 @@ export function sortByAvailability(
 
 // WIP
 export function getCreateUpgradesCardData(
-    stageProgress,
-    autoGather
+    stageProgress
 ) {
     const data = [];
     
@@ -481,7 +512,7 @@ export function getTabAvailability(
             objectivesManager
         );
 
-        return card.getAvailability() !== 'locked';
+        return card.getCardState() !== 'locked';
     });
 
     return hasUnlockedCard

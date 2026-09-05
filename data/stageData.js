@@ -74,7 +74,7 @@ export const stageItems = [
     //{ created: true, stage: 'creation', id: 'c_black_hole', title: 'BLACK HOLE', tab: 'gather', category: "element", max: 10, actionLabel: 'GATHER' },
 
 // Creates
-    { stage: 'creation', id: 'air', title: 'Air', drsxription: 'Useful for life.', tab: 'create', category: "created",
+    { stage: 'creation', id: 'air', title: 'Air', description: 'Useful for life.', tab: 'create', category: "created",
         requirements: {
             water: 1,
             light: 1
@@ -83,7 +83,7 @@ export const stageItems = [
             air: 1
         }, actionLabel: 'CREATE'
     },
-    { stage: 'creation', id: 'space', title: 'Space', drsxription: 'As if you need more..', tab: 'create', category: "created",
+    { stage: 'creation', id: 'space', title: 'Space', description: 'As if you need more..', tab: 'create', category: "created",
         requirements: {
             darkness: 5
         },
@@ -91,7 +91,7 @@ export const stageItems = [
             space: 314
         }, actionLabel: 'CREATE'
     },
-    { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', drsxription: 'Seems useful.', tab: 'create', category: "created",
+    { stage: 'creation', id: 'water_molecule', title: 'Water Molecule', description: 'Seems useful.', tab: 'create', category: "created",
         requirements: {
             water: 5,
             hydrogen: 10
@@ -122,36 +122,6 @@ export const stageItems = [
     }
 ];
 
-// created in stageCardData.js -> getCreateUpgradesCardData()
-/*export const stageCreateUpgrades = [
-    {
-        levels: [
-            {
-                cost: { darkness: 10 },
-                gatherGain: 1
-            },
-            {
-                cost: { darkness: 25 },
-                gatherGain: 2
-            },
-            {
-                cost: { darkness: 50 },
-                gatherGain: 3
-            }
-        ]
-    }
-];*/
-
-/* STATUS OPTIONS:
-LOCKED
-   ↓
-UNLOCKED
-   ↓ requirements satisfied
-ACTIVE
-   ↓ player completes it
-COMPLETED
-*/
-// type: parent, child, objective
 export const stageObjectives = [
     {
         // Parent objective (parent: true, children: [])
@@ -386,3 +356,75 @@ export const stageObjectives = [
         actionLabel: 'COMPLETE'
     }
 ];
+
+//////////////////////////////////////////
+//////////////////////////////////////////
+//////////////////////////////////////////
+
+// Returns title with id/cost
+// reqItemsData: expects array with id and title
+// requiredItems: expects key-value pair of matching id and cost
+function getRequirements(reqItemsData, requiredItems) {
+
+    const reqData = [];
+    
+    const reqItems = reqItemsData ?? null;
+    if (!reqItems) return false;
+    Object.entries(reqItems).forEach(([req, amt]) => {
+        const reqItem = requiredItems.find(i => i.id === req);
+        reqData.push({
+            id: reqItem.id,
+            title: reqItem.title,
+            amt: amt
+        });
+    });
+    
+    return reqData;
+}
+// USAGE
+// const requirements = getRequirements(item.autoReq, gatherItems);
+
+//////////////////////////////////////////
+
+function f_creationStage_gatherCards() {
+    const data = stageItems.filter(item => item.tab === 'gather');
+    return data;
+}
+
+function f_creationStage_createItemsCards() {
+    const data = stageItems.filter(item => item.tab === 'create');
+    data.forEach(item => {
+        item.subTab = 'items';
+    });
+    return data;
+}
+
+function f_creationStage_createUpgradesCards() {
+    const data = [];
+    
+    stageItems.forEach(item => {
+        const requirements = getRequirements(item.autoReq, stageItems);
+        
+        data.push({
+            tab: 'create',
+            // Must be assigned for default tab
+            subTab: 'upgrades',
+            id: item.id + '_gather_upgrade',
+            title: item.title + ' UPGRADES',
+            item: item.id, // item upgrade is for -- WIP customized
+            requirements: requirements ?? false
+        });
+    });
+    
+    return data;
+}
+
+function f_creationStage_discoverCards() {
+    return stageObjectives;
+}
+
+// CREATION STAGE CARDS
+export const gatherCards = f_creationStage_gatherCards();
+export const createItemsCards = f_creationStage_createItemsCards();
+export const createUpgradesCards = f_creationStage_createUpgradesCards();
+export const discoverCards = f_creationStage_discoverCards();

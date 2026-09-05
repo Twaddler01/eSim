@@ -199,7 +199,8 @@ export default class StageUI {
                         this.width -
                         margin * 2,
                     height:
-                        navigationHeight
+                        navigationHeight,
+                    tabs: this.getTabData()
                 }
             );
         // Initial tab
@@ -348,6 +349,7 @@ export default class StageUI {
         ];
     
         if (updateTypes.includes(update.type)) {
+            this.updateNavigation();
             this.updateCurrentTab();
             return;
         }
@@ -441,6 +443,33 @@ export default class StageUI {
     
         this.viewport.syncCards(cardData);
     }
+
+////
+getTabData() {
+    const tabs = [
+        { id: 'gather', title: 'GATHER' },
+        { id: 'create', title: 'CREATE' },
+        { id: 'discover', title: 'DISCOVER' }
+    ];
+
+    return tabs.map(tab => ({
+        ...tab,
+
+        availability:
+            df.getTabAvailability(
+                tab.id,
+                this.stageProgress,
+                this.autoGather,
+                this.objectivesManager
+            )
+    }));
+}
+
+updateNavigation() {
+    this.navigation.setTabs(
+        this.getTabData()
+    );
+}
 
     // Destroy
     destroy() {
