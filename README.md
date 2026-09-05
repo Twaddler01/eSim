@@ -7,17 +7,21 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In progress
-- Need renamimg/revamping of 'availiability' functions for all cards to address unlock inconsistencies -- possibly one central method? (card states)
-- Reworking StageCard to use individual classes for each tab.
-- Need tab titles at top of viewport to better show user navigation.
+- Disable/lock empty tabs.
+- Rework StageCard to use individual classes for each tab (2 left).
+- Tab titles at top of viewport to better show user navigation (or just close the empty space?).
 
 # Recent Updates
-09-03-2026
-- Cleaned up GetCurrentTabCardData and other functions to better organize them.  
-- Reworked card data updates to push minimal data needed for create / live updates (matching CreateUpgradesCard class data setup).
+09-04-2026
+- Reworked unlocks to be required for all items and objectives. All unlocks work live.
+- DebugButtons class allows for live unlocking of any locked card for testing.
+- Revamped 'availiability' functions for all cards to address unlock inconsistencies -- one central method now (getLockState)
+- Reworked StageCard to use individual classes for each tab (2 left).
 
 # Future Updates / Ideas
-- Add an auto-gather/creator - e.g. "element collector", etc.
+- Hide all cards except unlocked ones and DISCOVER cards. Showing all for debugging right now. Certain other cards may still be shown LOCKED by discretion for progress.
+- Add workers or helpers and assign jobs.
+- Add more auto-gathers/creators - e.g. "element collector", etc.
 - More structural content.
 - More dynamic upgrades, including caps for rate/max, etc.
 - Game theme(s): Designing game theme around a "Creationism" simulation-type concept, acting as a wise man perceiving God throughout the ages. Starting from the day of creation, to all the way through eternity.
@@ -26,7 +30,11 @@
 - An "In the beginning..." sequence/video when starting a new game.
 - Focused on darkness and light elements: black holes, light photons, etc.
 
-# Previous Updates
+# [ ARCHIVED UPDATES ]
+09-03-2026
+- Cleaned up GetCurrentTabCardData and other functions to better organize them.  
+- Reworked card data updates to push data needed for create / live updates (matching CreateUpgradesCard class data setup).
+
 08-31-2026
 - Updated StageViewport to be fully integrated using ScrollBox class.
 - Added customizable objective flows and default objective flows.
