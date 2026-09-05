@@ -2,19 +2,25 @@ import { getItemMax } from '../utils/stageHelpers.js';
 
 export default class StageProgressManager {
 
-    constructor(gameData, stageData, stageItems, stageObjectives, stageProgressState) {
+    constructor(stageProgressState, data = {}) {
 
-        this.gameData = gameData;
-        this.stageData = stageData;
-        this.stageItems = stageItems;
-        this.objectives = stageObjectives;
+        // NEW
+        this.gatherCards = data.gatherCards;
+        this.createItemsCards = data.createItemsCards;
+        this.createUpgradesCards = data.createUpgradesCards;
+        this.discoverCards = data.discoverCards;
 
+        // OLD
+        this.gameData = data.gameData;
+        this.stageData = data.stageData;
+        this.stageItems = data.stageItems;
+        this.objectives = data.stageObjectives;
         // Sync with save
         this.state = stageProgressState;
 
         // Player's current stage
         this.stage =
-            gameData.currentStage.stage;
+            this.gameData.currentStage.stage;
 
         // Current quantities
         this.values =
@@ -464,7 +470,7 @@ export default class StageProgressManager {
 //--------------------------------
 
     getGatherItems() {
-        return this.stageItems.filter(item => item.tab === 'gather');
+        return this.gatherCards;
     }
 
     hasGatherUpgrade(item) {
@@ -556,7 +562,7 @@ export default class StageProgressManager {
 //--------------------------------
 
     getCreateItems() {
-        return this.stageItems.filter(item => item.tab === 'create');
+        return this.createItemsCards;
     }
 
     // --------------------------------------------------
@@ -564,36 +570,19 @@ export default class StageProgressManager {
     // --------------------------------------------------
 
     getAllItems() {
-        return this.stageItems;
+        return [
+            ...this.gatherCards,
+            ...this.createItemsCards
+        ];
     }
 
     getAllCardIds() {
-        // Gather and Create tab
-        const stageGather_Create = this.stageItems;
-        
-        // Create -> Upgrades tab
-        const stageCreateUpgrades = [];
-        // See fn.getCreateUpgradesCardData
-        const gatherItems = this.getGatherItems();
-        gatherItems.forEach(item => {
-            stageCreateUpgrades.push({
-                id: item.id + '_gather_upgrade',
-                title: item.title + ' UPGRADES',
-                tab: 'create',
-                subTab: 'upgrades' ?? null
-            });
-        });
-
-        // Discover tab
-        const stageDiscover = this.objectives;
-
-        const returnData = [
-            ...stageGather_Create,
-            ...stageCreateUpgrades,
-            ...stageDiscover
+        return [
+            ...this.gatherCards,
+            ...this.createItemsCards,
+            ...this.createUpgradesCards,
+            ...this.discoverCards
         ];
-        
-        return returnData;
     }
 
     getAllValues() {

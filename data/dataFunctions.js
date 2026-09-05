@@ -33,13 +33,17 @@ export function getCurrentTabCardData(
     autoGather,
     objectivesManager
 ) {
-    if (!runOnce) {
-        //runOnce = false;
+    if (runOnce) {
+        runOnce = false;
+        stageProgress.unlock(gatherCards[0].id);
+        stageProgress.unlock(createItemsCards[0].id);
+        stageProgress.unlock(createUpgradesCards[0].id);
+        stageProgress.unlock(discoverCards[0].id);
 
-        const cardsTest = getCards(tab, subTab);
+        /*const cardsTest = getCards(tab, subTab);
         cardsTest.forEach(item => {
             jp(item.id);
-        });
+        });*/
     }
 
     let cards = stageItems.filter(item => item.tab === tab);
