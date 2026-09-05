@@ -35,36 +35,16 @@ export function getCurrentTabCardData(
 ) {
     if (runOnce) {
         runOnce = false;
+        
+        // Unlock first card of ewch tab 
         stageProgress.unlock(gatherCards[0].id);
         stageProgress.unlock(createItemsCards[0].id);
         stageProgress.unlock(createUpgradesCards[0].id);
         stageProgress.unlock(discoverCards[0].id);
-
-        /*const cardsTest = getCards(tab, subTab);
-        cardsTest.forEach(item => {
-            jp(item.id);
-        });*/
+        
     }
 
-    let cards = stageItems.filter(item => item.tab === tab);
-
-    // Custom array: create-upgrades tab
-    if (
-        tab === 'create' &&
-        subTab === 'upgrades'
-    ) {
-        cards = getCreateUpgradesCardData(
-            stageProgress
-        );
-    }
-
-    // Discover (stageObjectives)
-    if (tab === 'discover') {
-        const discoverCards =
-            getDiscoverCardData(objectivesManager);
-
-        cards = discoverCards;
-    }
+    let cards = getCards(tab, subTab);
 
     cards = cards
         .map(item =>
@@ -300,131 +280,6 @@ function getRequirements(reqItemsData, requiredItems) {
 }
 // USAGE
 // const requirements = getRequirements(item.autoReq, gatherItems);
-
-// ==========================================
-// DISCOVER
-// ==========================================
-
-export function getDiscoverCardData(
-    objectivesManager
-) {
-    const returnData = [];
-    stageObjectives.forEach(obj => {
-
-        // Only include these types
-        if (obj.type !== 'objective' &&
-            obj.type !== 'child' &&
-            obj.type !== 'parent') {
-            return;
-        }
-        
-        // New data only
-        const data = {
-            id: obj.id,
-            title: obj.title,
-            tab: 'discover',
-            objectiveText: obj.objectiveText,
-            description: obj.description,
-            
-            required: {
-                items: [],
-                objectives: [],
-                children: []
-            },
-
-            unlocked: {
-                items: [],
-                objectives: [],
-                children: []
-            }
-        };
-
-        // ==========================================
-        // REQUIRED
-        // ==========================================
-
-        if (obj.requirements?.items) {
-            data.required.items =
-                fetchObjData(obj.requirements.items);
-        }
-        
-        if (obj.objectiveText) {
-            data.required.items = [
-                { 
-                    id: 'startsUnlocked',
-                    title: obj.objectiveText,
-                    amt: 0
-                }
-            ];
-        }
-
-        if (obj.requirements?.objectives) {
-            data.required.objectives =
-                fetchObjData(obj.requirements.objectives);
-        }
-
-        // Parent children
-        if (obj.children) {
-            data.required.children =
-                fetchObjData(obj.children);
-        }
-
-        // ==========================================
-        // UNLOCKED
-        // ==========================================
-
-        if (obj.unlocks?.items) {
-            data.unlocked.items =
-                fetchObjData(obj.unlocks.items);
-        }
-
-        if (obj.unlocks?.objectives) {
-            data.unlocked.objectives =
-                fetchObjData(obj.unlocks.objectives);
-        }
-
-        if (obj.unlocks?.children) {
-            data.unlocked.children =
-                fetchObjData(obj.unlocks.children);
-        }
-
-        returnData.push(data);
-    });
-
-    return returnData;
-}
-
-// Helper ^ getDiscoverCardData
-function fetchObjData(data) {
-    if (!Array.isArray(data)) return [];
-    return data.flatMap(item => {
-        // ID only
-        if (typeof item === 'string') {
-            return {
-                id: item,
-                title: getTitle(item)
-            };
-        }
-        // ID + amount
-        if (item && typeof item === 'object') {
-            return Object.entries(item).map(([id, amt]) => ({
-                id,
-                title: getTitle(id),
-                amt
-            }));
-        }
-        return [];
-    });
-}
-
-// Gwt any title matching id
-function getTitle(id) {
-    const stage = stageItems.find(i => i.id === id);
-    if (stage) return stage.title;
-    const objective = stageObjectives.find(i => i.id === id);
-    if (objective) return objective.title;
-    return id;
-}
 
 function actionButtonState(state, element = {}, activeText, inactiveText) {
 

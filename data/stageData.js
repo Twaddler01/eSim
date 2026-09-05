@@ -358,7 +358,7 @@ export const stageObjectives = [
 ];
 
 //////////////////////////////////////////
-//////////////////////////////////////////
+// ORGANIZE ARRAYS
 //////////////////////////////////////////
 
 // Returns title with id/cost
@@ -420,11 +420,143 @@ function f_creationStage_createUpgradesCards() {
 }
 
 function f_creationStage_discoverCards() {
-    return stageObjectives;
+    const returnData = [];
+    stageObjectives.forEach(obj => {
+
+        // Only include these types
+        if (obj.type !== 'objective' &&
+            obj.type !== 'child' &&
+            obj.type !== 'parent') {
+            return;
+        }
+        
+        // New data only
+        const data = {
+            id: obj.id,
+            title: obj.title,
+            tab: 'discover',
+            objectiveText: obj.objectiveText,
+            description: obj.description,
+            
+            required: {
+                items: [],
+                objectives: [],
+                children: []
+            },
+
+            unlocked: {
+                items: [],
+                objectives: [],
+                children: []
+            }
+        };
+
+        // ==========================================
+        // REQUIRED
+        // ==========================================
+
+        if (obj.requirements?.items) {
+            data.required.items =
+                fetchObjData(obj.requirements.items);
+        }
+        
+        if (obj.objectiveText) {
+            data.required.items = [
+                { 
+                    id: 'startsUnlocked',
+                    title: obj.objectiveText,
+                    amt: 0
+                }
+            ];
+        }
+
+        if (obj.requirements?.objectives) {
+            data.required.objectives =
+                fetchObjData(obj.requirements.objectives);
+        }
+
+        // Parent children
+        if (obj.children) {
+            data.required.children =
+                fetchObjData(obj.children);
+        }
+
+        // ==========================================
+        // UNLOCKED
+        // ==========================================
+
+        if (obj.unlocks?.items) {
+            data.unlocked.items =
+                fetchObjData(obj.unlocks.items);
+        }
+
+        if (obj.unlocks?.objectives) {
+            data.unlocked.objectives =
+                fetchObjData(obj.unlocks.objectives);
+        }
+
+        if (obj.unlocks?.children) {
+            data.unlocked.children =
+                fetchObjData(obj.unlocks.children);
+        }
+
+        returnData.push(data);
+    });
+
+    return returnData;
 }
 
-// CREATION STAGE CARDS
+//////////////////////////////////////////
+// HELPERS
+//////////////////////////////////////////
+
+// helper ^ fetchObjData ^ f_creationStage_discoverCards
+// Gwt any title matching id
+function getTitle(id) {
+    const nonDiscoverCards = [
+        ...gatherCards,
+        ...createItemsCards,
+        ...createUpgradesCards,
+    ];
+    
+    const item = nonDiscoverCards.find(i => i.id === id);
+    if (!item) return;
+
+    return item.title ?? item.id;
+}
+
+// Helper ^ f_creationStage_discoverCards
+function fetchObjData(data) {
+    if (!Array.isArray(data)) return [];
+    return data.flatMap(item => {
+        // ID only
+        if (typeof item === 'string') {
+            return {
+                id: item,
+                title: getTitle(item)
+            };
+        }
+        // ID + amount
+        if (item && typeof item === 'object') {
+            return Object.entries(item).map(([id, amt]) => ({
+                id,
+                title: getTitle(id),
+                amt
+            }));
+        }
+        return [];
+    });
+}
+
+// ALL CREATION STAGE CARDS
 export const gatherCards = f_creationStage_gatherCards();
 export const createItemsCards = f_creationStage_createItemsCards();
 export const createUpgradesCards = f_creationStage_createUpgradesCards();
 export const discoverCards = f_creationStage_discoverCards();
+
+export const allCardData = [
+    ...gatherCards,
+    ...createItemsCards,
+    ...createUpgradesCards,
+    ...discoverCards
+];
