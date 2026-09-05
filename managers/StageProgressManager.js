@@ -4,17 +4,20 @@ export default class StageProgressManager {
 
     constructor(stageProgressState, data = {}) {
 
+        this.stageData = data.stageData;
+        this.gameData = data.gameData;
+
         // NEW
+        this.allCardData = data.allCardData;
+        
         this.gatherCards = data.gatherCards;
         this.createItemsCards = data.createItemsCards;
         this.createUpgradesCards = data.createUpgradesCards;
         this.discoverCards = data.discoverCards;
-
         // OLD
-        this.gameData = data.gameData;
-        this.stageData = data.stageData;
         this.stageItems = data.stageItems;
-        this.objectives = data.stageObjectives;
+        //this.objectives = data.stageObjectives;
+
         // Sync with save
         this.state = stageProgressState;
 
@@ -577,12 +580,7 @@ export default class StageProgressManager {
     }
 
     getAllCardIds() {
-        return [
-            ...this.gatherCards,
-            ...this.createItemsCards,
-            ...this.createUpgradesCards,
-            ...this.discoverCards
-        ];
+        return this.allCardData;
     }
 
     getAllValues() {
@@ -642,7 +640,11 @@ export default class StageProgressManager {
             item => item.id === id
         ) ?? null;
     }
-    
+
+    getObjectives() {
+        return this.discoverCards;
+    }
+
     getItemTitle(id) {
         const item = this.stageItems.find(i => i.id === id);
         if (item) return item.title ?? item.id;
@@ -684,15 +686,8 @@ export default class StageProgressManager {
     }
 
     getTabId(id) {
-        const createItem = this.stageItems.find(s => s.id === id && s.tab === 'create');
-        if (createItem) {
-            return 'create';
-        }
-        const discoverItem = this.objectives.find(o => o.id === id && o.tab === 'discover');
-        if (discoverItem) {
-            return 'discover';
-        }
-        return 'gather';
+        const card = this.allCardData.find(i => i.id === id);
+        return card.tab ?? 'gather';
     }
 
 //--------------------------------

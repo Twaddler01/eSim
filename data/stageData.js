@@ -419,6 +419,7 @@ function f_creationStage_createUpgradesCards() {
     return data;
 }
 
+// Modded data for ui display purposes
 function f_creationStage_discoverCards() {
     const returnData = [];
     stageObjectives.forEach(obj => {
@@ -432,6 +433,7 @@ function f_creationStage_discoverCards() {
         
         // New data only
         const data = {
+            ...obj,
             id: obj.id,
             title: obj.title,
             tab: 'discover',

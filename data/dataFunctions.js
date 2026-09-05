@@ -1,6 +1,5 @@
 // dataFunctions.js
 import { getItemMax } from '../utils/stageHelpers.js';
-import { stageItems, stageObjectives } from '../data/stageData.js';
 import { 
     subTabs,
     gatherCards, 
@@ -83,9 +82,6 @@ function buildCardData(
     // FOR ALL TABS
     const data = {
         ...item,
-
-        // Assign subTab id for CREATE -> ITEMS (subTab default)
-        subTab: subTab ?? null,
 
         // Lock state
         getLockState: () =>

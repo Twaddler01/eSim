@@ -6,11 +6,12 @@ import { gameData } from '../data/gameData.js';
 // OLD
 import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
 // NEW
-import { 
+import {
     gatherCards, 
     createItemsCards,
     createUpgradesCards,
-    discoverCards
+    discoverCards,
+    allCardData
 } from '../data/stageData.js';
 
 import AutoGatherManager from '../managers/AutoGatherManager.js';
@@ -53,13 +54,15 @@ export default class CreationScene extends Phaser.Scene {
             new StageProgressManager(this.stageProgressState, {
                     gameData: this.gameData, 
                     stageData: stageData, 
+                    // OLD
                     stageItems: stageItems, 
                     stageObjectives: this.stageObjectives, 
                     // NEW
                     gatherCards, 
                     createItemsCards,
                     createUpgradesCards,
-                    discoverCards
+                    discoverCards,
+                    allCardData
                 }
             );
 

@@ -104,6 +104,11 @@ export default class StageSubNavigation {
                 );
             }
         });
+        
+        // Reapply selected tab after rebuilding
+        if (this.activeTab) {
+            this.setActiveTab(this.activeTab);
+        }
     }
 
     setActiveTab(id) {

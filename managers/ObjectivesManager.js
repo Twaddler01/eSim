@@ -8,7 +8,7 @@ export default class ObjectivesManager {
         this.gameData = stageProgress.gameData;
         this.stageData = stageProgress.stageData;
         this.stageItems = stageProgress.stageItems;
-        this.stageObjectives = stageProgress.objectives;
+        this.discoverCards = stageProgress.discoverCards;
 
         // Sync to save
         this.state = stageProgressState;
@@ -47,7 +47,7 @@ export default class ObjectivesManager {
     }
 
     getAllObjectives() {
-        return this.stageObjectives;
+        return this.discoverCards;
     }
 
     // Get amount
@@ -106,9 +106,8 @@ export default class ObjectivesManager {
         };
     }
 
-    // helper ^ getObjective
     getObjective(id) {
-        return this.stageObjectives.find(
+        return this.getAllObjectives().find(
             objective => objective.id === id
         ) ?? null;
     }
@@ -140,7 +139,7 @@ export default class ObjectivesManager {
             this.getCurrentStageId();
     
         const startingObjective =
-            this.stageObjectives.find(
+            this.getAllObjectives().find(
                 objective =>
                     objective.stage === stage &&
                     objective.startsUnlocked === true &&
@@ -148,7 +147,7 @@ export default class ObjectivesManager {
                         objective.id
                     )
             );
-    
+
         if (startingObjective) {
             this._setTracked(
                 startingObjective.id,
@@ -760,7 +759,7 @@ export default class ObjectivesManager {
     
         for (const unlockId of objectivesUnlocked) {
             const objData =
-                this.stageObjectives.find(
+                this.getAllObjectives().find(
                     i => i.id === unlockId
                 );
     
@@ -802,7 +801,7 @@ export default class ObjectivesManager {
             this.getCurrentStageId();
     
         const result =
-            this.stageObjectives.filter(objective => {
+            this.getAllObjectives().filter(objective => {
                 const sameStage =
                     objective.stage === stage;
     
