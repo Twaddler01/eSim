@@ -10,6 +10,7 @@
 - Disable/lock empty tabs.
 - Rework StageCard to use individual classes for each tab (2 left).
 - Tab titles at top of viewport to better show user navigation (or just close the empty space?).
+- KNOWN ISSUE: Periodically receive 'addText is not defined" error due to JS import caching from frequent page updates. Rarely occurs locally. May need to setup cache busting in the future.
 
 # Recent Updates
 09-04-2026
