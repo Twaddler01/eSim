@@ -2,6 +2,7 @@
 import { getItemMax } from '../utils/stageHelpers.js';
 import { stageItems, stageObjectives } from '../data/stageData.js';
 import { 
+    subTabs,
     gatherCards, 
     createItemsCards,
     createUpgradesCards,
@@ -33,16 +34,18 @@ export function getCurrentTabCardData(
     autoGather,
     objectivesManager
 ) {
-    if (runOnce) {
-        runOnce = false;
-        
-        // Unlock first card of ewch tab 
-        stageProgress.unlock(gatherCards[0].id);
-        stageProgress.unlock(createItemsCards[0].id);
-        stageProgress.unlock(createUpgradesCards[0].id);
-        stageProgress.unlock(discoverCards[0].id);
-        
+    const debugFn = () => {
+        if (runOnce) {
+            runOnce = false;
+            
+            // Unlock first card of ewch tab 
+            stageProgress.unlock(gatherCards[0].id);
+            stageProgress.unlock(createItemsCards[0].id);
+            stageProgress.unlock(createUpgradesCards[0].id);
+            stageProgress.unlock(discoverCards[0].id);
+        }
     }
+    //debugFn();
 
     let cards = getCards(tab, subTab);
 
@@ -352,29 +355,92 @@ export function getTabAvailability(
     autoGather,
     objectivesManager
 ) {
-    // Discover is always available
     if (tab === 'discover') {
         return 'active';
     }
 
-    const cards = stageItems.filter(
-        item => item.tab === tab
-    );
+    const tabs = subTabs[tab] ?? [];
 
-    const hasUnlockedCard = cards.some(item => {
-        const card = buildCardData(
-            item,
+    // Tab has subTabs
+    if (tabs.length) {
+        return tabs.some(subTab =>
+            hasUnlockedCards(
+                tab,
+                subTab.id,
+                stageProgress,
+                autoGather,
+                objectivesManager
+            )
+        )
+            ? 'active'
+            : 'locked';
+    }
+
+    // Tab has no subTabs
+    return hasUnlockedCards(
+        tab,
+        null,
+        stageProgress,
+        autoGather,
+        objectivesManager
+    )
+        ? 'active'
+        : 'locked';
+}
+
+// helper ^ getTabAvailability
+function hasUnlockedCards(
+    tab,
+    subTab,
+    stageProgress,
+    autoGather,
+    objectivesManager
+) {
+    const cards =
+        getCurrentTabCardData(
             tab,
-            null,
+            subTab,
             stageProgress,
             autoGather,
             objectivesManager
         );
 
-        return card.getCardState() !== 'locked';
-    });
+    return cards.some(card =>
+        card.getLockState() === 'unlocked'
+    );
+}
 
-    return hasUnlockedCard
-        ? 'active'
-        : 'locked';
+export function getSubTabData(
+    tab,
+    stageProgress,
+    autoGather,
+    objectivesManager
+) {
+    const tabs = subTabs[tab] ?? [];
+
+    return tabs.map(subTab => {
+
+        const cards =
+            getCurrentTabCardData(
+                tab,
+                subTab.id,
+                stageProgress,
+                autoGather,
+                objectivesManager
+            );
+
+        const unlocked =
+            cards.some(card =>
+                card.getLockState() === 'unlocked'
+            );
+
+        return {
+            ...subTab,
+
+            availability:
+                unlocked
+                    ? 'active'
+                    : 'locked'
+        };
+    });
 }

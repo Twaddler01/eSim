@@ -1,6 +1,5 @@
 import StageNavigation from './StageNavigation.js';
 import StageViewport from './StageViewport.js';
-import { subTabs } from '../../data/stageData.js';
 import MessageStatus from './MessageStatus.js';
 import StageInventory from './StageInventory.js';
 import { getItemMax, listenToEvent } from '../../utils/stageHelpers.js';
@@ -350,6 +349,7 @@ export default class StageUI {
     
         if (updateTypes.includes(update.type)) {
             this.updateNavigation();
+            this.updateSubNavigation();
             this.updateCurrentTab();
             return;
         }
@@ -395,12 +395,19 @@ export default class StageUI {
 
     // Sub Tabs
     getSubTabs() {
-        return subTabs[this.currentTab] ?? null;
+        return df.getSubTabData(
+            this.currentTab,
+            this.stageProgress,
+            this.autoGather,
+            this.objectivesManager
+        );
     }
     
     getDefaultSubTab() {
         const tabs = this.getSubTabs();
-        return tabs?.[0]?.id ?? null;
+        return tabs?.find(
+            tab => tab.availability !== 'locked'
+        )?.id ?? null;
     }
     
     changeSubTab(id) {
@@ -444,32 +451,37 @@ export default class StageUI {
         this.viewport.syncCards(cardData);
     }
 
-////
-getTabData() {
-    const tabs = [
-        { id: 'gather', title: 'GATHER' },
-        { id: 'create', title: 'CREATE' },
-        { id: 'discover', title: 'DISCOVER' }
-    ];
+    getTabData() {
+        const tabs = [
+            { id: 'gather', title: 'GATHER' },
+            { id: 'create', title: 'CREATE' },
+            { id: 'discover', title: 'DISCOVER' }
+        ];
+    
+        return tabs.map(tab => ({
+            ...tab,
+    
+            availability:
+                df.getTabAvailability(
+                    tab.id,
+                    this.stageProgress,
+                    this.autoGather,
+                    this.objectivesManager
+                )
+        }));
+    }
 
-    return tabs.map(tab => ({
-        ...tab,
-
-        availability:
-            df.getTabAvailability(
-                tab.id,
-                this.stageProgress,
-                this.autoGather,
-                this.objectivesManager
-            )
-    }));
-}
-
-updateNavigation() {
-    this.navigation.setTabs(
-        this.getTabData()
-    );
-}
+    updateNavigation() {
+        this.navigation.setTabs(
+            this.getTabData()
+        );
+    }
+    
+    updateSubNavigation() {
+        this.subNavigation.setTabs(
+            this.getSubTabs()
+        );
+    }
 
     // Destroy
     destroy() {
