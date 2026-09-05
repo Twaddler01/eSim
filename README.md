@@ -7,6 +7,7 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In progress
+- Moving to new branch: "new-data" to cleanup data array for new disable tab features.
 - Disable/lock empty tabs.
 - Rework StageCard to use individual classes for each tab (2 left).
 - Tab titles at top of viewport to better show user navigation (or just close the empty space?).
