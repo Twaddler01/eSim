@@ -6,18 +6,13 @@ export default class StageProgressManager {
 
         this.stageData = data.stageData;
         this.gameData = data.gameData;
-
-        // NEW
-        this.allCardData = data.allCardData;
         
         this.gatherCards = data.gatherCards;
         this.createItemsCards = data.createItemsCards;
         this.createUpgradesCards = data.createUpgradesCards;
         this.discoverCards = data.discoverCards;
-        // OLD
-        this.stageItems = data.stageItems;
-        //this.objectives = data.stageObjectives;
-
+        this.allCardData = data.allCardData;
+        
         // Sync with save
         this.state = stageProgressState;
 
@@ -636,7 +631,7 @@ export default class StageProgressManager {
     }
 
     getItem(id) {
-        return this.stageItems.find(
+        return this.allCardData.find(
             item => item.id === id
         ) ?? null;
     }
@@ -646,7 +641,7 @@ export default class StageProgressManager {
     }
 
     getItemTitle(id) {
-        const item = this.stageItems.find(i => i.id === id);
+        const item = this.allCardData.find(i => i.id === id);
         if (item) return item.title ?? item.id;
         return null;
     }

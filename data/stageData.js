@@ -15,7 +15,13 @@ export const subTabs = {
     discover: null
 };
 
-export const stageItems = [
+/* LOCAL edit here, mod below
+**** Exports as:
+gatherCards
+createItemsCards
+createUpgradesCards (from tab 'gather')
+*********************/
+const stageItems = [
 
 // Resources
     { stage: 'creation', id: 'darkness', title: 'DARKNESS', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER',
@@ -122,7 +128,8 @@ export const stageItems = [
     }
 ];
 
-export const stageObjectives = [
+// LOCAL version for editing before discoverCards build below
+const stageObjectives = [
     {
         // Parent objective (parent: true, children: [])
         type: 'parent',
@@ -164,22 +171,6 @@ export const stageObjectives = [
             items: [ 'darkness' ], // for testing purposes
         },
         hasFlow: true,
-        /*triggers: {
-            announcements: [
-                {
-                    id: 'obj_done_the_beginning',
-                    delay: 0
-                },
-                {
-                    id: 'obj_new_days_of_creation',
-                    delay: 6000
-                }
-            ],
-            conversation: {
-                id: 'the_beginning_complete',
-                delay: 3000
-            }
-        },*/
         actionLabel: 'COMPLETE'
     },
     {
@@ -200,12 +191,6 @@ export const stageObjectives = [
             items: [ 'light', 'water' ]
         },
         hasFlow: true,
-        /*triggers: {
-            conversation: {
-                id: 'creation_day_1_complete',
-                delay: 1200
-            }
-        },*/
         actionLabel: 'COMPLETE'
     },
     {
@@ -515,13 +500,14 @@ function f_creationStage_discoverCards() {
 // helper ^ fetchObjData ^ f_creationStage_discoverCards
 // Gwt any title matching id
 function getTitle(id) {
-    const nonDiscoverCards = [
+    const cards = [
         ...gatherCards,
         ...createItemsCards,
         ...createUpgradesCards,
+        ...stageObjectives // Raw data
     ];
     
-    const item = nonDiscoverCards.find(i => i.id === id);
+    const item = cards.find(i => i.id === id);
     if (!item) return;
 
     return item.title ?? item.id;
@@ -550,7 +536,10 @@ function fetchObjData(data) {
     });
 }
 
-// ALL CREATION STAGE CARDS
+//////////////////////////////////////////
+// CREATION STAGE CARDS 
+//////////////////////////////////////////
+
 export const gatherCards = f_creationStage_gatherCards();
 export const createItemsCards = f_creationStage_createItemsCards();
 export const createUpgradesCards = f_creationStage_createUpgradesCards();

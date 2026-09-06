@@ -1,4 +1,4 @@
-import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
+import { allCardData } from '../data/stageData.js';
 
 export default class DebugButtons {
 
@@ -60,10 +60,8 @@ this.addButton('Show current savedData', () => {
     this.saveManager.debug();
 });
 ////
-this.addButton('getCreateData(item)', () => {
-    stageItems.filter(i => i.tab === 'create').forEach(item => {
-        console.log(this.stageProgress.getCreateData(item));
-    });
+this.addButton('VIEW allCardData', () => {
+    console.log(JSON.stringify(allCardData, null, 2));
 });
 ////
 this.addButton('getObjectiveData', () => {

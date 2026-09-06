@@ -7,7 +7,9 @@ export default class ObjectivesManager {
         this.stageProgress = stageProgress;
         this.gameData = stageProgress.gameData;
         this.stageData = stageProgress.stageData;
-        this.stageItems = stageProgress.stageItems;
+        
+        // Data
+        this.nonDiscoverCards = stageProgress.allCardData.filter(i => i.tab !== 'discover');
         this.discoverCards = stageProgress.discoverCards;
 
         // Sync to save
@@ -56,7 +58,7 @@ export default class ObjectivesManager {
     }
 
     getItem(id) {
-        return this.stageItems.find(
+        return this.nonDiscoverCards.find(
             item => item.id === id
         ) ?? null;
     }
@@ -748,7 +750,7 @@ export default class ObjectivesManager {
 
         for (const unlockId of itemUnlocked) {
             const itemData =
-                this.stageItems.find(
+                this.nonDiscoverCards.find(
                     i => i.id === unlockId
                 );
     
@@ -774,10 +776,10 @@ export default class ObjectivesManager {
         };
     }
 
-    // Returns an array of objective required items (from stageItems)
+    // OLD ???
+    // Returns an array of objective required items (from discoverCards)
     getReqItems(id) {
-        // NOTE: this.objectives = stageObjectives
-        const thisItem = this.objectives.find(i => i.id === id);
+        const thisItem = this.discoverCards.find(i => i.id === id);
 
         let result = [];
         
@@ -787,7 +789,7 @@ export default class ObjectivesManager {
             reqItems.forEach(item => {
                 const [[reqId, required]] = Object.entries(item);
                 //console.log(`ID: ${reqId}, Value: ${required}`);
-                const matchedId = this.stageItems.find(i => i.id === reqId);
+                const matchedId = this.nonDiscoverCards.find(i => i.id === reqId);
                 result.push(matchedId);
             });
         }
