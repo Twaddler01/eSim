@@ -1,5 +1,4 @@
 // CreateGatherCard.js
-// data source: stageCardData.js -> getCurrentTabCardData()
 export default class CreateGatherCard {
 
     constructor(scene, options = {}) {

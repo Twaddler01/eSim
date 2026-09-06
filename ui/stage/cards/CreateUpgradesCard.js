@@ -1,5 +1,4 @@
 // CreateUpgradesCard.js
-// data source: stageCardData.js -> getCreateUpgradesCardData()
 export default class CreateUpgradesCard {
 
     constructor(scene, options = {}) {

@@ -1,6 +1,7 @@
 import { listenToEvent } from '../../utils/stageHelpers.js';
 import CreateUpgradesCard from './cards/CreateUpgradesCard.js';
 import CreateGatherCard from './cards/CreateGatherCard.js';
+import CreateItemsCard from './cards/CreateItemsCard.js';
 
 // FOR GATHER, CREATE, DISCOVER TABS
 export default class StageCard {
@@ -132,7 +133,21 @@ export default class StageCard {
                 );
                 break;
             case 'create':
-                // Move into new class
+                if (this.subTab === 'items') {
+                    this.createItemsCard =
+                        new CreateItemsCard(this.scene, {
+                            ...this.options,
+                            container: this.container,
+                            x: 10,
+                            y: 10,
+                            width: this.width - 20,
+                            height: this.height - 20,
+                            // Functions needed
+                            isPointerVisible: pointer => this.isPointerVisible(pointer),
+                            updateLockUI: locked => this.updateLockUI(locked),
+                        }
+                    );
+                }
                 if (this.subTab === 'upgrades') {
                     this.createUpgradesCard =
                         new CreateUpgradesCard(this.scene, {
@@ -147,8 +162,6 @@ export default class StageCard {
                             updateLockUI: locked => this.updateLockUI(locked),
                         }
                     );
-                } else {
-                    this.createCreate();
                 }
                 break;
             case 'discover':
@@ -298,136 +311,6 @@ export default class StageCard {
         const strokeStyleW = tracked ? 5: 1;
         const strokeStyleC = tracked ? 0x44aa44: 0xffffff;
         this.ui.background?.setStrokeStyle(strokeStyleW, strokeStyleC);
-    }
-
-//--------------------------------
-// CREATE TAB
-//--------------------------------
-
-    createCreate() {
-        const yOffset = this.height / 2 - 50;
-        this.ui.title.y = yOffset;
-        
-        const requirements = this.getCardUpdates();
-
-        let currentY = yOffset + 35;
-        
-        this.createUI.descriptionText =
-            this.addElement(
-                addText(this.scene,
-                    15,
-                    currentY,
-                    this.description,
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        currentY += this.createUI.descriptionText.height + 5;
-
-
-        this.createUI.producesLabels = [];
-        requirements.produces.forEach(pro => {
-            const text =
-                this.addElement(
-                    addText(this.scene,
-                        15,
-                        currentY,
-                        '- Create: +' + pro.producesCnt + ' ' + pro.title,
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    )
-                .setOrigin(0)
-            );
-            
-            this.createUI.producesLabels.push(text);
-            
-            currentY += text.height + 5;
-            
-        });
-
-        this.offsetY = yOffset; // WIP If requirements list gets too long
-        this.createUI.requiresTitle =
-            this.addElement(
-                addText(this.scene,
-                    this.width / 3 + 15,
-                    yOffset, // Same y as title
-                    'REQUIRES:',
-                    {
-                        fontSize: '24px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        
-        //let currentY = yOffset + 35;
-        // Store text for updates
-        this.createUI.requiresLabels = [];
- 
-        currentY = yOffset + 35;
-        requirements.requirements.forEach(require => {
-            const text =
-                this.addElement(
-                    addText(this.scene,
-                        this.width / 3 + 25,
-                        currentY,
-                        require.title + ': ' + require.cnt + ' / ' + require.amt,
-                        {
-                            fontSize: '18px',
-                            color: require.color
-                        }
-                    )
-                .setOrigin(0)
-            );
-            
-            this.createUI.requiresLabels.push(text);
-            currentY += 24;
-        });
-        
-        // Create button
-        this.createUI.createButton =
-            this.addElement(
-                this.scene.add.rectangle(
-                    this.width - 200,
-                    this.height / 2 - 15,
-                    120,
-                    30,
-                    requirements.buttonFill
-                )
-                .setOrigin(0)
-                .setStrokeStyle(1, requirements.buttonStroke)
-                .setInteractive()
-            );
-        
-        this.createUI.createButtonText =
-            this.addElement(
-                addText(this.scene,
-                    (this.width - 200) + 22,
-                    this.height / 2 - 11,
-                    this.actionLabel,
-                    {
-                        fontSize: '20px',
-                        color: requirements.buttonTextColor
-                    }
-                )
-            .setOrigin(0)
-        );
-        
-        // Click action
-        this.createUI.createButton.on(
-            'pointerdown',
-            pointer => {
-                if (!this.isPointerVisible(pointer)) {
-                    return;
-                }
-                this._actionHandler();
-            }
-        );
     }
 
 //--------------------------------
@@ -784,13 +667,12 @@ export default class StageCard {
     updateUI(data) {
         switch (this.tab) {
             case 'gather':
-                //this.updateGather(data);
-                this.CreateGatherCard?.update(data);
+                this.CreateGatherCard?.update();
                 break;
             case 'create':
                 // Default
                 if (this.subTab === 'items') {
-                    this.updateCreate(data);
+                    this.createItemsCard?.update();
                 }
                 // Update for subTab class
                 if (this.subTab === 'upgrades') {
@@ -800,55 +682,6 @@ export default class StageCard {
             case 'discover':
                 this.updateDiscover(data);
                 break;
-        }
-    }
-
-//--------------------------------
-// OTHER UPDATES
-//--------------------------------
-
-    // PRIMARY CREATE UPDATE CALLS
-    updateCreate(data) {
-        this.updateCreateRequirements(data);
-        const lockedState = this.getLockState();
-        this.updateLockUI(lockedState === 'locked');
-    }
-
-    // Create live updates
-    updateCreateRequirements(data) {
-
-        data.cardUpdates.requirements.forEach(
-            (require, index) => {
-                const text =
-                    this.createUI.requiresLabels[index];
-                if (!text) {
-                    return;
-                }
-    
-                text.setText(`${require.title}: ${require.cnt} / ${require.amt}`);
-                text.setColor(require.color);
-            }
-        );
-        
-        // Update rates WIP -- dynsmic in the future?
-        /*data.produces.forEach(
-            (prod, index) => {
-                const text =
-                    this.createUI.producesLabels[index];
-                if (!text) {
-                    return;
-                }
-    
-                text.setText('- Create: +' + prod.producesCnt + ' ' + prod.title);
-            }
-        );*/
-
-        // Update CREATE button
-        if (data.state) {
-            this.helpers.actionButtonState(data.state, {
-                rectangle: this.createUI.createButton,
-                text: this.createUI.createButtonText
-            }, 'CREATE');
         }
     }
 
