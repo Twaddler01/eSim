@@ -37,24 +37,34 @@ export default class StageSubNavigation {
             const x =
                 index * tabWidth;
 
+            const locked =
+                tab.availability === 'locked';
+
             const background =
                 this.scene.add.rectangle(
                     x,
                     0,
                     tabWidth,
                     this.height,
-                    0x222222
+                    locked
+                        ? 0x111111
+                        : 0x222222
                 )
                 .setOrigin(0)
                 .setStrokeStyle(
                     1,
                     0xffffff
-                )
-                .setInteractive();
+                );
+
+            // Only interactive when unlocked
+            if (!locked) {
+                background.setInteractive();
+            }
 
             this.tabBackgrounds.push({
                 id: tab.id,
-                background
+                background,
+                locked
             });
 
             const text =
@@ -65,7 +75,9 @@ export default class StageSubNavigation {
                     tab.label,
                     {
                         fontSize: '18px',
-                        color: '#ffffff'
+                        color: locked
+                            ? '#666666'
+                            : '#ffffff'
                     }
                 )
                 .setOrigin(0.5);
@@ -75,27 +87,52 @@ export default class StageSubNavigation {
                 text
             ]);
 
-            background.on(
-                'pointerdown',
-                () => {
+            // Only add handler to unlocked tabs
+            if (!locked) {
+                background.on(
+                    'pointerdown',
+                    () => {
 
-                    this.setActiveTab(tab.id);
+                        this.setActiveTab(tab.id);
 
-                    this.scene.events.emit(
-                        'stage-sub-tab-changed',
-                        tab.id
-                    );
+                        this.scene.events.emit(
+                            'stage-sub-tab-changed',
+                            tab.id
+                        );
 
-                }
-            );
+                    }
+                );
+            }
         });
+        
+        // Reapply selected tab after rebuilding
+        if (this.activeTab) {
+            this.setActiveTab(this.activeTab);
+        }
     }
 
     setActiveTab(id) {
 
+        const tab =
+            this.tabBackgrounds.find(
+                tab => tab.id === id
+            );
+
+        // Don't activate locked tab
+        if (tab?.locked) {
+            return;
+        }
+
         this.activeTab = id;
 
         this.tabBackgrounds.forEach(tab => {
+
+            if (tab.locked) {
+                tab.background.setFillStyle(
+                    0x111111
+                );
+                return;
+            }
 
             const active =
                 tab.id === id;

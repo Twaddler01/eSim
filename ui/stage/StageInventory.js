@@ -7,7 +7,9 @@ export default class StageInventory {
 
         this.scene = scene;
         this.stageProgress = stageProgress;
-        this.stageItems = this.stageProgress.stageItems;
+        
+        const allCardData = stageProgress.allCardData;
+        this.inventoryItems = allCardData.filter(i => i.tab !== 'discover' && i.subTab !== 'upgrades');
 
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
@@ -193,7 +195,7 @@ export default class StageInventory {
     getInventoryItems() {
         const items = [];
 
-        this.stageItems.forEach(item => {
+        this.inventoryItems.forEach(item => {
             // Avoid duplicates
             if (items.some(existing => existing.id === item.id)) {
                 return;

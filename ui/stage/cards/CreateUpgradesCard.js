@@ -14,8 +14,6 @@ export default class CreateUpgradesCard {
         // Use this.x, this.y (inherited)
         this.container = options.container ?? null;
 
-        // stageItems item id upgrade is for
-        this.item = options.item ?? null;
         this.getLevel = options.getLevel ?? (() => null);
 
         // From StageCard
@@ -42,7 +40,7 @@ export default class CreateUpgradesCard {
             if (!canAction) {
                 return;
             }
-            this.onAction?.(this.item);
+            this.onAction?.();
         };
 
         this.elements = [];

@@ -1,7 +1,7 @@
 // dataFunctions.js
 import { getItemMax } from '../utils/stageHelpers.js';
-import { stageItems, stageObjectives } from '../data/stageData.js';
 import { 
+    subTabs,
     gatherCards, 
     createItemsCards,
     createUpgradesCards,
@@ -33,38 +33,20 @@ export function getCurrentTabCardData(
     autoGather,
     objectivesManager
 ) {
-    if (runOnce) {
-        runOnce = false;
-        stageProgress.unlock(gatherCards[0].id);
-        stageProgress.unlock(createItemsCards[0].id);
-        stageProgress.unlock(createUpgradesCards[0].id);
-        stageProgress.unlock(discoverCards[0].id);
-
-        /*const cardsTest = getCards(tab, subTab);
-        cardsTest.forEach(item => {
-            jp(item.id);
-        });*/
+    const debugFn = () => {
+        if (runOnce) {
+            runOnce = false;
+            
+            // Unlock first card of ewch tab 
+            stageProgress.unlock(gatherCards[0].id);
+            stageProgress.unlock(createItemsCards[0].id);
+            stageProgress.unlock(createUpgradesCards[0].id);
+            stageProgress.unlock(discoverCards[0].id);
+        }
     }
+    //debugFn();
 
-    let cards = stageItems.filter(item => item.tab === tab);
-
-    // Custom array: create-upgrades tab
-    if (
-        tab === 'create' &&
-        subTab === 'upgrades'
-    ) {
-        cards = getCreateUpgradesCardData(
-            stageProgress
-        );
-    }
-
-    // Discover (stageObjectives)
-    if (tab === 'discover') {
-        const discoverCards =
-            getDiscoverCardData(objectivesManager);
-
-        cards = discoverCards;
-    }
+    let cards = getCards(tab, subTab);
 
     cards = cards
         .map(item =>
@@ -100,9 +82,6 @@ function buildCardData(
     // FOR ALL TABS
     const data = {
         ...item,
-
-        // Assign subTab id for CREATE -> ITEMS (subTab default)
-        subTab: subTab ?? null,
 
         // Lock state
         getLockState: () =>
@@ -301,131 +280,6 @@ function getRequirements(reqItemsData, requiredItems) {
 // USAGE
 // const requirements = getRequirements(item.autoReq, gatherItems);
 
-// ==========================================
-// DISCOVER
-// ==========================================
-
-export function getDiscoverCardData(
-    objectivesManager
-) {
-    const returnData = [];
-    stageObjectives.forEach(obj => {
-
-        // Only include these types
-        if (obj.type !== 'objective' &&
-            obj.type !== 'child' &&
-            obj.type !== 'parent') {
-            return;
-        }
-        
-        // New data only
-        const data = {
-            id: obj.id,
-            title: obj.title,
-            tab: 'discover',
-            objectiveText: obj.objectiveText,
-            description: obj.description,
-            
-            required: {
-                items: [],
-                objectives: [],
-                children: []
-            },
-
-            unlocked: {
-                items: [],
-                objectives: [],
-                children: []
-            }
-        };
-
-        // ==========================================
-        // REQUIRED
-        // ==========================================
-
-        if (obj.requirements?.items) {
-            data.required.items =
-                fetchObjData(obj.requirements.items);
-        }
-        
-        if (obj.objectiveText) {
-            data.required.items = [
-                { 
-                    id: 'startsUnlocked',
-                    title: obj.objectiveText,
-                    amt: 0
-                }
-            ];
-        }
-
-        if (obj.requirements?.objectives) {
-            data.required.objectives =
-                fetchObjData(obj.requirements.objectives);
-        }
-
-        // Parent children
-        if (obj.children) {
-            data.required.children =
-                fetchObjData(obj.children);
-        }
-
-        // ==========================================
-        // UNLOCKED
-        // ==========================================
-
-        if (obj.unlocks?.items) {
-            data.unlocked.items =
-                fetchObjData(obj.unlocks.items);
-        }
-
-        if (obj.unlocks?.objectives) {
-            data.unlocked.objectives =
-                fetchObjData(obj.unlocks.objectives);
-        }
-
-        if (obj.unlocks?.children) {
-            data.unlocked.children =
-                fetchObjData(obj.unlocks.children);
-        }
-
-        returnData.push(data);
-    });
-
-    return returnData;
-}
-
-// Helper ^ getDiscoverCardData
-function fetchObjData(data) {
-    if (!Array.isArray(data)) return [];
-    return data.flatMap(item => {
-        // ID only
-        if (typeof item === 'string') {
-            return {
-                id: item,
-                title: getTitle(item)
-            };
-        }
-        // ID + amount
-        if (item && typeof item === 'object') {
-            return Object.entries(item).map(([id, amt]) => ({
-                id,
-                title: getTitle(id),
-                amt
-            }));
-        }
-        return [];
-    });
-}
-
-// Gwt any title matching id
-function getTitle(id) {
-    const stage = stageItems.find(i => i.id === id);
-    if (stage) return stage.title;
-    const objective = stageObjectives.find(i => i.id === id);
-    if (objective) return objective.title;
-    return id;
-}
-
 function actionButtonState(state, element = {}, activeText, inactiveText) {
 
     const newState = {
@@ -497,29 +351,92 @@ export function getTabAvailability(
     autoGather,
     objectivesManager
 ) {
-    // Discover is always available
     if (tab === 'discover') {
         return 'active';
     }
 
-    const cards = stageItems.filter(
-        item => item.tab === tab
-    );
+    const tabs = subTabs[tab] ?? [];
 
-    const hasUnlockedCard = cards.some(item => {
-        const card = buildCardData(
-            item,
+    // Tab has subTabs
+    if (tabs.length) {
+        return tabs.some(subTab =>
+            hasUnlockedCards(
+                tab,
+                subTab.id,
+                stageProgress,
+                autoGather,
+                objectivesManager
+            )
+        )
+            ? 'active'
+            : 'locked';
+    }
+
+    // Tab has no subTabs
+    return hasUnlockedCards(
+        tab,
+        null,
+        stageProgress,
+        autoGather,
+        objectivesManager
+    )
+        ? 'active'
+        : 'locked';
+}
+
+// helper ^ getTabAvailability
+function hasUnlockedCards(
+    tab,
+    subTab,
+    stageProgress,
+    autoGather,
+    objectivesManager
+) {
+    const cards =
+        getCurrentTabCardData(
             tab,
-            null,
+            subTab,
             stageProgress,
             autoGather,
             objectivesManager
         );
 
-        return card.getCardState() !== 'locked';
-    });
+    return cards.some(card =>
+        card.getLockState() === 'unlocked'
+    );
+}
 
-    return hasUnlockedCard
-        ? 'active'
-        : 'locked';
+export function getSubTabData(
+    tab,
+    stageProgress,
+    autoGather,
+    objectivesManager
+) {
+    const tabs = subTabs[tab] ?? [];
+
+    return tabs.map(subTab => {
+
+        const cards =
+            getCurrentTabCardData(
+                tab,
+                subTab.id,
+                stageProgress,
+                autoGather,
+                objectivesManager
+            );
+
+        const unlocked =
+            cards.some(card =>
+                card.getLockState() === 'unlocked'
+            );
+
+        return {
+            ...subTab,
+
+            availability:
+                unlocked
+                    ? 'active'
+                    : 'locked'
+        };
+    });
 }

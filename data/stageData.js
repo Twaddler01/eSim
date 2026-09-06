@@ -15,7 +15,13 @@ export const subTabs = {
     discover: null
 };
 
-export const stageItems = [
+/* LOCAL edit here, mod below
+**** Exports as:
+gatherCards
+createItemsCards
+createUpgradesCards (from tab 'gather')
+*********************/
+const stageItems = [
 
 // Resources
     { stage: 'creation', id: 'darkness', title: 'DARKNESS', tab: 'gather', category: 'element', unlocked: false, max: 10, actionLabel: 'GATHER',
@@ -122,7 +128,8 @@ export const stageItems = [
     }
 ];
 
-export const stageObjectives = [
+// LOCAL version for editing before discoverCards build below
+const stageObjectives = [
     {
         // Parent objective (parent: true, children: [])
         type: 'parent',
@@ -164,22 +171,6 @@ export const stageObjectives = [
             items: [ 'darkness' ], // for testing purposes
         },
         hasFlow: true,
-        /*triggers: {
-            announcements: [
-                {
-                    id: 'obj_done_the_beginning',
-                    delay: 0
-                },
-                {
-                    id: 'obj_new_days_of_creation',
-                    delay: 6000
-                }
-            ],
-            conversation: {
-                id: 'the_beginning_complete',
-                delay: 3000
-            }
-        },*/
         actionLabel: 'COMPLETE'
     },
     {
@@ -200,12 +191,6 @@ export const stageObjectives = [
             items: [ 'light', 'water' ]
         },
         hasFlow: true,
-        /*triggers: {
-            conversation: {
-                id: 'creation_day_1_complete',
-                delay: 1200
-            }
-        },*/
         actionLabel: 'COMPLETE'
     },
     {
@@ -358,7 +343,7 @@ export const stageObjectives = [
 ];
 
 //////////////////////////////////////////
-//////////////////////////////////////////
+// ORGANIZE ARRAYS
 //////////////////////////////////////////
 
 // Returns title with id/cost
@@ -419,12 +404,150 @@ function f_creationStage_createUpgradesCards() {
     return data;
 }
 
+// Modded data for ui display purposes
 function f_creationStage_discoverCards() {
-    return stageObjectives;
+    const returnData = [];
+    stageObjectives.forEach(obj => {
+
+        // Only include these types
+        if (obj.type !== 'objective' &&
+            obj.type !== 'child' &&
+            obj.type !== 'parent') {
+            return;
+        }
+        
+        // New data only
+        const data = {
+            ...obj,
+            id: obj.id,
+            title: obj.title,
+            tab: 'discover',
+            objectiveText: obj.objectiveText,
+            description: obj.description,
+            
+            required: {
+                items: [],
+                objectives: [],
+                children: []
+            },
+
+            unlocked: {
+                items: [],
+                objectives: [],
+                children: []
+            }
+        };
+
+        // ==========================================
+        // REQUIRED
+        // ==========================================
+
+        if (obj.requirements?.items) {
+            data.required.items =
+                fetchObjData(obj.requirements.items);
+        }
+        
+        if (obj.objectiveText) {
+            data.required.items = [
+                { 
+                    id: 'startsUnlocked',
+                    title: obj.objectiveText,
+                    amt: 0
+                }
+            ];
+        }
+
+        if (obj.requirements?.objectives) {
+            data.required.objectives =
+                fetchObjData(obj.requirements.objectives);
+        }
+
+        // Parent children
+        if (obj.children) {
+            data.required.children =
+                fetchObjData(obj.children);
+        }
+
+        // ==========================================
+        // UNLOCKED
+        // ==========================================
+
+        if (obj.unlocks?.items) {
+            data.unlocked.items =
+                fetchObjData(obj.unlocks.items);
+        }
+
+        if (obj.unlocks?.objectives) {
+            data.unlocked.objectives =
+                fetchObjData(obj.unlocks.objectives);
+        }
+
+        if (obj.unlocks?.children) {
+            data.unlocked.children =
+                fetchObjData(obj.unlocks.children);
+        }
+
+        returnData.push(data);
+    });
+
+    return returnData;
 }
 
-// CREATION STAGE CARDS
+//////////////////////////////////////////
+// HELPERS
+//////////////////////////////////////////
+
+// helper ^ fetchObjData ^ f_creationStage_discoverCards
+// Gwt any title matching id
+function getTitle(id) {
+    const cards = [
+        ...gatherCards,
+        ...createItemsCards,
+        ...createUpgradesCards,
+        ...stageObjectives // Raw data
+    ];
+    
+    const item = cards.find(i => i.id === id);
+    if (!item) return;
+
+    return item.title ?? item.id;
+}
+
+// Helper ^ f_creationStage_discoverCards
+function fetchObjData(data) {
+    if (!Array.isArray(data)) return [];
+    return data.flatMap(item => {
+        // ID only
+        if (typeof item === 'string') {
+            return {
+                id: item,
+                title: getTitle(item)
+            };
+        }
+        // ID + amount
+        if (item && typeof item === 'object') {
+            return Object.entries(item).map(([id, amt]) => ({
+                id,
+                title: getTitle(id),
+                amt
+            }));
+        }
+        return [];
+    });
+}
+
+//////////////////////////////////////////
+// CREATION STAGE CARDS 
+//////////////////////////////////////////
+
 export const gatherCards = f_creationStage_gatherCards();
 export const createItemsCards = f_creationStage_createItemsCards();
 export const createUpgradesCards = f_creationStage_createUpgradesCards();
 export const discoverCards = f_creationStage_discoverCards();
+
+export const allCardData = [
+    ...gatherCards,
+    ...createItemsCards,
+    ...createUpgradesCards,
+    ...discoverCards
+];

@@ -2,17 +2,14 @@ import DebugButtons from '../debug/DebugButtons.js';
 import { DEBUG } from '../config.js';
 import StageUI from '../ui/stage/StageUI.js';
 import { gameData } from '../data/gameData.js';
-
-// OLD
-import { stageData, stageItems, stageObjectives } from '../data/stageData.js';
-// NEW
-import { 
+import {
+    stageData,
     gatherCards, 
     createItemsCards,
     createUpgradesCards,
-    discoverCards
+    discoverCards,
+    allCardData
 } from '../data/stageData.js';
-
 import AutoGatherManager from '../managers/AutoGatherManager.js';
 import StageProgressManager from '../managers/StageProgressManager.js';
 import ConversationManager from '../managers/ConversationManager.js';
@@ -28,7 +25,6 @@ export default class CreationScene extends Phaser.Scene {
         super('CreationScene');
         this.scene = this.game;
         this.gameData = gameData;
-        this.stageObjectives = stageObjectives;
         this.flowData = flowData;
         this.conversationData = conversationData;
 
@@ -52,14 +48,12 @@ export default class CreationScene extends Phaser.Scene {
         this.stageProgress =
             new StageProgressManager(this.stageProgressState, {
                     gameData: this.gameData, 
-                    stageData: stageData, 
-                    stageItems: stageItems, 
-                    stageObjectives: this.stageObjectives, 
-                    // NEW
+                    stageData: stageData,
                     gatherCards, 
                     createItemsCards,
                     createUpgradesCards,
-                    discoverCards
+                    discoverCards,
+                    allCardData
                 }
             );
 
