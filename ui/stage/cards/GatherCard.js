@@ -1,5 +1,5 @@
-// CreateGatherCard.js
-export default class CreateGatherCard {
+// GatherCard.js
+export default class GatherCard {
 
     constructor(scene, options = {}) {
 

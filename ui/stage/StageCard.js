@@ -1,7 +1,7 @@
-import { listenToEvent } from '../../utils/stageHelpers.js';
 import CreateUpgradesCard from './cards/CreateUpgradesCard.js';
-import CreateGatherCard from './cards/CreateGatherCard.js';
+import GatherCard from './cards/GatherCard.js';
 import CreateItemsCard from './cards/CreateItemsCard.js';
+import DiscoverCard from './cards/DiscoverCard.js';
 
 // FOR GATHER, CREATE, DISCOVER TABS
 export default class StageCard {
@@ -67,9 +67,6 @@ export default class StageCard {
         this.helpers = options.helpers ?? {};
         // actionButtonState
 
-        // For tracking objectives in DISCOVER tab
-        this.objectivesManager = options.objectivesManager ?? null;
-
         // Pass all data for class cards
         this.options = options;
         
@@ -117,8 +114,8 @@ export default class StageCard {
         switch (this.tab) {
             case 'gather':
                 //this.createGather();
-                this.CreateGatherCard =
-                    new CreateGatherCard(this.scene, {
+                this.gatherCard =
+                    new GatherCard(this.scene, {
                         ...this.options,
                         container: this.container,
                         x: 10,
@@ -165,7 +162,21 @@ export default class StageCard {
                 }
                 break;
             case 'discover':
-                this.createDiscover();
+                this.discoverCard =
+                    new DiscoverCard(this.scene, {
+                        ...this.options,
+                        container: this.container,
+                        x: 10,
+                        y: 10,
+                        width: this.width - 20,
+                        height: this.height - 20,
+                        // Functions needed
+                        refreshHeight: newHeight => this.refreshHeight(newHeight),
+                        isPointerVisible: pointer => this.isPointerVisible(pointer),
+                        updateLockUI: locked => this.updateLockUI(locked),
+                        updateDiscoverOverlay: state => this.updateDiscoverOverlay(state)
+                    }
+                );
                 break;
         }
         
@@ -283,391 +294,18 @@ export default class StageCard {
         );
     }
 
-    updateTracking() {
-        const tracked =
-            this.objectivesManager
-                .isObjectiveTracked(this.id);
-
-        this.discoverUI.trackIcon
-                ?.setFillStyle(
-                    tracked
-                        ? 0xcc4444
-                        : 0x44aa44
-                );
-        
-            this.discoverUI.trackIconText
-                ?.setText(
-                    tracked
-                        ? '−'
-                        : '+'
-                );
-
-        this.discoverUI.trackButtonText?.setText(
-            tracked
-                ? 'UNTRACK'
-                : 'TRACK'
-        );
-        
-        const strokeStyleW = tracked ? 5: 1;
-        const strokeStyleC = tracked ? 0x44aa44: 0xffffff;
-        this.ui.background?.setStrokeStyle(strokeStyleW, strokeStyleC);
-    }
-
-//--------------------------------
-// DISCOVER TAB
-//--------------------------------
-
-    createDiscover() {
-        // (Title already setup) (15, 12)
-        let startY = 12;
-        
-        // Active only
-        this.discoverUI.descriptionText =
-            this.addElement(
-                addText(this.scene,
-                    15,
-                    startY + this.ui.title.height + 5,
-                    this.description,
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        
-        const availability = this.getCardState();
-        const requireText = availability === 'completed' ? 'Required:' : 'Requires:';
-        this.discoverUI.requireLabel =
-            this.addElement(
-                addText(this.scene,
-                    15,
-                    this.discoverUI.descriptionText.y + this.discoverUI.descriptionText.height + 10,
-                    requireText,
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        
-        let currentY = this.discoverUI.requireLabel.y + this.discoverUI.requireLabel.height + 5;
-        
-        if (this.required.items.length) {
-            this.discoverUI.requireItemsTitleText =
-                this.addElement(
-                    addText(this.scene,
-                        25, // +10
-                        currentY,
-                        'ITEMS',
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    )
-                .setOrigin(0)
-            );
-            currentY += this.discoverUI.requireItemsTitleText.height + 5;
-            
-            this.required.items.forEach(item => {
-                const count = item.amt > 0 ? item.amt : '';
-                this.discoverUI.requireList =
-                    this.addElement(
-                        addText(this.scene,
-                            35, // +10
-                            currentY,
-                            '- ' + item.title + ' ' + count,
-                            {
-                                fontSize: '16px',
-                                color: '#ffffff'
-                            }
-                        )
-                    .setOrigin(0)
-                );
-                currentY += this.discoverUI.requireList.height + 5;
-            });
-        }
-
-        if (this.required.children.length) {
-            this.discoverUI.requireObjTitleText =
-                this.addElement(
-                    addText(this.scene,
-                        25, // +10
-                        currentY,
-                        'OBJECTIVES',
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    )
-                .setOrigin(0)
-            );
-            currentY += this.discoverUI.requireObjTitleText.height + 5;
-            
-            this.required.children.forEach(item => {
-                this.discoverUI.requireChildrenList =
-                    this.addElement(
-                        addText(this.scene,
-                            35, // +10
-                            currentY,
-                            '- ' + item.title,
-                            {
-                                fontSize: '16px',
-                                color: '#ffffff'
-                            }
-                        )
-                    .setOrigin(0)
-                );
-                currentY += this.discoverUI.requireChildrenList.height + 5;
-            });
-        }
-        
-        if (currentY > this.height) {
-            this.refreshHeight(currentY + 10);
-        }
-        
-        // For unlocks display
-        const currentX = this.width - 250;
-        currentY = 30;
-        
-        const unlockText = availability === 'completed' ? 'Unlocked:' : 'Unlocks:';
-        if (this.unlocked.items.length || this.unlocked.objectives.length) {
-            this.discoverUI.unlockTitle =
-                this.addElement(
-                    addText(
-                        this.scene,
-                        currentX,
-                        currentY,
-                        unlockText,
-                        {
-                            fontSize: '30px',
-                            color: '#ffffff'
-                        }
-                    )
-                .setOrigin(0)
-            );
-        
-            currentY += this.discoverUI.unlockTitle.height + 15;
-        }
-        
-        let unlocksItemsTitleTextHeight = 0;
-        if (this.unlocked.items.length) {
-            this.discoverUI.unlocksItemsTitleText =
-                this.addElement(
-                    addText(this.scene,
-                        currentX,
-                        currentY,
-                        'ITEMS',
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    )
-                .setOrigin(0)
-            );
-            unlocksItemsTitleTextHeight = this.discoverUI.unlocksItemsTitleText.height;
-            
-            currentY += this.discoverUI.unlocksItemsTitleText.height + 5;
-
-            this.unlocked.items.forEach(item => {
-                this.discoverUI.unlocksItemsText =
-                    this.addElement(
-                        addText(this.scene,
-                            currentX,
-                            currentY,
-                            '- ' + item.title,
-                            {
-                                fontSize: '16px',
-                                color: '#ffffff'
-                            }
-                        )
-                    .setOrigin(0)
-                );
-                
-                currentY += this.discoverUI.unlocksItemsText.height + 5;
-            });
-        }
-        
-        currentY += unlocksItemsTitleTextHeight;
-
-        if (this.unlocked.objectives.length) {
-            this.discoverUI.unlocksObjTitleText =
-                this.addElement(
-                    addText(this.scene,
-                        currentX,
-                        currentY,
-                        'OBJECTIVES',
-                        {
-                            fontSize: '16px',
-                            color: '#ffffff'
-                        }
-                    )
-                .setOrigin(0)
-            );
-            
-            currentY += this.discoverUI.unlocksObjTitleText.height + 5;
-
-            this.unlocked.objectives.forEach(item => {
-                this.discoverUI.unlocksObjText =
-                    this.addElement(
-                        addText(this.scene,
-                            currentX,
-                            currentY,
-                            '- ' + item.title,
-                            {
-                                fontSize: '16px',
-                                color: '#ffffff'
-                            }
-                        )
-                    .setOrigin(0)
-                );
-                
-                currentY += this.discoverUI.unlocksObjText.height + 5;
-                
-            });
-        }
-
-        const contentBottomY = currentY;
-        
-        // Give the card room for the button
-        const buttonHeight = 30;
-        const buttonGap = 10;
-        const bottomPadding = 10;
-        
-        const requiredHeight =
-            contentBottomY +
-            buttonGap +
-            buttonHeight +
-            bottomPadding;
-        
-        if (requiredHeight > this.height) {
-            this.refreshHeight(requiredHeight);
-        }
-
-        this.createTrackingUI();
-    }
-
-    createTrackingUI() {
-
-        this.discoverUI.trackButton =
-            this.addElement(
-                this.scene.add.rectangle(
-                    this.width / 2,
-                    this.height - 40,
-                    140,
-                    32,
-                    0x000055
-                )
-                .setOrigin(0.5)
-                .setInteractive({
-                    useHandCursor: true
-                })
-                .setStrokeStyle(1, 0xffffff)
-            );
-        
-        this.discoverUI.trackIcon =
-            this.addElement(
-                this.scene.add.circle(
-                    this.width / 2 - 45,
-                    this.height - 40,
-                    10,
-                    0x44aa44
-                )
-            );
-        
-        this.discoverUI.trackIconText =
-            this.addElement(
-                addText(
-                    this.scene,
-                    this.width / 2 - 45,
-                    this.height - 40,
-                    '+',
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-                .setOrigin(0.5)
-            );
-        
-        this.discoverUI.trackButtonText =
-            this.addElement(
-                addText(
-                    this.scene,
-                    this.width / 2 - 20,
-                    this.height - 40,
-                    'TRACK',
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-                .setOrigin(0, 0.5)
-            );
-
-        // LISTEN FOR OBJECTIVE CHANGES
-        this.removeObjectiveListener =
-            listenToEvent(
-                this.objectivesManager,
-                'updated',
-                event => {
-        
-                    if (event.id !== this.id) {
-                        return;
-                    }
-        
-                    if (
-                        // initializeObjectiveTracking(), setObjectiveTracked()
-                        event.type === 'objective-track'
-                    ) {
-                        this.updateTracking();
-                    }
-                }
-            );
-
-        // INITIAL TRACKING STATE
-        this.updateTracking();
-    
-        this.discoverUI.trackButton.on(
-            'pointerdown',
-            pointer => {
-                if (!this.isPointerVisible(pointer)) {
-                    return;
-                }
-        
-                const tracked =
-                    this.objectivesManager
-                        .isObjectiveTracked(
-                            this.id
-                        );
-        
-                this.objectivesManager
-                    .setObjectiveTracked(
-                        this.id,
-                        !tracked
-                    );
-            }
-        );
-    }
-
 //--------------------------------
 // PROCESS UI UPDATES [ StageViewport ]
 //--------------------------------
 
     update() {
-        const data = {
-            cardUpdates: this.getCardUpdates(),
-            state: this.getCardState(),
-        };
-
-        this.updateUI(data);
+        this.updateUI();
     }
 
     updateUI(data) {
         switch (this.tab) {
             case 'gather':
-                this.CreateGatherCard?.update();
+                this.GatherCard?.update();
                 break;
             case 'create':
                 // Default
@@ -680,81 +318,43 @@ export default class StageCard {
                 }
                 break;
             case 'discover':
-                this.updateDiscover(data);
+                this.discoverCard?.update();;
                 break;
         }
-    }
-
-    updateDiscover(data) {
-        this.updateTracking();
-        // Replaces this.getLockState() / updateLockUI not needed
-        this.updateAvailability(data.state);
     }
 
 //--------------------------------
 // AVAILABILITY FUNCTIONS (MULTI)
 //--------------------------------
 
-    // LOCKED OVERLAY
+    // LOCKED OVERLAY AND OTHER UI
     updateLockUI(locked) {
         this.ui.lockOverlay?.setVisible(locked);
         this.ui.availabilityText?.setVisible(locked);
     }
-
-    // AVAILABILITY
-    updateAvailability(state) {
-        // Track UI for only active objectives
-        const canTrack =
-            state !== 'completed' &&
-            state !== 'locked';
-        this.discoverUI.trackButton?.setVisible(canTrack);
-        this.discoverUI.trackButtonText?.setVisible(canTrack);
-        this.discoverUI.trackIcon?.setVisible(canTrack);
-        this.discoverUI.trackIconText?.setVisible(canTrack);
-
-        if (canTrack) {
-            this.updateTracking();
-        }
     
-        // Reset
-        this.ui.lockOverlay?.setVisible(false);
-        this.ui.availabilityText?.setVisible(false);
-        this.discoverUI.availabilityTitle?.setVisible(false);
-
-        // Discover updates
-        const requireText = state === 'completed' ? 'Required:' : 'Requires:';
-        this.discoverUI.requireLabel?.setText(requireText);
+    updateDiscoverOverlay(data) {
+        // tracked
+        if (data.tracked !== undefined) {
+            const strokeStyleW = data.tracked ? 5: 1;
+            const strokeStyleC = data.tracked ? 0x44aa44: 0xffffff;
+    
+            this.ui.background?.setStrokeStyle(strokeStyleW, strokeStyleC);
+        }
         
-        const unlockText = state === 'completed' ? 'Unlocked:' : 'Unlocks:';
-        this.ui.unlockTitle?.setText(unlockText);
-
-        // ACTIVE
-        if (state === 'active') {
-            // Discover
-            if (this.tab === 'discover') {
-                this.discoverUI.availabilityTitle?.setVisible(true);
-                this.ui.availabilityText?.setVisible(true)
-                    .setText('[ IN PROGRESS ]');
-            }
-            
-            return;
+        // unlockText
+        if (data.unlockText !== undefined) {
+            this.ui.unlockTitle?.setText(data.unlockText);
         }
-
-        // COMPLETED
-        if (state === 'completed') {
-            // Discover
-            if (this.tab === 'discover') {
-                this.discoverUI.availabilityTitle?.setVisible(true);
-                this.ui.availabilityText?.setVisible(true)
-                    .setText('COMPLETED');
-                this.ui.background?.setFillStyle(0x112a12);
-            }
-            return;
+        
+        // availabilityText
+        if (data.availabilityText?.state === 'active') {
+            this.ui.availabilityText?.setVisible(true).setText('[ IN PROGRESS ]');
         }
-
-        // LOCKED
-        this.ui.lockOverlay?.setVisible(true);
-        this.ui.availabilityText?.setVisible(true);
+        if (data.availabilityText?.state === 'completed') {
+            this.ui.availabilityText?.setVisible(true).setText('COMPLETED');
+            this.ui.background?.setFillStyle(0x112a12);
+        }
     }
 
     setY(y) {
@@ -789,8 +389,6 @@ export default class StageCard {
 
     // DESTROY
     destroy() {
-        this.removeObjectiveListener?.();
-  
         this.elements.forEach(
             element => element.destroy()
         );
