@@ -71,7 +71,7 @@ export default class GatherCard {
                     'Gather Rate: +' + currentGatherRate,
                     {
                         fontSize: '12px',
-                        color: '#ffffff'
+                        color: '#fff200'
                     }
                 )
             .setOrigin(0)

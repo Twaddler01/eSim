@@ -40,6 +40,7 @@ export default class DiscoverCard {
         this.getCardState = options.getCardState ?? (() => 'locked');
 
         this.id = options.id ?? null;
+        this.startsUnlocked = options.startsUnlocked ?? null;
         this.required = options.required ?? null;
         this.unlocked = options.unlocked ?? null;
         this.refreshHeight = options.refreshHeight;
@@ -62,12 +63,14 @@ export default class DiscoverCard {
         // (Title already setup) (15, 12)
         let startY = 12;
         const titleHeight = 24.27;
+
+        const x = 30;
         
-        // Active only
+        // WIP  Active only top center
         this.discoverUI.descriptionText =
             this.addElement(
                 addText(this.scene,
-                    15,
+                    x,
                     startY + titleHeight + 5,
                     this.description,
                     {
@@ -78,29 +81,31 @@ export default class DiscoverCard {
             .setOrigin(0)
         );
         
+        // LEFT SIDE
         const availability = this.getCardState();
         const requireText = availability === 'completed' ? 'Required:' : 'Requires:';
+
         this.discoverUI.requireLabel =
             this.addElement(
                 addText(this.scene,
-                    15,
-                    this.discoverUI.descriptionText.y + this.discoverUI.descriptionText.height + 10,
+                    x,
+                    30,
                     requireText,
                     {
-                        fontSize: '16px',
+                        fontSize: '30px',
                         color: '#ffffff'
                     }
                 )
             .setOrigin(0)
         );
-        
-        let currentY = this.discoverUI.requireLabel.y + this.discoverUI.requireLabel.height + 5;
+
+        let currentY = 30 + this.discoverUI.requireLabel.height + 15;
         
         if (this.required.items.length) {
             this.discoverUI.requireItemsTitleText =
                 this.addElement(
                     addText(this.scene,
-                        25, // +10
+                        x + 10,
                         currentY,
                         'ITEMS',
                         {
@@ -110,6 +115,8 @@ export default class DiscoverCard {
                     )
                 .setOrigin(0)
             );
+            if (this.startsUnlocked) this.discoverUI.requireItemsTitleText.setVisible(false);
+            
             currentY += this.discoverUI.requireItemsTitleText.height + 5;
             
             this.required.items.forEach(item => {
@@ -117,12 +124,12 @@ export default class DiscoverCard {
                 this.discoverUI.requireList =
                     this.addElement(
                         addText(this.scene,
-                            35, // +10
+                            x + 20,
                             currentY,
                             '- ' + item.title + ' ' + count,
                             {
                                 fontSize: '16px',
-                                color: '#ffffff'
+                                color: '#fff200'
                             }
                         )
                     .setOrigin(0)
@@ -135,7 +142,7 @@ export default class DiscoverCard {
             this.discoverUI.requireObjTitleText =
                 this.addElement(
                     addText(this.scene,
-                        25, // +10
+                        x + 10,
                         currentY,
                         'OBJECTIVES',
                         {
@@ -151,12 +158,12 @@ export default class DiscoverCard {
                 this.discoverUI.requireChildrenList =
                     this.addElement(
                         addText(this.scene,
-                            35, // +10
+                            x + 20,
                             currentY,
                             '- ' + item.title,
                             {
                                 fontSize: '16px',
-                                color: '#ffffff'
+                                color: '#fff200'
                             }
                         )
                     .setOrigin(0)
@@ -167,8 +174,10 @@ export default class DiscoverCard {
         
         const requirementsBottomY = currentY;
         
-        // For unlocks display
-        const currentX = this.width - 250;
+        // RIGHT SIDE
+        let unlocksItemsTitleTextHeight = 0;
+        let currentX = this.width / 3 * 2 + 30;
+        
         currentY = 30;
         
         const unlockText = availability === 'completed' ? 'Unlocked:' : 'Unlocks:';
@@ -191,7 +200,6 @@ export default class DiscoverCard {
             currentY += this.discoverUI.unlockTitle.height + 15;
         }
         
-        let unlocksItemsTitleTextHeight = 0;
         if (this.unlocked.items.length) {
             this.discoverUI.unlocksItemsTitleText =
                 this.addElement(
@@ -219,7 +227,7 @@ export default class DiscoverCard {
                             '- ' + item.title,
                             {
                                 fontSize: '16px',
-                                color: '#ffffff'
+                                color: '#fff200'
                             }
                         )
                     .setOrigin(0)
@@ -257,7 +265,7 @@ export default class DiscoverCard {
                             '- ' + item.title,
                             {
                                 fontSize: '16px',
-                                color: '#ffffff'
+                                color: '#fff200'
                             }
                         )
                     .setOrigin(0)
@@ -485,7 +493,6 @@ export default class DiscoverCard {
 
         // ACTIVE
         if (state === 'active') {
-            this.discoverUI.availabilityTitle?.setVisible(true);
             this.updateDiscoverOverlay({
                 availabilityText: {
                     state: 'active'
@@ -497,7 +504,6 @@ export default class DiscoverCard {
 
         // COMPLETED
         if (state === 'completed') {
-            this.discoverUI.availabilityTitle?.setVisible(true);
             this.updateDiscoverOverlay({
             availabilityText: {
                     state: 'completed'

@@ -13,6 +13,9 @@ export default class CreateItemsCard {
         // Use this.x, this.y (inherited)
         this.container = options.container ?? null;
 
+        // Raw data
+        this.description = options.description ?? null;
+
         // From StageCard
         this.updateLockUI = options.updateLockUI ?? (() => {});
         // For lock overlay (discover tab)  or filter in other tabs
@@ -52,22 +55,24 @@ export default class CreateItemsCard {
         
         const requirements = this.getCardUpdates();
 
-        let currentY = yOffset + 35;
+        let currentY = yOffset + 5;
         
-        this.createUI.descriptionText =
-            this.addElement(
-                addText(this.scene,
-                    15,
-                    currentY,
-                    this.description,
-                    {
-                        fontSize: '16px',
-                        color: '#ffffff'
-                    }
-                )
-            .setOrigin(0)
-        );
-        currentY += this.createUI.descriptionText.height + 5;
+        if (this.description) {
+            this.createUI.descriptionText =
+                this.addElement(
+                    addText(this.scene,
+                        15,
+                        currentY,
+                        this.description,
+                        {
+                            fontSize: '16px',
+                            color: '#ffffff'
+                        }
+                    )
+                .setOrigin(0)
+            );
+            currentY += this.createUI.descriptionText.height + 20;
+        }
 
         this.createUI.producesLabels = [];
         requirements.produces.forEach(pro => {
@@ -79,7 +84,7 @@ export default class CreateItemsCard {
                         '- Create: +' + pro.producesCnt + ' ' + pro.title,
                         {
                             fontSize: '16px',
-                            color: '#ffffff'
+                            color: '#fff200'
                         }
                     )
                 .setOrigin(0)

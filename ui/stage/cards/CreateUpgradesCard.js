@@ -63,7 +63,7 @@ export default class CreateUpgradesCard {
                     'Auto Gather',
                     {
                         fontSize: '18px',
-                        color: '#ffffff'
+                        color: '#fff200'
                     }
                 )
             .setOrigin(0)

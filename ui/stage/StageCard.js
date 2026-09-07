@@ -86,8 +86,6 @@ export default class StageCard {
         this.ui = {};
         // Specialized UI cards by type
         this.gatherUI = {};
-        this.createUI = {};
-        this.discoverUI = {};
 
         this.create();
         this.update(options);
@@ -251,7 +249,7 @@ export default class StageCard {
         
         // DISCOVER ONLY
         if (this.tab === 'discover') {
-            this.discoverUI.availabilityTitle =
+            this.ui.availabilityTitle =
                 this.addElement(
                     addText(this.scene,
                         this.width / 2,
@@ -347,11 +345,16 @@ export default class StageCard {
             this.ui.unlockTitle?.setText(data.unlockText);
         }
         
+        // RESET
+        this.ui.availabilityTitle?.setVisible(false);
+
         // availabilityText
         if (data.availabilityText?.state === 'active') {
+            this.ui.availabilityTitle?.setVisible(true);
             this.ui.availabilityText?.setVisible(true).setText('[ IN PROGRESS ]');
         }
         if (data.availabilityText?.state === 'completed') {
+            this.ui.availabilityTitle?.setVisible(true);
             this.ui.availabilityText?.setVisible(true).setText('COMPLETED');
             this.ui.background?.setFillStyle(0x112a12);
         }
@@ -399,7 +402,5 @@ export default class StageCard {
     
         this.ui = {};
         this.gatherUI = {};
-        this.createUI = {};
-        this.discoverUI = {};
     }
 }
