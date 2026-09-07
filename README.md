@@ -7,14 +7,12 @@
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
 # Work In progress
-- Rework StageCard to use individual classes for each tab (2 left).
 - Tab titles at top of viewport to better show user navigation (or just close the empty space?).
 - KNOWN ISSUE: Periodically receive 'addText is not defined" error due to JS import caching from frequent page updates. Rarely occurs locally. May need to setup cache busting in the future.
 
 # Recent Updates
-09-05-2026
-- Cleaned up data arrays for new disable tab features.
-- Added disabled/locked empty tabs.
+09-06-2026
+- Completed StageCard rework to use individual classes for each tab.
 
 # Future Updates / Ideas
 - Hide all cards except unlocked ones and DISCOVER cards. Showing all for debugging right now. Certain other cards may still be shown LOCKED by discretion for progress.
@@ -29,6 +27,10 @@
 - Focused on darkness and light elements: black holes, light photons, etc.
 
 # [ ARCHIVED UPDATES ]
+09-05-2026
+- Cleaned up data arrays for new disable tab features.
+- Added disabled/locked empty tabs.
+
 09-04-2026
 - Reworked unlocks to be required for all items and objectives. All unlocks work live.
 - DebugButtons class allows for live unlocking of any locked card for testing.
