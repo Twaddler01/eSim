@@ -305,7 +305,7 @@ export default class StageCard {
     updateUI(data) {
         switch (this.tab) {
             case 'gather':
-                this.GatherCard?.update();
+                this.gatherCard?.update();
                 break;
             case 'create':
                 // Default
