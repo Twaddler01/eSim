@@ -85,7 +85,6 @@ export default class StageCard {
         // Source for ALL cards
         this.ui = {};
         // Specialized UI cards by type
-        this.gatherUI = {};
 
         this.create();
         this.update(options);
@@ -321,10 +320,6 @@ export default class StageCard {
         }
     }
 
-//--------------------------------
-// AVAILABILITY FUNCTIONS (MULTI)
-//--------------------------------
-
     // LOCKED OVERLAY AND OTHER UI
     updateLockUI(locked) {
         this.ui.lockOverlay?.setVisible(locked);
@@ -359,6 +354,10 @@ export default class StageCard {
             this.ui.background?.setFillStyle(0x112a12);
         }
     }
+
+//--------------------------------
+// POSITION ADJUSTMENTS
+//--------------------------------
 
     setY(y) {
         this.y = y;
@@ -401,6 +400,5 @@ export default class StageCard {
         this.container?.destroy();
     
         this.ui = {};
-        this.gatherUI = {};
     }
 }
