@@ -117,8 +117,8 @@ export default class StageCard {
                         container: this.container,
                         x: 10,
                         y: 10,
-                        width: this.width - 20,
-                        height: this.height - 20,
+                        width: this.width,
+                        height: this.height,
                         titleY: this.ui.title.y + 70,
                         // Functions needed
                         isPointerVisible: pointer => this.isPointerVisible(pointer),

@@ -6,16 +6,16 @@ export default class GatherCard {
         this.scene = scene;
         this.x = options.x ?? 0;
         this.y = options.y ?? 0;
-        this.width = options.width ?? 200;
+        this.width = options.width ?? 915;
         this.height = options.height ?? 50;
         this.titleY = options.titleY ?? 82;
         this.isPointerVisible = options.isPointerVisible ?? (() => true);
-        
+
         // Use this.x, this.y (inherited)
         this.container = options.container ?? null;
 
         // Layout
-        this.upgradeBoxWidth = 200;
+        this.upgradeBoxWidth = this.width / 4; // 183
         this.gatherLeftPanelWidth =
             this.width - this.upgradeBoxWidth;
         this.title = options.title ?? '';

@@ -6,6 +6,13 @@
 - Strictly client-side (Node.js not utilized)
 - URL: [Play eSim](https://Twaddler01.github.io/eSim/)
 
+# UPDATE
+- Work is being done to create game as an Android app in Webview.
+- This page may be outdated.
+- To view current progress, please see [eSimBuildAPK](https://github.com/Twaddler01/eSimBuildAPK/tree/main)
+
+***
+
 # Work In progress
 - Tab titles at top of viewport to better show user navigation (or just close the empty space?).
 - KNOWN ISSUE: Periodically receive 'addText is not defined" error due to JS import caching from frequent page updates. Rarely occurs locally. May need to setup cache busting in the future.
